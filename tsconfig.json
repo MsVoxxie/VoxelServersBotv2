@@ -1,0 +1,26 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"_version": "20.1.0",
+
+	"compilerOptions": {
+		"lib": ["ESNext", "dom"],
+		"module": "nodenext",
+		"target": "esnext",
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"moduleResolution": "nodenext",
+		"removeComments": true,
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"sourceMap": false
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist"],
+	"watchOptions": {
+		"watchFile": "useFsEvents",
+		"watchDirectory": "useFsEvents",
+		"fallbackPolling": "dynamicPriority"
+	}
+}
