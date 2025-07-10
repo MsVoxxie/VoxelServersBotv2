@@ -1,6 +1,6 @@
 const { Events } = require('discord.js');
-import Logger from '../../functions/logger';
-import { getAllInstances } from '../../functions/ampAPI/main';
+import Logger from '../../utils/logger';
+import { getAllInstances } from '../../utils/ampAPI/main';
 
 module.exports = {
 	name: Events.ClientReady,

@@ -2,6 +2,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Logger
+import Logger from './utils/logger';
+
 // Discord Client
 import './types/clientTypes';
 import { Client, Collection, GatewayIntentBits, Partials } from 'discord.js';
@@ -30,7 +33,11 @@ client.events = new Collection();
 import eventLoader from './loaders/eventLoader';
 eventLoader(client);
 
+// Load API
+import server from './loaders/server';
+server(client);
+
 // Login
 client.login(process.env.DISCORD_TOKEN).catch((error) => {
-	console.error('Failed to login:', error);
+	Logger.error('Login Error', `Failed to login: ${error.message}`);
 });

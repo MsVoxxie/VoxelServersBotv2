@@ -4,7 +4,7 @@ const eventTable = new Table({
 	style: { head: ['cyan'] },
 });
 
-import getAllFiles from '../functions/fileFuncs';
+import getAllFiles from '../utils/fileFuncs';
 import { join } from 'path';
 import type { Client } from 'discord.js';
 
