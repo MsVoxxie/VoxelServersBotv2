@@ -1,35 +1,28 @@
-// Console colors
 import colors from 'colors';
 
-// [INFO] console out
-const info = function (message: string) {
-	console.log(colors.cyan('[INFO]'), message);
-};
+function logInfo(context: string, message: string) {
+	console.log(colors.cyan(`[${context}]`), message);
+}
 
-// [WARN] console out
-const warn = function (message: string) {
-	console.log(colors.yellow('[WARN]'), message);
-};
-// [ERROR] console out
-const error = function (message: string) {
-	console.log(colors.red('[ERROR]'), message);
-};
+function logWarn(context: string, message: string) {
+	console.log(colors.yellow(`[${context}]`), message);
+}
 
-// [SUCCESS] console out
-const success = function (message: string) {
-	console.log(colors.green('[SUCCESS]'), message);
-};
+function logError(context: string, err: unknown) {
+	if (err instanceof Error) {
+		console.log(colors.red(`[${context}]`), err.message, '\n', err.stack);
+	} else {
+		console.log(colors.red(`[${context}]`), err);
+	}
+}
 
-// [CAPI] console out
-const capi = function (message: string) {
-	console.log(colors.rainbow('[CAPI]'), message);
-};
+function logSuccess(context: string, message: string) {
+	console.log(colors.green(`[${context}]`), message);
+}
 
-// Module exports
 export default {
-	info,
-	warn,
-	error,
-	success,
-	capi,
+	info: logInfo,
+	warn: logWarn,
+	error: logError,
+	success: logSuccess,
 };
