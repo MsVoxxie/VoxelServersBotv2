@@ -7,7 +7,7 @@ module.exports = {
 	runType: 'single',
 	async execute(client: { user: { tag: any } }) {
 		Logger.success('Ready Event', `Logged in as ${client.user.tag}!`);
-		const instances = await getAllInstances();
+		const instances = await getAllInstances({ fetch: 'all' });
 		Logger.info('Available Instances', instances.map((instance) => instance.FriendlyName).join(', '));
 	},
 };
