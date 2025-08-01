@@ -14,3 +14,8 @@ export interface EventData {
 	runType: 'always' | 'once' | 'disabled';
 	execute: (...args: any[]) => void | Promise<void | InteractionResponse>;
 }
+
+export interface ScheduleTaskData {
+	name: string;
+	run: (deps?: any) => Promise<void> | void;
+}

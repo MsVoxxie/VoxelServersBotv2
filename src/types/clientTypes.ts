@@ -1,4 +1,5 @@
 import { Collection } from 'discord.js';
+import { RedisClientType } from 'redis';
 
 declare module 'discord.js' {
 	interface Client {
@@ -7,5 +8,6 @@ declare module 'discord.js' {
 		cooldowns: Collection<string, Collection<string, number>>;
 		commands: Collection<string, any>;
 		events: Collection<string, any>;
+		redis?: RedisClientType | null;
 	}
 }

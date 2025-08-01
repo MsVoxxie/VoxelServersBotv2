@@ -4,14 +4,14 @@ const commandTable = new Table({
 	style: { head: ['cyan'] },
 });
 
-import getAllFiles from '../utils/fileFuncs';
+import getAllFiles from '../../utils/fileFuncs';
 import { join } from 'path';
 import type { Client } from 'discord.js';
-import type { CommandData } from '../types/commandTypes';
+import type { CommandData } from '../../types/commandTypes';
 
 export default (client: Client) => {
 	// Read the commands directory
-	const commandFolders = getAllFiles(join(__dirname, '../../dist/commands'), true);
+	const commandFolders = getAllFiles(join(__dirname, '../../commands'), true);
 
 	// Loop over the commands directory to retrieve all command files
 	for (const commandFolder of commandFolders) {

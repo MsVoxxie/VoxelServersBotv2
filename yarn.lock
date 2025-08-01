@@ -77,6 +77,33 @@
   resolved "https://registry.yarnpkg.com/@neuralnexus/ampapi/-/ampapi-1.0.19.tgz#d177fa000a62e14f6eb457a824b87d43fdc2ed7f"
   integrity sha512-V382VxRTC7u5l6KK71khnOgO3MYN11s3gVFxFCcND7u9wJxLOhT9c3BB8VMKQFOh5gRNKzArntxAm4PDGxBzNA==
 
+"@redis/bloom@5.7.0":
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/@redis/bloom/-/bloom-5.7.0.tgz#69e00b57ab32beabc168c58418ee3ba979a8b6ea"
+  integrity sha512-KtBHDH2Aw1BxYDQd87PJsdEmZcpMbD4oPzdBwB4IvSRmMovukO2NNGi5vpCHhCoicS83zu7cjX1fw79uFBZFJA==
+
+"@redis/client@5.7.0":
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/@redis/client/-/client-5.7.0.tgz#e84be49497eddb13811085501e20fb3b57659fa1"
+  integrity sha512-YV3Knspdj9k6H6s4v8QRcj1WBxHt40vtPmszLKGwRUOUpUOLWSlI9oCUjprMDcQNzgSCXGXYdL/Aj6nT2+Ub0w==
+  dependencies:
+    cluster-key-slot "1.1.2"
+
+"@redis/json@5.7.0":
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/@redis/json/-/json-5.7.0.tgz#b0774aee0c68945457b0af52d0c005f82e7d2080"
+  integrity sha512-VP3wtse1PSB/UjZAV1lWyDrWrrZcwi/cjb3L0lIarcIJ+EbHliB2QPml0Bvjz8F8F0eDJRtChJVXFc+jhGxCtA==
+
+"@redis/search@5.7.0":
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/@redis/search/-/search-5.7.0.tgz#907cc4036077dac85de9dd63d057c8bb2709db73"
+  integrity sha512-dDZIq8pZJnT+kZ9xRlLLi2Rvkd792z9eh31QRIwPr5wXjAXeaQ+Nf65em6dLpsxZ60MmhwDwLrBPJpYVjKPBPQ==
+
+"@redis/time-series@5.7.0":
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/@redis/time-series/-/time-series-5.7.0.tgz#43089195bf85e6468edaa4e664b26b4b7842f697"
+  integrity sha512-AJTF9sz3y1MJAukgQW4Jw8zt8qGOE3+1d87pufOP35zsFBlHipGscpctoXiNMebfy0114y/FjSprr65LjbJQSQ==
+
 "@sapphire/async-queue@^1.5.2", "@sapphire/async-queue@^1.5.3":
   version "1.5.5"
   resolved "https://registry.yarnpkg.com/@sapphire/async-queue/-/async-queue-1.5.5.tgz#2b18d402bb920b65b13ad4ed8dfb6c386300dd84"
@@ -263,6 +290,11 @@ cli-table3@^0.6.5:
     string-width "^4.2.0"
   optionalDependencies:
     "@colors/colors" "1.5.0"
+
+cluster-key-slot@1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/cluster-key-slot/-/cluster-key-slot-1.1.2.tgz#88ddaa46906e303b5de30d3153b7d9fe0a0c19ac"
+  integrity sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==
 
 colors@^1.4.0:
   version "1.4.0"
@@ -691,6 +723,17 @@ raw-body@2.5.2:
     http-errors "2.0.0"
     iconv-lite "0.4.24"
     unpipe "1.0.0"
+
+redis@^5.7.0:
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/redis/-/redis-5.7.0.tgz#55264320a300dd2ca72a6d455af9e46b666b8345"
+  integrity sha512-ZRbiWYBUYdDTopodRjCVwwCLThrkciPW3bOrkdMCW3nYEelBwUGN6SovmACDsiLUB7mnU3mXnaI5f0W7bDcwng==
+  dependencies:
+    "@redis/bloom" "5.7.0"
+    "@redis/client" "5.7.0"
+    "@redis/json" "5.7.0"
+    "@redis/search" "5.7.0"
+    "@redis/time-series" "5.7.0"
 
 safe-buffer@5.2.1:
   version "5.2.1"

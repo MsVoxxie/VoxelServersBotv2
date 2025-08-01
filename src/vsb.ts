@@ -30,15 +30,15 @@ client.commands = new Collection();
 client.events = new Collection();
 
 // Load Events
-import eventLoader from './loaders/eventLoader';
+import eventLoader from './loaders/discord/eventLoader';
 eventLoader(client);
 
 // Load Commands
-import commandLoader from './loaders/commandLoader';
+import commandLoader from './loaders/discord/commandLoader';
 commandLoader(client);
 
 // Load API
-import server from './loaders/server';
+import server from './loaders/api/server';
 server(client);
 
 // Login

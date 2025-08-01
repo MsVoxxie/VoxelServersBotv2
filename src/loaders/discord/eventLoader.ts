@@ -4,14 +4,14 @@ const eventTable = new Table({
 	style: { head: ['cyan'] },
 });
 
-import getAllFiles from '../utils/fileFuncs';
+import getAllFiles from '../../utils/fileFuncs';
 import { join } from 'path';
 import type { Client } from 'discord.js';
-import type { EventData } from '../types/commandTypes';
+import type { EventData } from '../../types/commandTypes';
 
 export default (client: Client) => {
 	// Read the events directory
-	const eventFolders = getAllFiles(join(__dirname, '../../dist/events'), true);
+	const eventFolders = getAllFiles(join(__dirname, '../../events'), true);
 
 	for (const eventFolder of eventFolders) {
 		const eventFolderName = eventFolder.replace(/\\/g, '/').split('/').pop();
