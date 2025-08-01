@@ -4,7 +4,7 @@ import logger from '../../utils/logger';
 const redisHost = process.env.REDIS_IP;
 const redisPort = process.env.REDIS_PORT;
 
-const redis = createClient({
+const redis: RedisClientType = createClient({
 	url: `redis://${redisHost}:${redisPort}`,
 });
 
@@ -21,5 +21,7 @@ export async function connectRedis() {
 			logger.error('Redis Connection Error', `Failed to connect to Redis. Error:\n${err instanceof Error ? err.message : String(err)}`);
 		}
 	}
-	return redis as RedisClientType | null;
+	return redis;
 }
+
+export default redis;

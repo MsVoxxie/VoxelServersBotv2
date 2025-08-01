@@ -1,4 +1,4 @@
-import type { RedisClientType } from 'redis';
+import { RedisClientType } from 'redis';
 
 export async function setJson<T>(client: RedisClientType, key: string, value: T, path = '$') {
 	await client.sendCommand(['JSON.SET', key, path, JSON.stringify(value)]);
