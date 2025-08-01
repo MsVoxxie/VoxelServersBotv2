@@ -7,7 +7,7 @@ import Logger from './utils/logger';
 
 // Discord Client
 import './types/clientTypes';
-import { Client, Collection, GatewayIntentBits, Partials } from 'discord.js';
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
 const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,
@@ -32,6 +32,10 @@ client.events = new Collection();
 // Load Events
 import eventLoader from './loaders/eventLoader';
 eventLoader(client);
+
+// Load Commands
+import commandLoader from './loaders/commandLoader';
+commandLoader(client);
 
 // Load API
 import server from './loaders/server';

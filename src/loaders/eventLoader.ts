@@ -7,31 +7,32 @@ const eventTable = new Table({
 import getAllFiles from '../utils/fileFuncs';
 import { join } from 'path';
 import type { Client } from 'discord.js';
+import type { EventData } from '../types/commandTypes';
 
 export default (client: Client) => {
 	// Read the events directory
 	const eventFolders = getAllFiles(join(__dirname, '../../dist/events'), true);
-	// Loop over the events directory to retrieve all event files
+
 	for (const eventFolder of eventFolders) {
 		const eventFolderName = eventFolder.replace(/\\/g, '/').split('/').pop();
-		// Get event files and sort them by load order
 		const eventFiles = getAllFiles(eventFolder);
 		eventFiles.sort((a: string, b: string) => (a > b ? 1 : a < b ? -1 : 0));
-		// Loop over the event files to retrieve all events
+
 		for (const eventFile of eventFiles) {
-			const loadedEvent = require(eventFile);
+			const mod = require(eventFile);
+			const loadedEvent = mod.default || (mod as EventData);
+
 			if (loadedEvent.name) client.events.set(loadedEvent.name, loadedEvent);
 
-			// Switch statement to determine how to load the event
 			switch (loadedEvent.runType) {
-				case 'single':
+				case 'once':
 					client.once(loadedEvent.name, (...args: any[]) => loadedEvent.execute(client, ...args));
 					eventTable.push([eventFolderName, loadedEvent.name, '✔ » Loaded', '«  Once  »']);
 					break;
 
-				case 'infinity':
+				case 'always':
 					client.on(loadedEvent.name, (...args: any[]) => loadedEvent.execute(client, ...args));
-					eventTable.push([eventFolderName, loadedEvent.name, '✔ » Loaded', '«infinity»']);
+					eventTable.push([eventFolderName, loadedEvent.name, '✔ » Loaded', '«Infinity»']);
 					break;
 
 				case 'disabled':
@@ -39,7 +40,7 @@ export default (client: Client) => {
 					continue;
 
 				default:
-					eventTable.push([eventFolderName, loadedEvent.name, '✕ » Errored', '« Unknown »']);
+					eventTable.push([eventFolderName, loadedEvent.name, '✕ » Errored', '«Unknown»']);
 					continue;
 			}
 		}
