@@ -5,6 +5,7 @@ export interface CommandData {
 	};
 	state: 'enabled' | 'disabled';
 	devOnly: boolean;
+	autoCompleteInstanceType?: 'all' | 'running' | 'running_and_not_hidden' | 'not_hidden';
 	execute: (...args: any[]) => Promise<void> | void;
 }
 

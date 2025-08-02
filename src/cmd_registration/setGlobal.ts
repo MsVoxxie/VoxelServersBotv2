@@ -15,7 +15,12 @@ readdirSync(commandsPath).forEach((dir: string) => {
 	const cmds = readdirSync(join(commandsPath, dir)).filter((file: string) => file.endsWith('.js'));
 	for (const file of cmds) {
 		const command = require(join(commandsPath, dir, file));
-		commands.push(command.data.toJSON());
+		const cmdExport = command.default || command;
+		if (cmdExport && cmdExport.data && typeof cmdExport.data.toJSON === 'function') {
+			commands.push(cmdExport.data.toJSON());
+		} else {
+			Logger.warn('Command Deploy', `Command file ${file} is missing a valid 'data' export or 'toJSON' method.`);
+		}
 	}
 });
 

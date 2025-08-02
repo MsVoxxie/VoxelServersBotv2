@@ -1,5 +1,5 @@
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
-import { ExtendedInstance } from '../../types/ampTypes';
+import { ExtendedInstance, AppStateMap } from '../../types/ampTypes';
 
 export async function apiLogin(): Promise<ADS> {
 	const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
@@ -16,7 +16,14 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceFilter } = {}
 	let allInstances: ExtendedInstance[] = targets
 		.flatMap((target) => target.AvailableInstances)
 		.filter((instance) => instance.FriendlyName !== 'ADS')
-		.map((instance) => instance as ExtendedInstance);
+		.map((instance) => {
+			const mappedInstance: ExtendedInstance = {
+				...instance,
+				WelcomeMessage: (instance as any).WelcomeMessage ?? '',
+				AppState: typeof instance.AppState === 'number' ? AppStateMap[instance.AppState as keyof typeof AppStateMap] || 'Offline' : instance.AppState,
+			};
+			return mappedInstance;
+		});
 
 	if (fetch === 'running') {
 		allInstances = allInstances.filter((instance) => instance.Running === true);
@@ -26,12 +33,19 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceFilter } = {}
 	return allInstances;
 }
 
-export async function getInstanceById(InstanceID: string): Promise<Instance | null> {
+export async function getInstanceById(InstanceID: string): Promise<ExtendedInstance | null> {
 	const API = await apiLogin();
 	const targets: IADSInstance[] = await API.ADSModule.GetInstances();
 	for (const target of targets) {
 		const instance = target.AvailableInstances.find((inst) => inst.InstanceID === InstanceID);
-		if (instance) return instance;
+		if (instance) {
+			const mappedInstance: ExtendedInstance = {
+				...instance,
+				WelcomeMessage: (instance as any).WelcomeMessage ?? '',
+				AppState: typeof instance.AppState === 'number' ? AppStateMap[instance.AppState as keyof typeof AppStateMap] || 'Offline' : instance.AppState,
+			};
+			return mappedInstance;
+		}
 	}
 	return null;
 }
