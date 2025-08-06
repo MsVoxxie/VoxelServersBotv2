@@ -21,7 +21,7 @@ const handleInteraction: EventData = {
 
 		function formattedName(instance: ExtendedInstance): string {
 			const emoji = AppStateEmoji[instance.AppState] || '⚪';
-			return `${emoji} ${instance.FriendlyName} | ${instance.ModuleDisplayName || instance.Module} | ${instance.AppState}`;
+			return `${emoji} ${instance.AppState} ⟩ ${instance.FriendlyName}`;
 		}
 
 		switch (command.autoCompleteInstanceType) {
@@ -29,11 +29,11 @@ const handleInteraction: EventData = {
 				await interaction.respond(filteredInstances.map((i: ExtendedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
 				break;
 			case 'running':
-				const runningInstances = filteredInstances.filter((i: ExtendedInstance) => i.AppState === 'Running');
+				const runningInstances = filteredInstances.filter((i: ExtendedInstance) => i.AppState.toLowerCase() === 'running');
 				await interaction.respond(runningInstances.map((i: ExtendedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
 				break;
 			case 'running_and_not_hidden':
-				const runningAndNotHiddenInstances = filteredInstances.filter((i: ExtendedInstance) => i.AppState === 'Running' && i.WelcomeMessage !== 'hidden');
+				const runningAndNotHiddenInstances = filteredInstances.filter((i: ExtendedInstance) => i.AppState.toLowerCase() === 'running' && i.WelcomeMessage !== 'hidden');
 				await interaction.respond(runningAndNotHiddenInstances.map((i: ExtendedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
 				break;
 			case 'not_hidden':

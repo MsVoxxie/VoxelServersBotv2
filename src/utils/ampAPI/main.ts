@@ -9,21 +9,51 @@ export async function apiLogin(): Promise<ADS> {
 	return API;
 }
 
+export async function instanceLogin<T = any>(instanceID: string, instanceModule: string): Promise<T> {
+	const API = await apiLogin();
+	const instanceAPI = await API.InstanceLogin(instanceID, instanceModule);
+	return instanceAPI as T;
+}
+
 export type InstanceFilter = 'all' | 'running' | 'not_hidden';
 export async function getAllInstances({ fetch }: { fetch?: InstanceFilter } = {}): Promise<ExtendedInstance[]> {
 	const API = await apiLogin();
 	const targets: IADSInstance[] = await API.ADSModule.GetInstances();
-	let allInstances: ExtendedInstance[] = targets
-		.flatMap((target) => target.AvailableInstances)
-		.filter((instance) => instance.FriendlyName !== 'ADS')
-		.map((instance) => {
-			const mappedInstance: ExtendedInstance = {
-				...instance,
-				WelcomeMessage: (instance as any).WelcomeMessage ?? '',
-				AppState: typeof instance.AppState === 'number' ? AppStateMap[instance.AppState as keyof typeof AppStateMap] || 'Offline' : instance.AppState,
-			};
-			return mappedInstance;
-		});
+	let allInstances: ExtendedInstance[] = await Promise.all(
+		targets
+			.flatMap((target) => target.AvailableInstances)
+			.filter((instance) => instance.FriendlyName !== 'ADS')
+			.map(async (instance) => {
+				let PlayerList: any[] = [];
+				if (instance.Running) {
+					PlayerList = (await getOnlinePlayers(instance)) || [];
+				}
+
+				// Clone metrics and append PlayerInfo to 'Active Users' metric
+				const metrics: any = { ...(instance.Metrics || {}) };
+				if (metrics['Active Users']) {
+					metrics['Active Users'] = {
+						...metrics['Active Users'],
+						PlayerList: PlayerList,
+					} as any;
+				}
+
+				let appState: string;
+				if (typeof instance.AppState === 'number') {
+					appState = AppStateMap[instance.AppState as keyof typeof AppStateMap] || 'Offline';
+				} else {
+					appState = instance.AppState;
+				}
+
+				const mappedInstance: ExtendedInstance = {
+					...instance,
+					WelcomeMessage: (instance as any).WelcomeMessage ?? '',
+					AppState: appState,
+					Metrics: metrics,
+				};
+				return mappedInstance;
+			})
+	);
 
 	if (fetch === 'running') {
 		allInstances = allInstances.filter((instance) => instance.Running === true);
@@ -33,19 +63,12 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceFilter } = {}
 	return allInstances;
 }
 
-export async function getInstanceById(InstanceID: string): Promise<ExtendedInstance | null> {
-	const API = await apiLogin();
-	const targets: IADSInstance[] = await API.ADSModule.GetInstances();
-	for (const target of targets) {
-		const instance = target.AvailableInstances.find((inst) => inst.InstanceID === InstanceID);
-		if (instance) {
-			const mappedInstance: ExtendedInstance = {
-				...instance,
-				WelcomeMessage: (instance as any).WelcomeMessage ?? '',
-				AppState: typeof instance.AppState === 'number' ? AppStateMap[instance.AppState as keyof typeof AppStateMap] || 'Offline' : instance.AppState,
-			};
-			return mappedInstance;
-		}
+export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: string; Username: string }[]> {
+	try {
+		const API = await instanceLogin(instance.InstanceID, instance.ModuleDisplayName || instance.Module);
+		const getPlayers = await API.Core.GetUserList();
+		return Object.entries(getPlayers).map(([UserID, Username]) => ({ UserID: UserID.replace(/^Steam_/, ''), Username: Username as string }));
+	} catch (err) {
+		return [];
 	}
-	return null;
 }

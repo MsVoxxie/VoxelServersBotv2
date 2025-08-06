@@ -1,5 +1,8 @@
-import { Client, ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
 import { CommandData } from '../../types/commandTypes';
+import redis from '../../loaders/database/redisLoader';
+import { getJson } from '../../utils/redisHelpers';
+import { ExtendedInstance } from '../../types/ampTypes';
 
 const instanceInfo: CommandData = {
 	data: new SlashCommandBuilder()
@@ -10,9 +13,37 @@ const instanceInfo: CommandData = {
 	state: 'enabled',
 	devOnly: false,
 	autoCompleteInstanceType: 'running_and_not_hidden',
-	async execute(client: Client, interaction: ChatInputCommandInteraction) {
-		const instanceName = interaction.options.getString('instance');
-		console.log(`Instance requested: ${instanceName}`);
+	async execute(client, interaction) {
+		const instanceId = interaction.options.getString('instance');
+		const instanceData = await getJson(redis, `instance:${instanceId}`);
+		if (!instanceData) return interaction.reply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
+		const instance = Array.isArray(instanceData) ? (instanceData[0] as ExtendedInstance) : (instanceData as ExtendedInstance);
+		const getModpack = (str: string): boolean => {
+			const urlPattern = /^https?:\/\/.+/i;
+			return urlPattern.test(str);
+		};
+
+		const isModpack = getModpack(instance.WelcomeMessage);
+		const description = [
+			`**State:** ${instance.AppState}`,
+			`**${isModpack ? 'Modpack' : 'MOTD'}:** ${isModpack ? `[Modpack Link](${instance.WelcomeMessage})` : instance.WelcomeMessage || 'None'}`,
+			``,
+			`**Server Metrics:**`,
+			`CPU Usage: ${instance.Metrics['CPU Usage'].Percent}%`,
+			`Memory Usage: ${instance.Metrics['Memory Usage'].RawValue}/${instance.Metrics['Memory Usage'].MaxValue} MB`,
+			`Player Count: ${instance.Metrics['Active Users'].RawValue}/${instance.Metrics['Active Users'].MaxValue}`,
+			``,
+			`**Player List:**`,
+			`${instance.Metrics['Active Users'].PlayerList?.length ? instance.Metrics['Active Users'].PlayerList.map((p) => `${p.Username}`).join(', ') : '• No active players'}`,
+		].join('\n');
+
+		const embed = new EmbedBuilder()
+			.setTitle(`**${instance.FriendlyName} Server Info**`)
+			.setImage('https://vxie.me/TbouIcvh.png')
+			.setColor(client.color)
+			.setDescription(description)
+			.setFooter({ text: `Instance ID: ${instance.InstanceID}` });
+		return interaction.reply({ embeds: [embed] });
 	},
 };
 

@@ -9,5 +9,6 @@ declare module 'discord.js' {
 		commands: Collection<string, any>;
 		events: Collection<string, any>;
 		redis?: RedisClientType | null;
+		color: string;
 	}
 }

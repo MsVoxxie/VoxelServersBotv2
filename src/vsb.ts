@@ -23,6 +23,7 @@ const client = new Client({
 });
 
 // Define Collections
+client.color = '#FFFFFF';
 client.backupTimers = new Collection();
 client.typingState = new Collection();
 client.cooldowns = new Collection();

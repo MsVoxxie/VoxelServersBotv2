@@ -1,9 +1,28 @@
 import { Instance } from '@neuralnexus/ampapi';
 
 // Instances is missing its WelcomeMessage string property
-export interface ExtendedInstance extends Omit<Instance, 'AppState'> {
+export interface ExtendedInstance extends Omit<Instance, 'AppState' | 'Metrics'> {
 	WelcomeMessage: string | '';
 	AppState: string;
+	Metrics: { [key: string]: Metric };
+}
+
+export type PlayerList = {
+	UserID: string;
+	Username: string;
+	AvatarURL?: string;
+};
+
+export interface Metric {
+	RawValue: number;
+	MaxValue: number;
+	Percent: number;
+	Units: string;
+	Color: string | null;
+	Color2: string | null;
+	Color3: string | null;
+	ShortName: string | null;
+	PlayerList?: PlayerList[];
 }
 
 export const AppStateMap: Record<number, string> = {
