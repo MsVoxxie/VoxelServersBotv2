@@ -41,6 +41,7 @@ function sortInstances(instances: any[], filter: InstanceSearchFilter) {
 	if (filter === 'running') {
 		return instances.filter((instance) => instance.Running === true);
 	} else if (filter === 'not_hidden') {
+		return instances.filter((instance) => instance.WelcomeMessage !== 'hidden');
 	}
 	return instances;
 }
