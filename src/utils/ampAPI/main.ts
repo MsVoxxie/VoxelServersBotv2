@@ -1,5 +1,5 @@
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
-import { ExtendedInstance, AppStateMap } from '../../types/ampTypes';
+import { ExtendedInstance, AppStateMap, InstanceSearchFilter } from '../../types/ampTypes';
 
 export async function apiLogin(): Promise<ADS> {
 	const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
@@ -15,8 +15,7 @@ export async function instanceLogin<T = any>(instanceID: string, instanceModule:
 	return instanceAPI as T;
 }
 
-export type InstanceFilter = 'all' | 'running' | 'not_hidden';
-export async function getAllInstances({ fetch }: { fetch?: InstanceFilter } = {}): Promise<ExtendedInstance[]> {
+export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter } = {}): Promise<ExtendedInstance[]> {
 	const API = await apiLogin();
 	const targets: IADSInstance[] = await API.ADSModule.GetInstances();
 	let allInstances: ExtendedInstance[] = await Promise.all(
@@ -58,7 +57,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceFilter } = {}
 	if (fetch === 'running') {
 		allInstances = allInstances.filter((instance) => instance.Running === true);
 	} else if (fetch === 'not_hidden') {
-		allInstances = allInstances.filter((instance) => instance.WelcomeMessage === 'hidden');
+		allInstances = allInstances.filter((instance) => instance.WelcomeMessage !== 'hidden');
 	}
 	return allInstances;
 }
