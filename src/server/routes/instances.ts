@@ -3,6 +3,19 @@ import { getJson } from '../../utils/redisHelpers';
 import redis from '../../loaders/database/redisLoader';
 const router = express.Router();
 
+export const routeDescriptions = [
+	{
+		path: '/data/instances',
+		method: 'GET',
+		description: 'Returns all instances as JSON.',
+	},
+	{
+		path: '/data/instances/:instanceId',
+		method: 'GET',
+		description: 'Returns a specific instance by ID.',
+	},
+];
+
 // Get all instances
 router.get('/data/instances', async (req, res) => {
 	if (!redis.isOpen) return res.status(503).json({ error: 'An error occurred while fetching data.' });
