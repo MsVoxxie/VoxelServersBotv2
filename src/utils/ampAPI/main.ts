@@ -1,5 +1,6 @@
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { ExtendedInstance, AppStateMap, InstanceSearchFilter } from '../../types/ampTypes';
+import { getImageSource } from './getSourceImage';
 
 export async function apiLogin(): Promise<ADS> {
 	const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
@@ -28,6 +29,9 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 					PlayerList = (await getOnlinePlayers(instance)) || [];
 				}
 
+				// Get server icon
+				const serverIcon = await getImageSource(instance.DisplayImageSource);
+
 				// Clone metrics and append PlayerInfo to 'Active Users' metric
 				const metrics: any = { ...(instance.Metrics || {}) };
 				if (metrics['Active Users']) {
@@ -48,16 +52,23 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 					...instance,
 					WelcomeMessage: (instance as any).WelcomeMessage ?? '',
 					AppState: appState,
+					ServerIcon: serverIcon,
 					Metrics: metrics,
 				};
 				return mappedInstance;
 			})
 	);
 
-	if (fetch === 'running') {
-		allInstances = allInstances.filter((instance) => instance.Running === true);
-	} else if (fetch === 'not_hidden') {
-		allInstances = allInstances.filter((instance) => instance.WelcomeMessage !== 'hidden');
+	switch (fetch) {
+		case 'running_and_not_hidden':
+			allInstances = allInstances.filter((instance) => instance.Running === true && instance.WelcomeMessage !== 'hidden');
+			break;
+		case 'running':
+			allInstances = allInstances.filter((instance) => instance.Running === true);
+			break;
+		case 'not_hidden':
+			allInstances = allInstances.filter((instance) => instance.WelcomeMessage !== 'hidden');
+			break;
 	}
 	return allInstances;
 }

@@ -38,10 +38,13 @@ router.get('/data/instances/:instanceId', async (req, res) => {
 });
 
 function sortInstances(instances: any[], filter: InstanceSearchFilter) {
-	if (filter === 'running') {
-		return instances.filter((instance) => instance.Running === true);
-	} else if (filter === 'not_hidden') {
-		return instances.filter((instance) => instance.WelcomeMessage !== 'hidden');
+	switch (filter) {
+		case 'running_and_not_hidden':
+			return instances.filter((instance) => instance.Running === true && instance.WelcomeMessage !== 'hidden');
+		case 'running':
+			return instances.filter((instance) => instance.Running === true);
+		case 'not_hidden':
+			return instances.filter((instance) => instance.WelcomeMessage !== 'hidden');
 	}
 	return instances;
 }

@@ -1,11 +1,12 @@
 import { Instance } from '@neuralnexus/ampapi';
 
-export type InstanceSearchFilter = 'all' | 'running' | 'not_hidden';
+export type InstanceSearchFilter = 'all' | 'running' | 'running_and_not_hidden' | 'not_hidden';
 
 // Instances is missing its WelcomeMessage string property
 export interface ExtendedInstance extends Omit<Instance, 'AppState' | 'Metrics'> {
 	WelcomeMessage: string | '';
 	AppState: string;
+	ServerIcon: string;
 	Metrics: { [key: string]: Metric };
 }
 
