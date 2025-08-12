@@ -1,5 +1,5 @@
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
-import { ExtendedInstance, AppStateMap, InstanceSearchFilter } from '../../types/ampTypes';
+import { ExtendedInstance, AppStateMap, InstanceSearchFilter, ModuleTypeMap } from '../../types/ampTypes';
 import { getImageSource } from './getSourceImage';
 
 export async function apiLogin(): Promise<ADS> {
@@ -10,10 +10,10 @@ export async function apiLogin(): Promise<ADS> {
 	return API;
 }
 
-export async function instanceLogin<T = any>(instanceID: string, instanceModule: string): Promise<T> {
+export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: string, instanceModule: K): Promise<ModuleTypeMap[K]> {
 	const API = await apiLogin();
-	const instanceAPI = await API.InstanceLogin(instanceID, instanceModule);
-	return instanceAPI as T;
+	const instanceAPI = await API.InstanceLogin<ModuleTypeMap[K]>(instanceID, instanceModule);
+	return instanceAPI as ModuleTypeMap[K];
 }
 
 export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter } = {}): Promise<ExtendedInstance[]> {
@@ -69,15 +69,21 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 		case 'not_hidden':
 			allInstances = allInstances.filter((instance) => instance.WelcomeMessage !== 'hidden');
 			break;
+		case 'all':
+			break;
 	}
 	return allInstances;
 }
 
 export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: string; Username: string }[]> {
 	try {
-		const API = await instanceLogin(instance.InstanceID, instance.ModuleDisplayName || instance.Module);
+		const moduleName = instance.ModuleDisplayName || instance.Module;
+		const API = await instanceLogin(instance.InstanceID, moduleName as keyof ModuleTypeMap);
 		const getPlayers = await API.Core.GetUserList();
-		return Object.entries(getPlayers).map(([UserID, Username]) => ({ UserID: UserID.replace(/^Steam_/, ''), Username: Username as string }));
+		return Object.entries(getPlayers).map(([UserID, Username]) => ({
+			UserID: UserID.replace(/^Steam_/, ''),
+			Username: Username as string,
+		}));
 	} catch (err) {
 		return [];
 	}

@@ -1,4 +1,4 @@
-import { Instance } from '@neuralnexus/ampapi';
+import { Instance, GenericModule, Minecraft } from '@neuralnexus/ampapi';
 
 export type InstanceSearchFilter = 'all' | 'running' | 'running_and_not_hidden' | 'not_hidden';
 
@@ -27,6 +27,11 @@ export interface Metric {
 	ShortName: string | null;
 	PlayerList?: PlayerList[];
 }
+
+export type ModuleTypeMap = {
+	GenericModule: GenericModule;
+	Minecraft: Minecraft;
+};
 
 export const AppStateMap: Record<number, string> = {
 	0: 'Stopped',
