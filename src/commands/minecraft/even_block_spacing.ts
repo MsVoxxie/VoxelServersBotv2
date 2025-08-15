@@ -26,7 +26,7 @@ const mc_blockSpacing: CommandData = {
 		}
 
 		const limitedSpacings = spacings.slice(0, 5);
-		const centerType = blocks % 2 === 1 ? 'single center block (odd length)' : 'double center (even length)';
+		const centerType = blocks % 2 === 1 ? 'Single center block (ODD)' : 'Double center (EVEN)';
 
 		const embed = new EmbedBuilder()
 			.setTitle('Block Spacing Calculator')
