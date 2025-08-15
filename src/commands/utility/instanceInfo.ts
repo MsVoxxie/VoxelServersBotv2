@@ -39,7 +39,7 @@ const instanceInfo: CommandData = {
 
 		const embed = new EmbedBuilder()
 			.setTitle(`**${instance.FriendlyName} Server Info**`)
-			.setImage('https://vxie.me/TbouIcvh.png')
+			.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
 			.setColor(client.color)
 			.setDescription(description)
 			.setFooter({ text: `Instance ID: ${instance.InstanceID}` });

@@ -11,7 +11,7 @@ const chatlinkSetup: CommandData = {
 		.setDescription('Replies with instance information.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		.addStringOption((opt) => opt.setName('instance').setDescription('The instance to get information about.').setRequired(true).setAutocomplete(true)),
-	state: 'enabled',
+	state: 'disabled',
 	devOnly: false,
 	autoCompleteInstanceType: 'running_and_not_hidden',
 	async execute(client, interaction) {
