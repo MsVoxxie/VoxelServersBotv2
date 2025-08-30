@@ -14,9 +14,10 @@ const instanceInfo: CommandData = {
 	devOnly: false,
 	autoCompleteInstanceType: 'running_and_not_hidden',
 	async execute(client, interaction) {
+		interaction.deferReply();
 		const instanceId = interaction.options.getString('instance');
 		const instanceData = await getJson(redis, `instance:${instanceId}`);
-		if (!instanceData) return interaction.reply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
+		if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
 		const instance = Array.isArray(instanceData) ? (instanceData[0] as ExtendedInstance) : (instanceData as ExtendedInstance);
 		const getModpack = (str: string): boolean => {
 			const urlPattern = /^https?:\/\/.+/i;
@@ -43,7 +44,7 @@ const instanceInfo: CommandData = {
 			.setColor(client.color)
 			.setDescription(description)
 			.setFooter({ text: `Instance ID: ${instance.InstanceID}` });
-		return interaction.reply({ embeds: [embed] });
+		return interaction.editReply({ embeds: [embed] });
 	},
 };
 

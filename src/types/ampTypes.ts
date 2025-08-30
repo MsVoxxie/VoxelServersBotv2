@@ -1,5 +1,5 @@
 import { Instance, GenericModule, Minecraft } from '@neuralnexus/ampapi';
-import { MinecraftAvailableMethods, MinecraftAvailableTriggers, GenericModuleAvailableMethods, GenericModuleAvailableTriggers } from './ampScheduleOptions';
+import { MinecraftAvailableTasks, MinecraftAvailableTriggers, GenericModuleAvailableTasks, GenericModuleAvailableTriggers } from './ampScheduleOptions';
 
 export type InstanceSearchFilter = 'all' | 'running' | 'running_and_not_hidden' | 'not_hidden';
 
@@ -79,13 +79,12 @@ export const AppStateEmoji: Record<string, string> = {
 export type AppState = keyof typeof AppStateMap;
 
 export interface TaskToAdd<M extends keyof ModuleTypeMap> {
-	taskName: M extends 'Minecraft' ? MinecraftAvailableMethods : GenericModuleAvailableMethods;
+	taskMethod: M extends 'Minecraft' ? MinecraftAvailableTasks : GenericModuleAvailableTasks;
 	dictionary: Record<string, any>;
-	allowDuplicates?: boolean;
 }
 
-export interface Job<M extends keyof ModuleTypeMap> {
+export interface SchedulerJobs<M extends keyof ModuleTypeMap> {
 	module: M;
-	triggerName: M extends 'Minecraft' ? MinecraftAvailableTriggers : GenericModuleAvailableTriggers;
+	triggerDescription: M extends 'Minecraft' ? MinecraftAvailableTriggers : GenericModuleAvailableTriggers;
 	tasksToAdd: TaskToAdd<M>[];
 }

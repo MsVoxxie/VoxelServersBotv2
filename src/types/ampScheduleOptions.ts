@@ -1,4 +1,4 @@
-export type MinecraftAvailableMethods =
+export type MinecraftAvailableTasks =
 	| 'BanUser'
 	| 'BanUserIP'
 	| 'CheckForUpdates'
@@ -71,7 +71,7 @@ export type MinecraftAvailableTriggers =
 	| 'The server enters sleep mode'
 	| 'The server wakes up from sleep mode due to player connect';
 
-export type GenericModuleAvailableMethods =
+export type GenericModuleAvailableTasks =
 	| 'CheckForUpdates'
 	| 'IfCondition'
 	| 'MakeGETRequest'

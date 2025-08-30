@@ -1,5 +1,7 @@
+// set -a && source .env && set +a
+
 import * as readline from 'readline';
-import { getSchedulerData } from '../../utils/ampAPI/taskFuncs';
+import { loginAndGetSchedule } from '../../utils/ampAPI/taskFuncs';
 
 const rl = readline.createInterface({
 	input: process.stdin,
@@ -21,14 +23,15 @@ async function generateTypes() {
 			return;
 		}
 
-		const tasks = await getSchedulerData(instanceID, instanceType);
+		const tasks = (await loginAndGetSchedule(instanceID, instanceType)).scheduleData;
 
-		// Generate type for AvailableMethods (using Name)
+		// Generate type for AvailableTasks (using Name)
 		const methods = tasks.AvailableMethods.map((m: any) => m.Name);
-		const methodsTypeDef = `export type ${instanceType}AvailableMethods = ${methods.map((m: any) => `'${m}'`).join(' | ')};`;
+		const methodsTypeDef = `export type ${instanceType}AvailableTasks = ${methods.map((m: any) => `'${m}'`).join(' | ')};`;
 
 		// Generate type for AvailableTriggers (using Description)
 		const triggers = tasks.AvailableTriggers.map((t: any) => t.Description);
+
 		const triggersTypeDef = `export type ${instanceType}AvailableTriggers = ${triggers.map((t: any) => `'${t}'`).join(' | ')};`;
 
 		console.log('\nGenerated Types:');

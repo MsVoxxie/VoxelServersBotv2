@@ -6,7 +6,8 @@ const ping: CommandData = {
 	state: 'enabled',
 	devOnly: false,
 	async execute(client: Client, interaction: CommandInteraction) {
-		await interaction.reply(`<@${interaction.user.id}> Pong!`);
+		interaction.deferReply();
+		await interaction.editReply(`<@${interaction.user.id}> Pong!`);
 	},
 };
 

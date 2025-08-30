@@ -20,7 +20,7 @@ const handleInteraction: EventData = {
 			await command.execute(client, interaction);
 		} catch (error) {
 			logger.error('Command Execution Error', `Error executing command ${interaction.commandName}:\n${error}`);
-			await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+			await interaction.editReply({ content: 'There was an error while executing this command!' });
 		}
 	},
 };
