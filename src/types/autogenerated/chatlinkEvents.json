@@ -1,0 +1,16 @@
+[
+  "stateChanged",
+  "restoreBackupComplete",
+  "playerChats",
+  "userJoins",
+  "backupFailed",
+  "serverLag",
+  "playerKilledByNPC",
+  "userFirstJoins",
+  "takeBackupComplete",
+  "userLeaves",
+  "playerKilledByPlayer",
+  "playerAdvancement",
+  "unexpectedStop",
+  "backupStarting"
+]

@@ -1,5 +1,5 @@
 import { Client, CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { CommandData } from '../../types/commandTypes';
+import { CommandData } from '../../types/discordTypes/commandTypes';
 
 const ping: CommandData = {
 	data: new SlashCommandBuilder().setName('ping').setDescription('Replies with Pong!'),

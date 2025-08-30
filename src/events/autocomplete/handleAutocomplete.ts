@@ -1,6 +1,6 @@
 import { BaseInteraction, Client, Events, MessageFlags } from 'discord.js';
-import type { EventData } from '../../types/commandTypes';
-import { ExtendedInstance, AppStateEmoji } from '../../types/ampTypes';
+import type { EventData } from '../../types/discordTypes/commandTypes';
+import { ExtendedInstance, AppStateEmoji } from '../../types/ampTypes/ampTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';

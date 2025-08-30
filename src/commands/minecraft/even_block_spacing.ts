@@ -1,5 +1,5 @@
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { CommandData } from '../../types/commandTypes';
+import { CommandData } from '../../types/discordTypes/commandTypes';
 
 const mc_blockSpacing: CommandData = {
 	data: new SlashCommandBuilder()

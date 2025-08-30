@@ -2,10 +2,10 @@
 
 export interface ChatlinkBase {
 	InstanceId: string;
-	EventId?: string;
-	Username?: string;
+	EventId: string;
+	Username: string;
 	UserId?: string;
-	Message?: string;
+	Message: string;
 	[key: string]: unknown;
 }
 
@@ -31,6 +31,7 @@ export interface AdvancementEvent extends ChatlinkBase {
 
 export interface StateChangeEvent extends ChatlinkBase {
 	State: string;
+	StartTime: string;
 }
 
 export interface BackupEvent extends ChatlinkBase {}

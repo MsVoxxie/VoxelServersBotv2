@@ -1,8 +1,8 @@
 import { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
-import { CommandData } from '../../types/commandTypes';
+import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
-import { ExtendedInstance } from '../../types/ampTypes';
+import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 
 const instanceInfo: CommandData = {
 	data: new SlashCommandBuilder()

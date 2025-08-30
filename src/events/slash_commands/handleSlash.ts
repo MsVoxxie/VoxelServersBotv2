@@ -1,5 +1,5 @@
 import { BaseInteraction, Client, Events, MessageFlags } from 'discord.js';
-import type { EventData } from '../../types/commandTypes';
+import type { EventData } from '../../types/discordTypes/commandTypes';
 import logger from '../../utils/logger';
 
 const handleInteraction: EventData = {

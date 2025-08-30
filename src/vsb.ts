@@ -6,7 +6,7 @@ dotenv.config();
 import Logger from './utils/logger';
 
 // Discord Client
-import './types/clientTypes';
+import './types/discordTypes/clientTypes';
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 const client = new Client({
 	intents: [

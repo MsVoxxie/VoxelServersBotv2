@@ -1,4 +1,4 @@
-import { SchedulerJobs, ModuleTypeMap } from './../../types/ampTypes';
+import { SchedulerJobs, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 
 const sharedPostDetails = {
 	URI: `${process.env.API_URI}/server/chatlink`,
@@ -181,6 +181,7 @@ export const minecraftChatLink: SchedulerJobs<'Minecraft'>[] = [
 						Message: '{@State}',
 						InstanceId: '{@InstanceId}',
 						EventId: '{@TriggerName}',
+						StartTime: '{@StartTime}',
 					}),
 				},
 			},

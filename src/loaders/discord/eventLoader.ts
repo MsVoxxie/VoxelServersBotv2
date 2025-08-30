@@ -7,7 +7,7 @@ const eventTable = new Table({
 import getAllFiles from '../../utils/fileFuncs';
 import { join } from 'path';
 import type { Client } from 'discord.js';
-import type { EventData } from '../../types/commandTypes';
+import type { EventData } from '../../types/discordTypes/commandTypes';
 
 export default (client: Client) => {
 	// Read the events directory

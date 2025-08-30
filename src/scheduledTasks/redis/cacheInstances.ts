@@ -1,4 +1,4 @@
-import type { ScheduleTaskData } from '../../types/commandTypes';
+import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { getAllInstances } from '../../utils/ampAPI/main';
 import { setJson } from '../../utils/redisHelpers';
 const cacheInstances: ScheduleTaskData = {

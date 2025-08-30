@@ -1,4 +1,4 @@
-import { InstanceSearchFilter, ExtendedInstance } from './../../types/ampTypes';
+import { InstanceSearchFilter, ExtendedInstance } from '../../types/ampTypes/ampTypes';
 import express from 'express';
 import { getJson } from '../../utils/redisHelpers';
 import redis from '../../loaders/database/redisLoader';

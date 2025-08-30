@@ -1,5 +1,5 @@
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
-import { ExtendedInstance, AppStateMap, InstanceSearchFilter, ModuleTypeMap } from '../../types/ampTypes';
+import { ExtendedInstance, AppStateMap, InstanceSearchFilter, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { getImageSource } from './getSourceImage';
 
 export async function apiLogin(): Promise<ADS> {

@@ -7,7 +7,7 @@ const commandTable = new Table({
 import getAllFiles from '../../utils/fileFuncs';
 import { join } from 'path';
 import type { Client } from 'discord.js';
-import type { CommandData } from '../../types/commandTypes';
+import type { CommandData } from '../../types/discordTypes/commandTypes';
 
 export default (client: Client) => {
 	// Read the commands directory

@@ -1,8 +1,8 @@
 import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags } from 'discord.js';
-import { CommandData } from '../../types/commandTypes';
+import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
-import { ExtendedInstance, ModuleTypeMap } from '../../types/ampTypes';
+import { ExtendedInstance, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { instanceLogin } from '../../utils/ampAPI/main';
 import { ChatLinks } from '../../utils/ampAPI/schedulerJobs';
 import { applySchedulerJobs, removeSchedulerJobs } from '../../utils/ampAPI/taskFuncs';

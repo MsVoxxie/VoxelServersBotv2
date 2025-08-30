@@ -11,9 +11,10 @@ export default async (client: any) => {
 	srv.set('trust proxy', process.env.API_PROXY);
 	srv.use(cors({ origin: [/^https:\/\/vs\.voxxie\.me$/, /^http:\/\/localhost(:\d+)?$/] }));
 	srv.use(express.json());
+	srv.use(express.urlencoded({ extended: true }));
 	srv.use('/v2/static', express.static(join(__dirname, '../../../src/server/public')));
+	srv.set('discordClient', client);
 
-	// Wait for router to be created with all routes loaded
 	const router = createRouter;
 	srv.use('/v2', router);
 

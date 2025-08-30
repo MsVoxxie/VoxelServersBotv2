@@ -1,6 +1,6 @@
 import { Events, Client } from 'discord.js';
 import Logger from '../../utils/logger';
-import { EventData } from '../../types/commandTypes';
+import { EventData } from '../../types/discordTypes/commandTypes';
 import { connectRedis } from '../../loaders/database/redisLoader';
 import runScheduledTasks from '../../loaders/scheduler/loadSchedules';
 import mongoLoader from '../../loaders/database/mongoLoader';

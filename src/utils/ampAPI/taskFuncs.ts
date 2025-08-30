@@ -1,5 +1,5 @@
 import { wait } from '../utils';
-import { SchedulerJobs, ModuleTypeMap, TaskToAdd } from './../../types/ampTypes';
+import { SchedulerJobs, ModuleTypeMap, TaskToAdd } from '../../types/ampTypes/ampTypes';
 import { instanceLogin } from './main';
 
 export async function loginAndGetSchedule(instanceID: string, moduleName: string) {
