@@ -1,5 +1,5 @@
 import { REST, Routes, RESTPostAPIApplicationCommandsJSONBody } from 'discord.js';
-import Logger from '../utils/logger';
+import Logger from '../../utils/logger';
 import dotenv from 'dotenv';
 dotenv.config();
 
