@@ -10,7 +10,7 @@ dotenv.config();
 const commands: RESTPostAPIApplicationCommandsJSONBody[] = [];
 
 // Grab all the command files from the commands directory
-const commandsPath = join(__dirname, '../commands');
+const commandsPath = join(__dirname, '../../commands');
 readdirSync(commandsPath).forEach((dir: string) => {
 	const cmds = readdirSync(join(commandsPath, dir)).filter((file: string) => file.endsWith('.js'));
 	for (const file of cmds) {
