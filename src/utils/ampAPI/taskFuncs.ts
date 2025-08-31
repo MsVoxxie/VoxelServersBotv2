@@ -88,31 +88,38 @@ async function removeTaskFromTrigger(instanceID: string, moduleName: string, tri
 }
 
 export async function applySchedulerJobs(instanceID: string, moduleName: string, jobs: SchedulerJobs<any>[]) {
+	if (!jobs || typeof jobs[Symbol.iterator] !== 'function') {
+		throw new TypeError('jobs is not iterable');
+	}
 	const successTriggers: { triggerDesc: string; tasks: string[]; total: number; failedCount: number }[] = [];
 	const failedTriggers: { triggerDesc: string; error?: string }[] = [];
 	const successTasks: { triggerDesc: string; taskDesc: string }[] = [];
 	const failedTasks: { triggerDesc: string; taskDesc: string; error?: string }[] = [];
 
+	// Phase 1: add all triggers
+	const triggerResults: Array<{ job: SchedulerJobs<any>; result: any }> = [];
 	for (const job of jobs) {
 		const triggerResult = await addTriggerToInstance(instanceID, moduleName, job.triggerDescription);
 		const triggerDesc = triggerResult.data?.triggerDesc || job.triggerDescription;
-
 		if (!triggerResult.success) {
 			failedTriggers.push({ triggerDesc, error: triggerResult.error });
-			await wait(100);
-			continue;
 		}
+		triggerResults.push({ job, result: triggerResult });
+		await wait(25);
+	}
 
-		const taskPromises = job.tasksToAdd.map((task) => addTasktoTrigger(instanceID, moduleName, job.triggerDescription, task));
-		const settled = await Promise.allSettled(taskPromises);
+	// Phase 2: add tasks sequentially for triggers that were created successfully
+	for (const tr of triggerResults) {
+		const job = tr.job;
+		const triggerResult = tr.result;
+		const triggerDesc = triggerResult.data?.triggerDesc || job.triggerDescription;
+
+		if (!triggerResult.success) continue;
 
 		const tasksAddedForTrigger: string[] = [];
-
-		for (let i = 0; i < settled.length; i++) {
-			const res = settled[i];
-			const task = job.tasksToAdd[i];
-			if (res.status === 'fulfilled') {
-				const r = res.value;
+		for (const task of job.tasksToAdd) {
+			try {
+				const r = await addTasktoTrigger(instanceID, moduleName, job.triggerDescription, task);
 				if (r && r.success) {
 					const td = r.data?.taskDesc || task.taskMethod;
 					successTasks.push({ triggerDesc, taskDesc: td });
@@ -121,21 +128,19 @@ export async function applySchedulerJobs(instanceID: string, moduleName: string,
 					const td = r?.data?.taskDesc || task.taskMethod;
 					failedTasks.push({ triggerDesc, taskDesc: td, error: r?.error });
 				}
-			} else {
-				// promise rejected
+			} catch (err) {
 				const td = task.taskMethod;
-				failedTasks.push({ triggerDesc, taskDesc: td, error: String(res.reason) });
+				failedTasks.push({ triggerDesc, taskDesc: td, error: String(err) });
 			}
 		}
 
-		// compute failed count relative to the job's task list
 		const totalTasksForJob = job.tasksToAdd.length;
 		const failedCountForJob = totalTasksForJob - tasksAddedForTrigger.length;
 		successTriggers.push({ triggerDesc, tasks: tasksAddedForTrigger, total: totalTasksForJob, failedCount: failedCountForJob });
-		await wait(100);
+		await wait(25);
 	}
 
-	// Build Markdown summaries (show counts)
+	// Build Markdown summaries
 	const successLines: string[] = ['## Successful Additions'];
 	if (successTriggers.length === 0) {
 		successLines.push('- (none)');
@@ -150,11 +155,9 @@ export async function applySchedulerJobs(instanceID: string, moduleName: string,
 	if (failedTriggers.length === 0 && failedTasks.length === 0) {
 		failureLines.push('- (none)');
 	} else {
-		// First include trigger-level failures (e.g., could not create trigger)
 		for (const ft of failedTriggers) {
 			failureLines.push(`- ${ft.triggerDesc}  — ${ft.error || 'unknown error'}`);
 		}
-		// Aggregate failed tasks per trigger and show counts
 		const failedByTrigger: Record<string, number> = {};
 		for (const ft of failedTasks) {
 			failedByTrigger[ft.triggerDesc] = (failedByTrigger[ft.triggerDesc] || 0) + 1;
@@ -177,20 +180,14 @@ export async function removeSchedulerJobs(instanceID: string, moduleName: string
 	const successTasks: { triggerDesc: string; taskDesc: string }[] = [];
 	const failedTasks: { triggerDesc: string; taskDesc: string; error?: string }[] = [];
 
+	// Phase 1: remove tasks for all triggers
+	const taskRemovalResults: Array<{ job: SchedulerJobs<any>; tasksRemoved: string[] }> = [];
 	for (const job of jobs) {
 		const triggerDesc = job.triggerDescription;
-
-		// First: remove tasks for this trigger (in parallel)
-		const taskPromises = job.tasksToAdd.map((task) => removeTaskFromTrigger(instanceID, moduleName, job.triggerDescription, task));
-		const settled = await Promise.allSettled(taskPromises);
-
 		const tasksRemovedForTrigger: string[] = [];
-
-		for (let i = 0; i < settled.length; i++) {
-			const res = settled[i];
-			const task = job.tasksToAdd[i];
-			if (res.status === 'fulfilled') {
-				const r = res.value;
+		for (const task of job.tasksToAdd) {
+			try {
+				const r = await removeTaskFromTrigger(instanceID, moduleName, job.triggerDescription, task);
 				if (r && r.success) {
 					const td = r.data?.taskDesc || task.taskMethod;
 					successTasks.push({ triggerDesc, taskDesc: td });
@@ -199,14 +196,21 @@ export async function removeSchedulerJobs(instanceID: string, moduleName: string
 					const td = r?.data?.taskDesc || task.taskMethod;
 					failedTasks.push({ triggerDesc, taskDesc: td, error: r?.error });
 				}
-			} else {
-				// promise rejected
+			} catch (err) {
 				const td = task.taskMethod;
-				failedTasks.push({ triggerDesc, taskDesc: td, error: String(res.reason) });
+				failedTasks.push({ triggerDesc, taskDesc: td, error: String(err) });
 			}
 		}
+		taskRemovalResults.push({ job, tasksRemoved: tasksRemovedForTrigger });
+		await wait(25);
+	}
 
-		// After attempting to remove tasks, remove the trigger itself
+	// Phase 2: remove triggers for all jobs
+	for (const tr of taskRemovalResults) {
+		const job = tr.job;
+		const triggerDesc = job.triggerDescription;
+		const tasksRemovedForTrigger = tr.tasksRemoved;
+
 		const triggerResult = await removeTriggerFromInstance(instanceID, moduleName, job.triggerDescription);
 		const totalTasksForJob = job.tasksToAdd.length;
 		const failedCountForJob = totalTasksForJob - tasksRemovedForTrigger.length;
@@ -216,7 +220,7 @@ export async function removeSchedulerJobs(instanceID: string, moduleName: string
 			successTriggers.push({ triggerDesc, tasks: tasksRemovedForTrigger, total: totalTasksForJob, failedCount: failedCountForJob });
 		}
 
-		await wait(100);
+		await wait(25);
 	}
 
 	// Build Markdown summaries
@@ -234,11 +238,9 @@ export async function removeSchedulerJobs(instanceID: string, moduleName: string
 	if (failedTriggers.length === 0 && failedTasks.length === 0) {
 		failureLines.push('- (none)');
 	} else {
-		// Include trigger-level failures first
 		for (const ft of failedTriggers) {
 			failureLines.push(`- ${ft.triggerDesc}  — ${ft.error || 'unknown error'}`);
 		}
-		// Aggregate failed tasks per trigger and show counts
 		const failedByTrigger: Record<string, number> = {};
 		for (const ft of failedTasks) {
 			failedByTrigger[ft.triggerDesc] = (failedByTrigger[ft.triggerDesc] || 0) + 1;

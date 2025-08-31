@@ -14,10 +14,24 @@ export async function toDiscord(data: ChatlinkBase) {
 		]);
 		if (!instanceData || !chatlinkData) throw new Error('Failed to retrieve necessary data');
 
+		const instanceModule = instanceData[0].Module;
 		const [webhookId, webhookToken] = [chatlinkData.webhookId, chatlinkData.webhookToken];
 		const wsClient = new WebhookClient({ id: webhookId, token: webhookToken });
+		let playerImage;
+
+		switch (instanceModule) {
+			case 'Minecraft':
+				playerImage = `${process.env.API_URI}/data/mchead/${data.Username}`;
+				break;
+
+			case 'GenericModule':
+				playerImage = `${process.env.API_URI}/data/steamavatar/${data.SteamId}`;
+				break;
+		}
+
 		await wsClient.send({
 			username: `${data.Username} | ${instanceData[0].FriendlyName}`,
+			avatarURL: data.Username === 'SERVER' ? `${process.env.API_URI}/static/imgs/servericon.png` : playerImage,
 			content: data.Message,
 		});
 	} catch (error) {
@@ -39,7 +53,9 @@ export async function toServer(InstanceId: string, message: Message) {
 					instanceModule,
 					`tellraw @a ["",{"text":"[D] ","color":"blue","hoverEvent":{"action":"show_text","contents":[{"text":"${
 						message.guild ? message.guild.name : 'Unknown Server'
-					}","color":"blue"}]}},{"text":"<"},{"text":"${message.member?.displayName}","color":"${message.member?.displayHexColor}"},{"text":">"},{"text":"${` ${message.content}`}"}]`
+					}","color":"blue"}]}},{"text":"<"},{"text":"${message.member?.displayName}","color":"${
+						message.member?.displayHexColor
+					}"},{"text":">"},{"text":"${` ${message.content}`}"}]`
 				);
 				break;
 

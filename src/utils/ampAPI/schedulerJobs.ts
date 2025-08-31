@@ -5,7 +5,7 @@ const sharedPostDetails = {
 	ContentType: 'application/json',
 };
 
-export const minecraftChatLink: SchedulerJobs<'Minecraft'>[] = [
+const minecraftChatLink: SchedulerJobs<'Minecraft'>[] = [
 	{
 		module: 'Minecraft',
 		triggerDescription: 'A player joins the server for the first time',
@@ -305,8 +305,167 @@ export const minecraftChatLink: SchedulerJobs<'Minecraft'>[] = [
 	},
 ];
 
+const genericChatLink: SchedulerJobs<'GenericModule'>[] = [
+	{
+		module: 'GenericModule',
+		triggerDescription: 'A user joins the server',
+		tasksToAdd: [
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: '{@User}',
+						UserId: '{@UserID}',
+						Message: 'has connected.',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+					}),
+				},
+			},
+		],
+	},
+	{
+		module: 'GenericModule',
+		triggerDescription: 'A user leaves the server',
+		tasksToAdd: [
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: '{@User}',
+						UserId: '{@UserID}',
+						Message: 'has left the server.',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+					}),
+				},
+			},
+		],
+	},
+	{
+		module: 'GenericModule',
+		triggerDescription: 'A user sends a chat message',
+		tasksToAdd: [
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: '{@User}',
+						UserId: '{@UserID}',
+						Message: '{@Message}',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+					}),
+				},
+			},
+		],
+	},
+	{
+		module: 'GenericModule',
+		triggerDescription: 'A backup finishes archiving.',
+		tasksToAdd: [
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: 'SERVER',
+						Message: 'A backup has successfully archived.',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+					}),
+				},
+			},
+		],
+	},
+	{
+		module: 'GenericModule',
+		triggerDescription: 'A backup finishes restoring.',
+		tasksToAdd: [
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: 'SERVER',
+						Message: 'A backup has successfully restored.',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+					}),
+				},
+			},
+		],
+	},
+	{
+		module: 'GenericModule',
+		triggerDescription: 'A backup has failed.',
+		tasksToAdd: [
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: 'SERVER',
+						Message: 'A backup has failed.',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+					}),
+				},
+			},
+		],
+	},
+	{
+		module: 'GenericModule',
+		triggerDescription: 'A backup has started.',
+		tasksToAdd: [
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: 'SERVER',
+						Message: 'A backup has started.',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+					}),
+				},
+			},
+		],
+	},
+	{
+		module: 'GenericModule',
+		triggerDescription: 'The application state changes',
+		tasksToAdd: [
+			{
+				taskMethod: 'IfCondition',
+				dictionary: {
+					ValueToCheck: '{@State}',
+					Operation: '3',
+					ValueToCompare: 'Pre',
+				},
+			},
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: 'SERVER',
+						Message: '{@State}',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+						StartTime: '{@StartTime}',
+					}),
+				},
+			},
+		],
+	},
+];
+
 // A keyed collection so callers can pick by module name
 export const ChatLinks: { [K in keyof ModuleTypeMap]: SchedulerJobs<K>[] } = {
 	Minecraft: minecraftChatLink,
-	GenericModule: [],
+	GenericModule: genericChatLink,
 };

@@ -1,4 +1,3 @@
-import { ChatlinkBase } from './../../types/apiTypes/chatlinkAPITypes';
 import { Events, Client, Message } from 'discord.js';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { chatlinkModel } from '../../models/chatlink';
@@ -11,8 +10,10 @@ const messageCreate: EventData = {
 	name: Events.MessageCreate,
 	runType: 'always',
 	async execute(client: Client, message: Message) {
+		if (message.author.bot) return;
 		const chatLinks = await chatlinkModel.find({ channelId: message.channel.id });
-		if (chatLinks.some((cl: any) => cl.channelId !== message.channel.id)) return;
+		if (!chatLinks.some((cl: any) => cl.channelId === message.channel.id)) return;
+		if (!chatLinks[0].instanceId) return;
 		const instanceData = await getJson<ExtendedInstance[]>(redis, `instance:${chatLinks[0].instanceId}`);
 		if (!instanceData) return;
 

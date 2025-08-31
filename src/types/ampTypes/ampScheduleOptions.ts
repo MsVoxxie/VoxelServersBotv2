@@ -99,9 +99,16 @@ export type GenericModuleAvailableTasks =
 	| 'Wait';
 
 export type GenericModuleAvailableTriggers =
+	| 'A backup finishes archiving.'
+	| 'A backup finishes restoring.'
+	| 'A backup has failed.'
+	| 'A backup has started.'
 	| 'A scheduled backup finishes archiving.'
+	| 'A user joins the server'
+	| 'A user leaves the server'
 	| 'A user sends a chat message'
 	| 'An update is available via SteamCMD'
 	| 'An update is NOT available via SteamCMD'
+	| 'The application state changes'
 	| 'The first user joins the server'
 	| 'The last user leaves the server';
