@@ -1,7 +1,7 @@
 import { Instance, GenericModule, Minecraft } from '@neuralnexus/ampapi';
 import { MinecraftAvailableTasks, MinecraftAvailableTriggers, GenericModuleAvailableTasks, GenericModuleAvailableTriggers } from './ampScheduleOptions';
 
-export type InstanceSearchFilter = 'all' | 'running' | 'running_and_not_hidden' | 'not_hidden';
+export type InstanceSearchFilter = 'all' | 'running' | 'running_and_not_hidden' | 'not_hidden' | 'not_offline';
 
 // Instances is missing its WelcomeMessage string property
 export interface ExtendedInstance extends Omit<Instance, 'AppState' | 'Metrics'> {

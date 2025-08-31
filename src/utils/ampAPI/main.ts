@@ -1,5 +1,5 @@
-import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { ExtendedInstance, AppStateMap, InstanceSearchFilter, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
+import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getImageSource } from './getSourceImage';
 
 export async function apiLogin(): Promise<ADS> {
@@ -87,4 +87,10 @@ export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: st
 	} catch (err) {
 		return [];
 	}
+}
+
+export async function sendServerConsoleCommand(instanceId: string, module: string, command: string): Promise<void> {
+	const API = await instanceLogin(instanceId, module as keyof ModuleTypeMap);
+	const result = await API.Core.SendConsoleMessage(command);
+	return result;
 }

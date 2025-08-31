@@ -12,5 +12,6 @@
   "playerKilledByPlayer",
   "playerAdvancement",
   "unexpectedStop",
-  "backupStarting"
+  "backupStarting",
+  "playerSuicide"
 ]

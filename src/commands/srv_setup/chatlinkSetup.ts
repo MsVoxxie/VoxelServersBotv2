@@ -17,7 +17,7 @@ const chatlinkSetup: CommandData = {
 		.addChannelOption((opt) => opt.setName('channel').setDescription('The channel to send messages to.').setRequired(true)),
 	state: 'enabled',
 	devOnly: false,
-	autoCompleteInstanceType: 'not_hidden',
+	autoCompleteInstanceType: 'running',
 	async execute(client, interaction) {
 		interaction.deferReply();
 		const instanceId = interaction.options.getString('instance');
@@ -39,7 +39,7 @@ const chatlinkSetup: CommandData = {
 		if (!existingWebhook) {
 			const newWebhook = await channel.createWebhook({
 				name: instanceId,
-				avatar: interaction.guild.iconURL(),
+				avatar: interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }),
 			});
 
 			const schedulerResult = await applySchedulerJobs(instance.InstanceID, moduleName, ChatLinks[moduleName]);
