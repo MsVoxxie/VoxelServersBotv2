@@ -9,12 +9,12 @@ import { sendServerConsoleCommand } from '../ampAPI/main';
 export async function toDiscord(data: ChatlinkBase) {
 	try {
 		const [instanceData, chatlinkData] = await Promise.all([
-			getJson<ExtendedInstance[]>(redis, `instance:${data.InstanceId}`),
+			getJson<ExtendedInstance>(redis, `instance:${data.InstanceId}`),
 			chatlinkModel.findOne({ instanceId: data.InstanceId }),
 		]);
 		if (!instanceData || !chatlinkData) throw new Error('Failed to retrieve necessary data');
 
-		const instanceModule = instanceData[0].Module;
+		const instanceModule = instanceData.Module;
 		const [webhookId, webhookToken] = [chatlinkData.webhookId, chatlinkData.webhookToken];
 		const wsClient = new WebhookClient({ id: webhookId, token: webhookToken });
 		let playerImage;
@@ -30,7 +30,7 @@ export async function toDiscord(data: ChatlinkBase) {
 		}
 
 		await wsClient.send({
-			username: `${data.Username} | ${instanceData[0].FriendlyName}`,
+			username: `${data.Username} | ${instanceData.FriendlyName}`,
 			avatarURL: data.Username === 'SERVER' ? `${process.env.API_URI}/static/imgs/servericon.png` : playerImage,
 			content: data.Message,
 		});
@@ -42,9 +42,9 @@ export async function toDiscord(data: ChatlinkBase) {
 
 export async function toServer(InstanceId: string, message: Message) {
 	try {
-		const [instanceData, chatlinkData] = await Promise.all([getJson<ExtendedInstance[]>(redis, `instance:${InstanceId}`), chatlinkModel.findOne({ instanceId: InstanceId })]);
+		const [instanceData, chatlinkData] = await Promise.all([getJson<ExtendedInstance>(redis, `instance:${InstanceId}`), chatlinkModel.findOne({ instanceId: InstanceId })]);
 		if (!instanceData || !chatlinkData) throw new Error('Failed to retrieve necessary data');
-		const instanceModule = instanceData[0].Module;
+		const instanceModule = instanceData.Module;
 
 		switch (instanceModule) {
 			case 'Minecraft':

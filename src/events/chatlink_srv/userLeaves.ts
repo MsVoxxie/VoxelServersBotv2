@@ -1,13 +1,25 @@
 import { StateChangeEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
+import { delJson, getJson } from '../../utils/redisHelpers';
 import { toDiscord } from '../../utils/discord/webhooks';
+import redis from '../../loaders/database/redisLoader';
+import { msToHuman } from '../../utils/utils';
 import { Client } from 'discord.js';
 
 const userLeaves: EventData = {
 	name: 'userLeaves',
 	runType: 'always',
 	async execute(client: Client, event: StateChangeEvent) {
+		const joinData = (await getJson(redis, `joinDuration:${event.InstanceId}:${event.Username}`)) as { joined: number };
+
+		if (joinData) {
+			const duration = Date.now() - joinData.joined;
+			const timePlayed = msToHuman(duration);
+			if (timePlayed) { event.Message += `\n-# Played for: ${timePlayed.join(' ')}`; }
+		}
+
 		await toDiscord(event);
+		delJson(redis, `joinDuration:${event.InstanceId}:${event.Username}`);
 	},
 };
 

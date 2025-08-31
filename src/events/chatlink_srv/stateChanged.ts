@@ -1,12 +1,29 @@
 import { StateChangeEvent } from '../../types/apiTypes/chatlinkAPITypes';
+import { delJson, getJson, setJson } from '../../utils/redisHelpers';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
+import redis from '../../loaders/database/redisLoader';
+import { msToHuman } from '../../utils/utils';
 import { Client } from 'discord.js';
 
 const stateChanged: EventData = {
 	name: 'stateChanged',
 	runType: 'always',
 	async execute(client: Client, event: StateChangeEvent) {
+		switch (event.Message) {
+			case 'Starting':
+				const startTime = Date.now();
+				setJson(redis, `serverStart:${event.InstanceId}`, { start: startTime }, '$', 60 * 60 * 48); // 2 day expiry
+				break;
+
+			case 'Ready':
+				const startDuration = (await getJson(redis, `serverStart:${event.InstanceId}`)) as { start: number };
+				const duration = msToHuman(Date.now() - startDuration.start);
+				if (duration) { event.Message += `\n-# Took ${duration.join(' ')}`; }
+				delJson(redis, `serverStart:${event.InstanceId}`);
+				break;
+		}
+
 		await toDiscord(event);
 	},
 };

@@ -14,7 +14,7 @@ const messageCreate: EventData = {
 		const chatLinks = await chatlinkModel.find({ channelId: message.channel.id });
 		if (!chatLinks.some((cl: any) => cl.channelId === message.channel.id)) return;
 		if (!chatLinks[0].instanceId) return;
-		const instanceData = await getJson<ExtendedInstance[]>(redis, `instance:${chatLinks[0].instanceId}`);
+	const instanceData = await getJson<ExtendedInstance>(redis, `instance:${chatLinks[0].instanceId}`);
 		if (!instanceData) return;
 
 		await toServer(chatLinks[0].instanceId, message);

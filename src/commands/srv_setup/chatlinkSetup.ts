@@ -23,7 +23,7 @@ const chatlinkSetup: CommandData = {
 		const instanceId = interaction.options.getString('instance');
 		const instanceData = await getJson(redis, `instance:${instanceId}`);
 		if (!instanceData) return interaction.reply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
-		const instance = Array.isArray(instanceData) ? (instanceData[0] as ExtendedInstance) : (instanceData as ExtendedInstance);
+		const instance = Array.isArray(instanceData) ? (instanceData as ExtendedInstance) : (instanceData as ExtendedInstance);
 		const moduleName = (instance.Module || 'GenericModule') as keyof ModuleTypeMap;
 		const instanceAPI = await instanceLogin(instance.InstanceID, moduleName);
 		if (!instanceAPI) return interaction.reply({ content: 'Failed to login to instance API.', flags: MessageFlags.Ephemeral });

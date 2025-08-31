@@ -1,6 +1,8 @@
 import { StateChangeEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
+import redis from '../../loaders/database/redisLoader';
+import { setJson } from '../../utils/redisHelpers';
 import { Client } from 'discord.js';
 
 const backupStarting: EventData = {
@@ -8,6 +10,9 @@ const backupStarting: EventData = {
 	runType: 'always',
 	async execute(client: Client, event: StateChangeEvent) {
 		await toDiscord(event);
+
+		const startTime = Date.now();
+		setJson(redis, `backupTimer:${event.InstanceId}`, { start: startTime }, '$', 60 * 60 * 48); // 2 day expiry
 	},
 };
 
