@@ -373,7 +373,7 @@ const genericChatLink: SchedulerJobs<'GenericModule'>[] = [
 					...sharedPostDetails,
 					Payload: JSON.stringify({
 						Username: 'SERVER',
-						Message: 'A backup has successfully archived.',
+						Message: 'Backup successfully archived.',
 						InstanceId: '{@InstanceId}',
 						EventId: '{@TriggerName}',
 					}),
@@ -409,7 +409,7 @@ const genericChatLink: SchedulerJobs<'GenericModule'>[] = [
 					...sharedPostDetails,
 					Payload: JSON.stringify({
 						Username: 'SERVER',
-						Message: 'A backup has failed.',
+						Message: 'Backup has failed.',
 						InstanceId: '{@InstanceId}',
 						EventId: '{@TriggerName}',
 					}),

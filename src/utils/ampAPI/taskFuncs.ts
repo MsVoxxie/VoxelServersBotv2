@@ -105,7 +105,7 @@ export async function applySchedulerJobs(instanceID: string, moduleName: string,
 			failedTriggers.push({ triggerDesc, error: triggerResult.error });
 		}
 		triggerResults.push({ job, result: triggerResult });
-		await wait(25);
+		// await wait(5);
 	}
 
 	// Phase 2: add tasks sequentially for triggers that were created successfully
@@ -137,7 +137,7 @@ export async function applySchedulerJobs(instanceID: string, moduleName: string,
 		const totalTasksForJob = job.tasksToAdd.length;
 		const failedCountForJob = totalTasksForJob - tasksAddedForTrigger.length;
 		successTriggers.push({ triggerDesc, tasks: tasksAddedForTrigger, total: totalTasksForJob, failedCount: failedCountForJob });
-		await wait(25);
+		// await wait(5);
 	}
 
 	// Build Markdown summaries
@@ -202,7 +202,7 @@ export async function removeSchedulerJobs(instanceID: string, moduleName: string
 			}
 		}
 		taskRemovalResults.push({ job, tasksRemoved: tasksRemovedForTrigger });
-		await wait(25);
+		// await wait(5);
 	}
 
 	// Phase 2: remove triggers for all jobs
@@ -220,7 +220,7 @@ export async function removeSchedulerJobs(instanceID: string, moduleName: string
 			successTriggers.push({ triggerDesc, tasks: tasksRemovedForTrigger, total: totalTasksForJob, failedCount: failedCountForJob });
 		}
 
-		await wait(25);
+		// await wait(5);
 	}
 
 	// Build Markdown summaries

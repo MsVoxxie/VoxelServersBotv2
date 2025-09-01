@@ -1,4 +1,4 @@
-import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
@@ -56,8 +56,15 @@ const chatlinkSetup: CommandData = {
 					instanceId: instance.InstanceID,
 				})
 				.then(() => {
+					const embed = new EmbedBuilder()
+						.setColor(client.color)
+						.setTitle('Chatlink Setup')
+						.setDescription(`${channel.url}'s Chatlink has been enabled.\n${chatlinkListMD(schedulerResult, 'add')}`)
+						.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
+						.setThumbnail(interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }));
+
 					interaction.editReply({
-						content: `## Chat link setup completed!\n### ${channel.url}\n${schedulerResult.successMd}\n${schedulerResult.failureMd}`,
+						embeds: [embed],
 						flags: MessageFlags.Ephemeral,
 					});
 				});
@@ -65,13 +72,42 @@ const chatlinkSetup: CommandData = {
 			// If the webhook exists, we should disable chatlink
 			await existingWebhook.delete('Chat link disabled via command.');
 			const schedulerResult = await removeSchedulerJobs(instance.InstanceID, moduleName, ChatLinks[moduleName]);
-			await chatlinkModel.deleteOne({ webhookId: existingWebhook.id });
-			interaction.editReply({
-				content: `## Chat link disabled successfully!\n### ${channel.url}\n${schedulerResult.successMd}\n${schedulerResult.failureMd}`,
-				flags: MessageFlags.Ephemeral,
+			await chatlinkModel.deleteOne({ webhookId: existingWebhook.id }).then(() => {
+				const embed = new EmbedBuilder()
+					.setColor(client.color)
+					.setTitle('Chatlink Setup')
+					.setDescription(`${channel.url}'s chat link has been disabled.\n${chatlinkListMD(schedulerResult, 'remove')}`)
+					.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
+					.setThumbnail(interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }));
+
+				interaction.editReply({
+					embeds: [embed],
+					flags: MessageFlags.Ephemeral,
+				});
 			});
 		}
 	},
 };
+
+function chatlinkListMD(schedulerResult: any, type: 'add' | 'remove') {
+	let md: string;
+	let success: string;
+	let failed: string;
+
+	switch (type) {
+		case 'add':
+			success = `- Successfully added **${schedulerResult.successTriggers.length}** Triggers\n  - Successfully added **${schedulerResult.successTasks.length}** tasks.`;
+			failed = `- Failed to add **${schedulerResult.failedTriggers.length}** Triggers\n  - Failed to add **${schedulerResult.failedTasks.length}** tasks.`;
+			md = `\n${success}\n\n${failed}`;
+			break;
+
+		case 'remove':
+			success = `- Successfully removed **${schedulerResult.successTriggers.length}** Triggers\n  - Successfully removed **${schedulerResult.successTasks.length}** tasks.`;
+			failed = `- Failed to remove **${schedulerResult.failedTriggers.length}** Triggers\n  - Failed to remove **${schedulerResult.failedTasks.length}** tasks.`;
+			md = `\n${success}\n\n${failed}`;
+			break;
+	}
+	return md;
+}
 
 export default chatlinkSetup;
