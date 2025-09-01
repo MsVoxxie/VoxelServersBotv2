@@ -18,7 +18,7 @@ const instanceInfo: CommandData = {
 		const instanceId = interaction.options.getString('instance');
 		const instanceData = await getJson(redis, `instance:${instanceId}`);
 		if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
-		const instance = Array.isArray(instanceData) ? (instanceData as ExtendedInstance) : (instanceData as ExtendedInstance);
+		const instance = instanceData as ExtendedInstance;
 		const getModpack = (str: string): boolean => {
 			const urlPattern = /^https?:\/\/.+/i;
 			return urlPattern.test(str);

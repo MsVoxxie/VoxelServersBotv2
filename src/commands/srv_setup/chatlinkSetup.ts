@@ -23,7 +23,7 @@ const chatlinkSetup: CommandData = {
 		const instanceId = interaction.options.getString('instance');
 		const instanceData = await getJson(redis, `instance:${instanceId}`);
 		if (!instanceData) return interaction.reply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
-		const instance = Array.isArray(instanceData) ? (instanceData as ExtendedInstance) : (instanceData as ExtendedInstance);
+		const instance = instanceData as ExtendedInstance;
 		const moduleName = (instance.Module || 'GenericModule') as keyof ModuleTypeMap;
 		const instanceAPI = await instanceLogin(instance.InstanceID, moduleName);
 		if (!instanceAPI) return interaction.reply({ content: 'Failed to login to instance API.', flags: MessageFlags.Ephemeral });
@@ -56,14 +56,20 @@ const chatlinkSetup: CommandData = {
 					instanceId: instance.InstanceID,
 				})
 				.then(() => {
-					interaction.editReply({ content: `## Chat link setup completed!\n### ${channel.url}\n${schedulerResult.successMd}\n${schedulerResult.failureMd}`, flags: MessageFlags.Ephemeral });
+					interaction.editReply({
+						content: `## Chat link setup completed!\n### ${channel.url}\n${schedulerResult.successMd}\n${schedulerResult.failureMd}`,
+						flags: MessageFlags.Ephemeral,
+					});
 				});
 		} else {
 			// If the webhook exists, we should disable chatlink
 			await existingWebhook.delete('Chat link disabled via command.');
 			const schedulerResult = await removeSchedulerJobs(instance.InstanceID, moduleName, ChatLinks[moduleName]);
 			await chatlinkModel.deleteOne({ webhookId: existingWebhook.id });
-			interaction.editReply({ content: `## Chat link disabled successfully!\n### ${channel.url}\n${schedulerResult.successMd}\n${schedulerResult.failureMd}`, flags: MessageFlags.Ephemeral });
+			interaction.editReply({
+				content: `## Chat link disabled successfully!\n### ${channel.url}\n${schedulerResult.successMd}\n${schedulerResult.failureMd}`,
+				flags: MessageFlags.Ephemeral,
+			});
 		}
 	},
 };
