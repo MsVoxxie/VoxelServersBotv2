@@ -44,7 +44,20 @@ async function downloadHead(uuid: string, filePath: string) {
 }
 
 // Download Steam avatar and save to cache
-async function downloadSteamAvatar(steam64: string, filePath: string) {
+// Convert legacy Steam ID (e.g., STEAM_0:1:61611229) to Steam64
+function toSteam64(steamId: string): string {
+	if (/^STEAM_\d:\d:\d+$/.test(steamId)) {
+		const parts = steamId.split(':');
+		const Y = parseInt(parts[1], 10);
+		const Z = parseInt(parts[2], 10);
+		const steam64 = BigInt('76561197960265728') + BigInt(Z * 2 + Y);
+		return steam64.toString();
+	}
+	return steamId;
+}
+
+async function downloadSteamAvatar(steamId: string, filePath: string) {
+	const steam64 = toSteam64(steamId);
 	const res = await fetch(STEAM_API_URL(steam64));
 	if (!res.ok) throw new Error('Failed to fetch Steam profile');
 	const data = await res.json();
