@@ -8,7 +8,7 @@ export default async function runScheduledTasks(deps?: any) {
 	for (const scheduleFolder of scheduleFolders) {
 		const scheduleFiles = getAllFiles(scheduleFolder);
 		scheduleFiles.sort((a: string, b: string) => (a > b ? 1 : a < b ? -1 : 0));
-		logger.info('Scheduler', `Starting load of ${scheduleFiles.length} tasks...`);
+		logger.info(`Scheduler - ${scheduleFolder.split('/').pop()}`, `Starting load of ${scheduleFiles.length} tasks...`);
 		for (const scheduleFile of scheduleFiles) {
 			try {
 				const mod = require(scheduleFile);

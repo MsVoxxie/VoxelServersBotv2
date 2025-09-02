@@ -5,6 +5,7 @@ import { chatlinkModel } from '../../models/chatlink';
 import { Message, WebhookClient } from 'discord.js';
 import { getJson } from '../redisHelpers';
 import { sendServerConsoleCommand } from '../ampAPI/main';
+import logger from '../logger';
 
 export async function toDiscord(data: ChatlinkBase) {
 	try {
@@ -29,13 +30,19 @@ export async function toDiscord(data: ChatlinkBase) {
 				break;
 		}
 
-		await wsClient.send({
-			username: `${data.Username} | ${instanceData.FriendlyName}`,
-			avatarURL: data.Username === 'SERVER' ? `${process.env.API_URI}/static/imgs/servericon.png` : playerImage,
-			content: data.Message,
-		});
+		// guard against failed sends
+		await wsClient
+			.send({
+				username: `${data.Username} | ${instanceData.FriendlyName}`,
+				avatarURL: data.Username === 'SERVER' ? `${process.env.API_URI}/static/imgs/servericon.png` : playerImage,
+				content: data.Message,
+			})
+			.catch((err) => {
+				logger.error('Discord Webhook', `Failed to send message via webhook for instance ${instanceData.FriendlyName}: ${err.message}`);
+			});
 	} catch (error) {
-		console.error('Error preparing discord webhook send:', error);
+		const errMsg = error instanceof Error ? error.message : String(error);
+		logger.error('Discord Webhook', `Error preparing discord webhook send: ${errMsg}`);
 		throw error;
 	}
 }
@@ -64,7 +71,8 @@ export async function toServer(InstanceId: string, message: Message) {
 				break;
 		}
 	} catch (error) {
-		console.error('Error preparing server send:', error);
+		const errMsg = error instanceof Error ? error.message : String(error);
+		logger.error('Discord Webhook', `Error preparing server send: ${errMsg}`);
 		throw error;
 	}
 }
