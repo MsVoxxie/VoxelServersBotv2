@@ -32,7 +32,7 @@ const watchInstances: ScheduleTaskData = {
 			await setJson(redisClient, 'instances:cached', current, '$', 864_000); // 10 days TTL
 		};
 		await checkUpdates();
-		setInterval(checkUpdates, 30_000); // 5min
+		setInterval(checkUpdates, 300_000); // 5min
 	},
 };
 
