@@ -25,7 +25,7 @@ export async function toDiscord(data: ChatlinkBase) {
 				break;
 
 			case 'GenericModule':
-				playerImage = `${process.env.API_URI}/data/steamavatar/${data.SteamId}`;
+				playerImage = `${process.env.API_URI}/data/steamavatar/${data.UserId}`;
 				break;
 		}
 
