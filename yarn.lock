@@ -8,14 +8,14 @@
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
 "@discordjs/builders@^1.11.2":
-  version "1.11.2"
-  resolved "https://registry.yarnpkg.com/@discordjs/builders/-/builders-1.11.2.tgz#b96185d05d22f9d6bde89aada2decf45a5c982ce"
-  integrity sha512-F1WTABdd8/R9D1icJzajC4IuLyyS8f3rTOz66JsSI3pKvpCAtsMBweu8cyNYsIyvcrKAVn9EPK+Psoymq+XC0A==
+  version "1.11.3"
+  resolved "https://registry.yarnpkg.com/@discordjs/builders/-/builders-1.11.3.tgz#14b8b027e16b73136924faecaf1819b94711647c"
+  integrity sha512-p3kf5eV49CJiRTfhtutUCeivSyQ/l2JlKodW1ZquRwwvlOWmG9+6jFShX6x8rUiYhnP6wKI96rgN/SXMy5e5aw==
   dependencies:
     "@discordjs/formatters" "^0.6.1"
     "@discordjs/util" "^1.1.1"
     "@sapphire/shapeshift" "^4.0.0"
-    discord-api-types "^0.38.1"
+    discord-api-types "^0.38.16"
     fast-deep-equal "^3.1.3"
     ts-mixer "^6.0.4"
     tslib "^2.6.3"
@@ -37,17 +37,17 @@
   dependencies:
     discord-api-types "^0.38.1"
 
-"@discordjs/rest@^2.5.1":
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/@discordjs/rest/-/rest-2.5.1.tgz#a6bde4d08f0e23bd763506cc1fcc83564afee077"
-  integrity sha512-Tg9840IneBcbrAjcGaQzHUJWFNq1MMWZjTdjJ0WS/89IffaNKc++iOvffucPxQTF/gviO9+9r8kEPea1X5J2Dw==
+"@discordjs/rest@^2.5.1", "@discordjs/rest@^2.6.0":
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/@discordjs/rest/-/rest-2.6.0.tgz#8c449b0d5c22a4cd9c655f5d1d53a20b05c37f10"
+  integrity sha512-RDYrhmpB7mTvmCKcpj+pc5k7POKszS4E2O9TYc+U+Y4iaCP+r910QdO43qmpOja8LRr1RJ0b3U+CqVsnPqzf4w==
   dependencies:
     "@discordjs/collection" "^2.1.1"
     "@discordjs/util" "^1.1.1"
     "@sapphire/async-queue" "^1.5.3"
     "@sapphire/snowflake" "^3.5.3"
     "@vladfrangu/async_event_emitter" "^2.4.6"
-    discord-api-types "^0.38.1"
+    discord-api-types "^0.38.16"
     magic-bytes.js "^1.10.0"
     tslib "^2.6.3"
     undici "6.21.3"
@@ -84,32 +84,32 @@
   resolved "https://registry.yarnpkg.com/@neuralnexus/ampapi/-/ampapi-1.0.19.tgz#d177fa000a62e14f6eb457a824b87d43fdc2ed7f"
   integrity sha512-V382VxRTC7u5l6KK71khnOgO3MYN11s3gVFxFCcND7u9wJxLOhT9c3BB8VMKQFOh5gRNKzArntxAm4PDGxBzNA==
 
-"@redis/bloom@5.7.0":
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/@redis/bloom/-/bloom-5.7.0.tgz#69e00b57ab32beabc168c58418ee3ba979a8b6ea"
-  integrity sha512-KtBHDH2Aw1BxYDQd87PJsdEmZcpMbD4oPzdBwB4IvSRmMovukO2NNGi5vpCHhCoicS83zu7cjX1fw79uFBZFJA==
+"@redis/bloom@5.8.2":
+  version "5.8.2"
+  resolved "https://registry.yarnpkg.com/@redis/bloom/-/bloom-5.8.2.tgz#e649698907876cd746d4867b634c4fa1f152bec8"
+  integrity sha512-855DR0ChetZLarblio5eM0yLwxA9Dqq50t8StXKp5bAtLT0G+rZ+eRzzqxl37sPqQKjUudSYypz55o6nNhbz0A==
 
-"@redis/client@5.7.0":
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/@redis/client/-/client-5.7.0.tgz#e84be49497eddb13811085501e20fb3b57659fa1"
-  integrity sha512-YV3Knspdj9k6H6s4v8QRcj1WBxHt40vtPmszLKGwRUOUpUOLWSlI9oCUjprMDcQNzgSCXGXYdL/Aj6nT2+Ub0w==
+"@redis/client@5.8.2":
+  version "5.8.2"
+  resolved "https://registry.yarnpkg.com/@redis/client/-/client-5.8.2.tgz#099f387b7fba99180c10e0e7093b71d022e704f8"
+  integrity sha512-WtMScno3+eBpTac1Uav2zugXEoXqaU23YznwvFgkPwBQVwEHTDgOG7uEAObtZ/Nyn8SmAMbqkEubJaMOvnqdsQ==
   dependencies:
     cluster-key-slot "1.1.2"
 
-"@redis/json@5.7.0":
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/@redis/json/-/json-5.7.0.tgz#b0774aee0c68945457b0af52d0c005f82e7d2080"
-  integrity sha512-VP3wtse1PSB/UjZAV1lWyDrWrrZcwi/cjb3L0lIarcIJ+EbHliB2QPml0Bvjz8F8F0eDJRtChJVXFc+jhGxCtA==
+"@redis/json@5.8.2":
+  version "5.8.2"
+  resolved "https://registry.yarnpkg.com/@redis/json/-/json-5.8.2.tgz#9d8b4c1b645deb6238d2cc1214d214c7f0b04316"
+  integrity sha512-uxpVfas3I0LccBX9rIfDgJ0dBrUa3+0Gc8sEwmQQH0vHi7C1Rx1Qn8Nv1QWz5bohoeIXMICFZRcyDONvum2l/w==
 
-"@redis/search@5.7.0":
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/@redis/search/-/search-5.7.0.tgz#907cc4036077dac85de9dd63d057c8bb2709db73"
-  integrity sha512-dDZIq8pZJnT+kZ9xRlLLi2Rvkd792z9eh31QRIwPr5wXjAXeaQ+Nf65em6dLpsxZ60MmhwDwLrBPJpYVjKPBPQ==
+"@redis/search@5.8.2":
+  version "5.8.2"
+  resolved "https://registry.yarnpkg.com/@redis/search/-/search-5.8.2.tgz#7bdffdce2114c48fb8a97321e0e5b1ad2a876c57"
+  integrity sha512-cNv7HlgayavCBXqPXgaS97DRPVWFznuzsAmmuemi2TMCx5scwLiP50TeZvUS06h/MG96YNPe6A0Zt57yayfxwA==
 
-"@redis/time-series@5.7.0":
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/@redis/time-series/-/time-series-5.7.0.tgz#43089195bf85e6468edaa4e664b26b4b7842f697"
-  integrity sha512-AJTF9sz3y1MJAukgQW4Jw8zt8qGOE3+1d87pufOP35zsFBlHipGscpctoXiNMebfy0114y/FjSprr65LjbJQSQ==
+"@redis/time-series@5.8.2":
+  version "5.8.2"
+  resolved "https://registry.yarnpkg.com/@redis/time-series/-/time-series-5.8.2.tgz#24c7c0edb7c8cd279ac26ce28c9dbd1f5c30ac35"
+  integrity sha512-g2NlHM07fK8H4k+613NBsk3y70R2JIM2dPMSkhIjl2Z17SYvaYKdusz85d7VYOrZBWtDrHV/WD2E3vGu+zni8A==
 
 "@sapphire/async-queue@^1.5.2", "@sapphire/async-queue@^1.5.3":
   version "1.5.5"
@@ -187,11 +187,11 @@
   integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
 
 "@types/node@*":
-  version "24.0.4"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.0.4.tgz#dbae889912bda33a7f57669fb8587c1a56bc0c1f"
-  integrity sha512-ulyqAkrhnuNq9pB76DRBTkcS6YsmDALy6Ua63V8OhrOBgbcYt6IOdzpw5P1+dyRIyMerzLkeYWBeOXPpA9GMAA==
+  version "24.3.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.3.0.tgz#89b09f45cb9a8ee69466f18ee5864e4c3eb84dec"
+  integrity sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==
   dependencies:
-    undici-types "~7.8.0"
+    undici-types "~7.10.0"
 
 "@types/qs@*":
   version "6.14.0"
@@ -379,24 +379,24 @@ destroy@1.2.0:
   resolved "https://registry.yarnpkg.com/destroy/-/destroy-1.2.0.tgz#4803735509ad8be552934c67df614f94e66fa015"
   integrity sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==
 
-discord-api-types@^0.38.1:
-  version "0.38.13"
-  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.38.13.tgz#ee388a9df106d8dbc298c3c579e60b2fadf2029c"
-  integrity sha512-FELWJRgLVQuR7Az8RhdEZE0k6QNjSW9PCUcU1iyP2Gke8HrJmnMceSS9pD93UM64s3tvZzJPajpPLjWZJylf4g==
+discord-api-types@^0.38.1, discord-api-types@^0.38.16:
+  version "0.38.22"
+  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.38.22.tgz#89c8e755d1be56dc8cccc2f8e9fc173d850dfe9d"
+  integrity sha512-2gnYrgXN3yTlv2cKBISI/A8btZwsSZLwKpIQXeI1cS8a7W7wP3sFVQOm3mPuuinTD8jJCKGPGNH399zE7Un1kA==
 
 discord.js@^14.21.0:
-  version "14.21.0"
-  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-14.21.0.tgz#f786b39083dce3add74966a926ca3cce1251cd92"
-  integrity sha512-U5w41cEmcnSfwKYlLv5RJjB8Joa+QJyRwIJz5i/eg+v2Qvv6EYpCRhN9I2Rlf0900LuqSDg8edakUATrDZQncQ==
+  version "14.22.1"
+  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-14.22.1.tgz#aa364cf0108b41bac3eaa9fa1aae836d0882a91c"
+  integrity sha512-3k+Kisd/v570Jr68A1kNs7qVhNehDwDJAPe4DZ2Syt+/zobf9zEcuYFvsfIaAOgCa0BiHMfOOKQY4eYINl0z7w==
   dependencies:
     "@discordjs/builders" "^1.11.2"
     "@discordjs/collection" "1.5.3"
     "@discordjs/formatters" "^0.6.1"
-    "@discordjs/rest" "^2.5.1"
+    "@discordjs/rest" "^2.6.0"
     "@discordjs/util" "^1.1.1"
     "@discordjs/ws" "^1.2.3"
     "@sapphire/snowflake" "3.5.3"
-    discord-api-types "^0.38.1"
+    discord-api-types "^0.38.16"
     fast-deep-equal "3.1.3"
     lodash.snakecase "4.1.1"
     magic-bytes.js "^1.10.0"
@@ -404,9 +404,9 @@ discord.js@^14.21.0:
     undici "6.21.3"
 
 dotenv@^16.5.0:
-  version "16.5.0"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.5.0.tgz#092b49f25f808f020050051d1ff258e404c78692"
-  integrity sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==
+  version "16.6.1"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.6.1.tgz#773f0e69527a8315c7285d5ee73c4459d20a8020"
+  integrity sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==
 
 dunder-proto@^1.0.1:
   version "1.0.1"
@@ -813,15 +813,15 @@ raw-body@2.5.2:
     unpipe "1.0.0"
 
 redis@^5.7.0:
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/redis/-/redis-5.7.0.tgz#55264320a300dd2ca72a6d455af9e46b666b8345"
-  integrity sha512-ZRbiWYBUYdDTopodRjCVwwCLThrkciPW3bOrkdMCW3nYEelBwUGN6SovmACDsiLUB7mnU3mXnaI5f0W7bDcwng==
+  version "5.8.2"
+  resolved "https://registry.yarnpkg.com/redis/-/redis-5.8.2.tgz#e24a2e36a1dc72f286a92de76f08a63d34a9e02a"
+  integrity sha512-31vunZj07++Y1vcFGcnNWEf5jPoTkGARgfWI4+Tk55vdwHxhAvug8VEtW7Cx+/h47NuJTEg/JL77zAwC6E0OeA==
   dependencies:
-    "@redis/bloom" "5.7.0"
-    "@redis/client" "5.7.0"
-    "@redis/json" "5.7.0"
-    "@redis/search" "5.7.0"
-    "@redis/time-series" "5.7.0"
+    "@redis/bloom" "5.8.2"
+    "@redis/client" "5.8.2"
+    "@redis/json" "5.8.2"
+    "@redis/search" "5.8.2"
+    "@redis/time-series" "5.8.2"
 
 safe-buffer@5.2.1:
   version "5.2.1"
@@ -971,14 +971,14 @@ type-is@~1.6.18:
     mime-types "~2.1.24"
 
 typescript@^5.8.3:
-  version "5.8.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.8.3.tgz#92f8a3e5e3cf497356f4178c34cd65a7f5e8440e"
-  integrity sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==
+  version "5.9.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.2.tgz#d93450cddec5154a2d5cabe3b8102b83316fb2a6"
+  integrity sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A==
 
-undici-types@~7.8.0:
-  version "7.8.0"
-  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-7.8.0.tgz#de00b85b710c54122e44fbfd911f8d70174cd294"
-  integrity sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==
+undici-types@~7.10.0:
+  version "7.10.0"
+  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-7.10.0.tgz#4ac2e058ce56b462b056e629cc6a02393d3ff350"
+  integrity sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==
 
 undici@6.21.3:
   version "6.21.3"
@@ -1021,6 +1021,6 @@ webidl-conversions@^7.0.0:
     webidl-conversions "^7.0.0"
 
 ws@^8.17.0:
-  version "8.18.2"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.2.tgz#42738b2be57ced85f46154320aabb51ab003705a"
-  integrity sha512-DMricUmwGZUVr++AEAe2uiVM7UoO9MAVZMDu05UQOaUII0lp+zOzLLU4Xqh/JvTqklB1T4uELaaPBKyjE1r4fQ==
+  version "8.18.3"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.3.tgz#b56b88abffde62791c639170400c93dcb0c95472"
+  integrity sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==
