@@ -4,7 +4,7 @@ import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
 import redis from '../../loaders/database/redisLoader';
 import { msToHuman } from '../../utils/utils';
-import { Client } from 'discord.js';
+import { Client, time } from 'discord.js';
 
 const stateChanged: EventData = {
 	name: 'stateChanged',
@@ -13,13 +13,15 @@ const stateChanged: EventData = {
 		switch (event.Message) {
 			case 'Starting':
 				const startTime = Date.now();
-				setJson(redis, `serverStart:${event.InstanceId}`, { start: startTime }, '$', 60 * 60 * 48); // 2 day expiry
+				setJson(redis, `serverStart:${event.InstanceId}`, { time: startTime }, '$', 60 * 60 * 2); // 2 hours TTL
 				break;
 
 			case 'Ready':
-				const startDuration = (await getJson(redis, `serverStart:${event.InstanceId}`)) as { start: number };
-				const duration = msToHuman(Date.now() - startDuration.start);
-				if (duration) { event.Message += `\n-# Took ${duration.join(' ')}`; }
+				const startDuration = (await getJson(redis, `serverStart:${event.InstanceId}`)) as { time: number };
+				const duration = msToHuman(Date.now() - startDuration.time);
+				if (duration) {
+					event.Message += `\n-# Took ${duration.join(' ')}`;
+				}
 				delJson(redis, `serverStart:${event.InstanceId}`);
 				break;
 		}

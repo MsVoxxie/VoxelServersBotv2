@@ -3,8 +3,8 @@ import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import { ExtendedInstance, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
-import { instanceLogin } from '../../utils/ampAPI/main';
-import { ChatLinks } from '../../utils/ampAPI/schedulerJobs';
+import { instanceLogin } from '../../utils/ampAPI/mainFuncs';
+import { ChatLinks } from '../../utils/schedulerJobs/jobList';
 import { applySchedulerJobs, removeSchedulerJobs } from '../../utils/ampAPI/taskFuncs';
 import { chatlinkModel } from '../../models/chatlink';
 

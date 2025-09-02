@@ -7,7 +7,7 @@ import Logger from './utils/logger';
 
 // Discord Client
 import './types/discordTypes/clientTypes';
-import { Client, Collection, GatewayIntentBits } from 'discord.js';
+import { Client, Collection, Colors, GatewayIntentBits } from 'discord.js';
 const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,
@@ -23,7 +23,7 @@ const client = new Client({
 });
 
 // Define Collections
-client.color = '#FFFFFF';
+client.color = Colors.White;
 client.backupTimers = new Collection();
 client.typingState = new Collection();
 client.cooldowns = new Collection();

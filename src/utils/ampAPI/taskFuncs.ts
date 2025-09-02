@@ -1,6 +1,6 @@
 import { wait } from '../utils';
 import { SchedulerJobs, ModuleTypeMap, TaskToAdd } from '../../types/ampTypes/ampTypes';
-import { instanceLogin } from './main';
+import { instanceLogin } from './mainFuncs';
 
 export async function loginAndGetSchedule(instanceID: string, moduleName: string) {
 	const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);

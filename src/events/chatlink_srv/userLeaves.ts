@@ -10,12 +10,14 @@ const userLeaves: EventData = {
 	name: 'userLeaves',
 	runType: 'always',
 	async execute(client: Client, event: StateChangeEvent) {
-		const joinData = (await getJson(redis, `joinDuration:${event.InstanceId}:${event.Username}`)) as { joined: number };
+		const joinData = (await getJson(redis, `joinDuration:${event.InstanceId}:${event.Username}`)) as { time: number };
 
 		if (joinData) {
-			const duration = Date.now() - joinData.joined;
+			const duration = Date.now() - joinData.time;
 			const timePlayed = msToHuman(duration);
-			if (timePlayed) { event.Message += `\n-# Played for: ${timePlayed.join(' ')}`; }
+			if (timePlayed) {
+				event.Message += `\n-# Played for: ${timePlayed.join(' ')}`;
+			}
 		}
 
 		await toDiscord(event);

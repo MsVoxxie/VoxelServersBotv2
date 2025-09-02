@@ -11,7 +11,7 @@ const userJoins: EventData = {
 	async execute(client: Client, event: StateChangeEvent) {
 		await toDiscord(event);
 		const joinTime = Date.now();
-		setJson(redis, `joinDuration:${event.InstanceId}:${event.Username}`, { joined: joinTime }, '$', 60 * 60 * 48); // 2 day expiry
+		setJson(redis, `joinDuration:${event.InstanceId}:${event.Username}`, { time: joinTime }, '$', 60 * 60 * 48); // 2 day expiry
 	},
 };
 

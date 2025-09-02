@@ -4,7 +4,7 @@ import redis from '../../loaders/database/redisLoader';
 import { chatlinkModel } from '../../models/chatlink';
 import { Message, WebhookClient } from 'discord.js';
 import { getJson } from '../redisHelpers';
-import { sendServerConsoleCommand } from '../ampAPI/main';
+import { sendServerConsoleCommand } from '../ampAPI/mainFuncs';
 import logger from '../logger';
 
 export async function toDiscord(data: ChatlinkBase) {

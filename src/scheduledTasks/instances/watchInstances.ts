@@ -1,12 +1,12 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
-import { getAllInstances } from '../../utils/ampAPI/main';
-import { getJson } from '../../utils/redisHelpers';
+import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
+import { getJson, setJson } from '../../utils/redisHelpers';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 const watchInstances: ScheduleTaskData = {
 	name: 'Watch Instance Updates',
 	async run({ client, redisClient }) {
 		const checkUpdates = async () => {
-			const rawPrev = (await getJson<ExtendedInstance | ExtendedInstance[] | null>(redisClient, 'instances:all')) ?? null;
+			const rawPrev = (await getJson<ExtendedInstance | ExtendedInstance[] | null>(redisClient, 'instances:cached')) ?? null;
 			const prev: ExtendedInstance[] = rawPrev ? (Array.isArray(rawPrev) ? rawPrev : [rawPrev]) : [];
 			// fetch current set
 			const current = (await getAllInstances({ fetch: 'all' })) as ExtendedInstance[];
@@ -15,19 +15,21 @@ const watchInstances: ScheduleTaskData = {
 			const prevMap = new Map(prev.map((i: ExtendedInstance) => [i.InstanceID, i]));
 			const currMap = new Map(current.map((i: ExtendedInstance) => [i.InstanceID, i]));
 
-			// detect created
+			// created
 			for (const [id, inst] of currMap) {
 				if (!prevMap.has(id)) {
 					client.emit('instanceCreated', inst);
 				}
 			}
 
-			// detect deleted
+			// deleted
 			for (const [id, inst] of prevMap) {
 				if (!currMap.has(id)) {
 					client.emit('instanceDeleted', inst);
 				}
 			}
+			// update the instance cache so next run compares against this snapshot
+			await setJson(redisClient, 'instances:cached', current, '$', 864_000); // 10 days TTL
 		};
 		await checkUpdates();
 		setInterval(checkUpdates, 30_000); // 5min

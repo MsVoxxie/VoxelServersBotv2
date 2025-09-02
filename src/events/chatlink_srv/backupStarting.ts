@@ -12,7 +12,7 @@ const backupStarting: EventData = {
 		await toDiscord(event);
 
 		const startTime = Date.now();
-		setJson(redis, `backupTimer:${event.InstanceId}`, { start: startTime }, '$', 60 * 60 * 48); // 2 day expiry
+		setJson(redis, `backupTimer:${event.InstanceId}`, { time: startTime }, '$', 60 * 60 * 2); // 2 hours TTL
 	},
 };
 

@@ -1,12 +1,12 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
-import { getAllInstances } from '../../utils/ampAPI/main';
+import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
 import { setJson } from '../../utils/redisHelpers';
 const cacheInstances: ScheduleTaskData = {
 	name: 'Cache AMP Instances',
 	async run({ client, redisClient }) {
 		const cache = async () => {
 			const instances = await getAllInstances({ fetch: 'all' });
-			await Promise.all(instances.map(async (instance) => await setJson(redisClient, `instance:${instance.InstanceID}`, instance, '$', 15)));
+			await Promise.all(instances.map(async (instance) => await setJson(redisClient, `instance:${instance.InstanceID}`, instance, '$', 15))); // 15 seconds TTL
 			await setJson(redisClient, 'instances:all', instances, '$', 15);
 		};
 		await cache();

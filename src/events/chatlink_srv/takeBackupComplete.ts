@@ -10,10 +10,10 @@ const takeBackupComplete: EventData = {
 	name: 'takeBackupComplete',
 	runType: 'always',
 	async execute(client: Client, event: StateChangeEvent) {
-		const backupTimer = (await getJson(redis, `backupTimer:${event.InstanceId}`)) as { start: number };
+		const backupTimer = (await getJson(redis, `backupTimer:${event.InstanceId}`)) as { time: number };
 
 		if (backupTimer) {
-			const duration = Date.now() - backupTimer.start;
+			const duration = Date.now() - backupTimer.time;
 			const timeTook = msToHuman(duration);
 			if (timeTook) {
 				event.Message += `\n-# Took: ${timeTook.join(' ')}`;
