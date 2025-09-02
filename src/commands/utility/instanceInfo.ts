@@ -14,7 +14,7 @@ const instanceInfo: CommandData = {
 	devOnly: false,
 	autoCompleteInstanceType: 'running_and_not_hidden',
 	async execute(client, interaction) {
-		interaction.deferReply();
+		await interaction.deferReply();
 		const instanceId = interaction.options.getString('instance');
 		const instanceData = await getJson(redis, `instance:${instanceId}`);
 		if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });

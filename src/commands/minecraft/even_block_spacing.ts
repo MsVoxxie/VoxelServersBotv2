@@ -9,7 +9,7 @@ const mc_blockSpacing: CommandData = {
 	state: 'enabled',
 	devOnly: false,
 	async execute(client, interaction) {
-		interaction.deferReply();
+		await interaction.deferReply();
 		const blocks = interaction.options.getInteger('blocks', true);
 		const span = blocks - 1;
 		const spacings: string[] = [];
