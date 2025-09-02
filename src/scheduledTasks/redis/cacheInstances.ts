@@ -6,8 +6,8 @@ const cacheInstances: ScheduleTaskData = {
 	async run({ client, redisClient }) {
 		const cache = async () => {
 			const instances = await getAllInstances({ fetch: 'all' });
-			await Promise.all(instances.map(async (instance) => await setJson(redisClient, `instance:${instance.InstanceID}`, instance)));
-			await setJson(redisClient, 'instances:all', instances);
+			await Promise.all(instances.map(async (instance) => await setJson(redisClient, `instance:${instance.InstanceID}`, instance, '$', 60)));
+			await setJson(redisClient, 'instances:all', instances, '$', 60);
 		};
 		await cache();
 		setInterval(cache, 10_000); // 10s
