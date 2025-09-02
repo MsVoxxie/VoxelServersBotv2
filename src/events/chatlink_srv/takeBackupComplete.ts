@@ -15,7 +15,7 @@ const takeBackupComplete: EventData = {
 		if (backupTimer) {
 			const duration = Date.now() - backupTimer.time;
 			const timeTook = msToHuman(duration);
-			if (timeTook) {
+			if (timeTook.length) {
 				event.Message += `\n-# Took: ${timeTook.join(' ')}`;
 			}
 			delJson(redis, `backupTimer:${event.InstanceId}`);

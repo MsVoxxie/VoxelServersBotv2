@@ -15,7 +15,7 @@ const userLeaves: EventData = {
 		if (joinData) {
 			const duration = Date.now() - joinData.time;
 			const timePlayed = msToHuman(duration);
-			if (timePlayed) {
+			if (timePlayed.length) {
 				event.Message += `\n-# Played for: ${timePlayed.join(' ')}`;
 			}
 		}
