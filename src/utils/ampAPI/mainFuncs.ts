@@ -3,17 +3,27 @@ import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getImageSource } from './getSourceImage';
 
 export async function apiLogin(): Promise<ADS> {
-	const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
-	if (!AMP_URI || !AMP_USER || !AMP_PASS) throw new Error('AMP_URI, AMP_USER, and AMP_PASS environment variables must be defined');
-	const API = new ADS(AMP_URI, AMP_USER, AMP_PASS);
-	await API.APILogin();
-	return API;
+	try {
+		const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
+		if (!AMP_URI || !AMP_USER || !AMP_PASS) throw new Error('AMP_URI, AMP_USER, and AMP_PASS environment variables must be defined');
+		const API = new ADS(AMP_URI, AMP_USER, AMP_PASS);
+		await API.APILogin();
+		return API;
+	} catch (error) {
+		console.error('Error logging into API:', error);
+		throw error;
+	}
 }
 
 export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: string, instanceModule: K): Promise<ModuleTypeMap[K]> {
-	const API = await apiLogin();
-	const instanceAPI = await API.InstanceLogin<ModuleTypeMap[K]>(instanceID, instanceModule);
-	return instanceAPI as ModuleTypeMap[K];
+	try {
+		const API = await apiLogin();
+		const instanceAPI = await API.InstanceLogin<ModuleTypeMap[K]>(instanceID, instanceModule);
+		return instanceAPI as ModuleTypeMap[K];
+	} catch (error) {
+		console.error('Error logging into instance:', error);
+		throw error;
+	}
 }
 
 export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter } = {}): Promise<ExtendedInstance[]> {
