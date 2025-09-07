@@ -301,6 +301,12 @@ const minecraftChatLink: SchedulerJobs<'Minecraft'>[] = [
 					}),
 				},
 			},
+			{
+				taskMethod: 'SendConsole',
+				dictionary: {
+					Input: "We're lagging a bit—{@MillisecondsBehind}ms behind, {@TicksSkipped} ticks skipped!",
+				},
+			},
 		],
 	},
 ];
