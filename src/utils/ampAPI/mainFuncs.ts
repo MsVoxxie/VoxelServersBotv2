@@ -1,6 +1,7 @@
 import { ExtendedInstance, AppStateMap, InstanceSearchFilter, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getImageSource } from './getSourceImage';
+import logger from '../logger';
 
 export async function apiLogin(): Promise<ADS> {
 	try {
@@ -10,7 +11,7 @@ export async function apiLogin(): Promise<ADS> {
 		await API.APILogin();
 		return API;
 	} catch (error) {
-		console.error('Error logging into API:', error);
+		logger.error('apiLogin', error instanceof Error ? error.message : String(error));
 		throw error;
 	}
 }
@@ -21,68 +22,73 @@ export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: s
 		const instanceAPI = await API.InstanceLogin<ModuleTypeMap[K]>(instanceID, instanceModule);
 		return instanceAPI as ModuleTypeMap[K];
 	} catch (error) {
-		console.error('Error logging into instance:', error);
+		logger.error('instanceLogin', error instanceof Error ? error.message : String(error));
 		throw error;
 	}
 }
 
 export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter } = {}): Promise<ExtendedInstance[]> {
-	const API = await apiLogin();
-	const targets: IADSInstance[] = await API.ADSModule.GetInstances();
-	let allInstances: ExtendedInstance[] = await Promise.all(
-		targets
-			.flatMap((target) => target.AvailableInstances)
-			.filter((instance) => instance.FriendlyName !== 'ADS')
-			.map(async (instance) => {
-				let PlayerList: any[] = [];
-				if (instance.Running) {
-					PlayerList = (await getOnlinePlayers(instance)) || [];
-				}
+	try {
+		const API = await apiLogin();
+		const targets: IADSInstance[] = await API.ADSModule.GetInstances();
+		let allInstances: ExtendedInstance[] = await Promise.all(
+			targets
+				.flatMap((target) => target.AvailableInstances)
+				.filter((instance) => instance.FriendlyName !== 'ADS')
+				.map(async (instance) => {
+					let PlayerList: any[] = [];
+					if (instance.Running) {
+						PlayerList = (await getOnlinePlayers(instance)) || [];
+					}
 
-				// Get server icon
-				const serverIcon = await getImageSource(instance.DisplayImageSource);
+					// Get server icon
+					const serverIcon = await getImageSource(instance.DisplayImageSource);
 
-				// Clone metrics and append PlayerInfo to 'Active Users' metric
-				const metrics: any = { ...(instance.Metrics || {}) };
-				if (metrics['Active Users']) {
-					metrics['Active Users'] = {
-						...metrics['Active Users'],
-						PlayerList: PlayerList,
-					} as any;
-				}
+					// Clone metrics and append PlayerInfo to 'Active Users' metric
+					const metrics: any = { ...(instance.Metrics || {}) };
+					if (metrics['Active Users']) {
+						metrics['Active Users'] = {
+							...metrics['Active Users'],
+							PlayerList: PlayerList,
+						} as any;
+					}
 
-				let appState: string;
-				if (typeof instance.AppState === 'number') {
-					appState = AppStateMap[instance.AppState as keyof typeof AppStateMap] || 'Offline';
-				} else {
-					appState = instance.AppState;
-				}
+					let appState: string;
+					if (typeof instance.AppState === 'number') {
+						appState = AppStateMap[instance.AppState as keyof typeof AppStateMap] || 'Offline';
+					} else {
+						appState = instance.AppState;
+					}
 
-				const mappedInstance: ExtendedInstance = {
-					...instance,
-					WelcomeMessage: (instance as any).WelcomeMessage ?? '',
-					AppState: appState,
-					ServerIcon: serverIcon,
-					Metrics: metrics,
-				};
-				return mappedInstance;
-			})
-	);
+					const mappedInstance: ExtendedInstance = {
+						...instance,
+						WelcomeMessage: (instance as any).WelcomeMessage ?? '',
+						AppState: appState,
+						ServerIcon: serverIcon,
+						Metrics: metrics,
+					};
+					return mappedInstance;
+				})
+		);
 
-	switch (fetch) {
-		case 'running_and_not_hidden':
-			allInstances = allInstances.filter((instance) => instance.Running === true && instance.WelcomeMessage !== 'hidden');
-			break;
-		case 'running':
-			allInstances = allInstances.filter((instance) => instance.Running === true);
-			break;
-		case 'not_hidden':
-			allInstances = allInstances.filter((instance) => instance.WelcomeMessage !== 'hidden');
-			break;
-		case 'all':
-			break;
+		switch (fetch) {
+			case 'running_and_not_hidden':
+				allInstances = allInstances.filter((instance) => instance.Running === true && instance.WelcomeMessage !== 'hidden');
+				break;
+			case 'running':
+				allInstances = allInstances.filter((instance) => instance.Running === true);
+				break;
+			case 'not_hidden':
+				allInstances = allInstances.filter((instance) => instance.WelcomeMessage !== 'hidden');
+				break;
+			case 'all':
+				break;
+		}
+		return allInstances;
+	} catch (error) {
+		logger.error('getAllInstances', error instanceof Error ? error.message : String(error));
+		throw error;
 	}
-	return allInstances;
 }
 
 export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: string; Username: string }[]> {
@@ -94,13 +100,19 @@ export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: st
 			UserID: UserID.replace(/^Steam_/, ''),
 			Username: Username as string,
 		}));
-	} catch (err) {
+	} catch (error) {
+		logger.error('getOnlinePlayers', error instanceof Error ? error.message : String(error));
 		return [];
 	}
 }
 
 export async function sendServerConsoleCommand(instanceId: string, module: string, command: string): Promise<void> {
-	const API = await instanceLogin(instanceId, module as keyof ModuleTypeMap);
-	const result = await API.Core.SendConsoleMessage(command);
-	return result;
+	try {
+		const API = await instanceLogin(instanceId, module as keyof ModuleTypeMap);
+		const result = await API.Core.SendConsoleMessage(command);
+		return result;
+	} catch (error) {
+		logger.error('sendServerConsoleCommand', error instanceof Error ? error.message : String(error));
+		throw error;
+	}
 }

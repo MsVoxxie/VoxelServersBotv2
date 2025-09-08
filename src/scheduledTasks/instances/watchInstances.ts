@@ -2,6 +2,7 @@ import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
 import { getJson, setJson } from '../../utils/redisHelpers';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
+import logger from '../../utils/logger';
 const watchInstances: ScheduleTaskData = {
 	name: 'Watch Instance Updates',
 	async run({ client, redisClient }) {
@@ -32,7 +33,7 @@ const watchInstances: ScheduleTaskData = {
 				// update the instance cache so next run compares against this snapshot
 				await setJson(redisClient, 'instances:cached', current, '$', 864_000); // 10 days TTL
 			} catch (error) {
-				console.error('Error checking instance updates:', error);
+				logger.error('watchInstances', error instanceof Error ? error.message : String(error));
 			}
 		};
 		await checkUpdates();

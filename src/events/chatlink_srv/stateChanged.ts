@@ -3,8 +3,8 @@ import { delJson, getJson, setJson } from '../../utils/redisHelpers';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
 import redis from '../../loaders/database/redisLoader';
-import { msToHuman } from '../../utils/utils';
-import { Client, time } from 'discord.js';
+import { msToHuman, wait } from '../../utils/utils';
+import { Client } from 'discord.js';
 
 const stateChanged: EventData = {
 	name: 'stateChanged',
@@ -14,6 +14,7 @@ const stateChanged: EventData = {
 			case 'Starting':
 				const startTime = Date.now();
 				setJson(redis, `serverStart:${event.InstanceId}`, { time: startTime }, '$', 60 * 60 * 2); // 2 hours TTL
+				await wait(1000); // dirty hack to ensure backup completion event triggers before state change
 				break;
 
 			case 'Ready':

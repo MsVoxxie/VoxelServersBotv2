@@ -304,7 +304,8 @@ const minecraftChatLink: SchedulerJobs<'Minecraft'>[] = [
 			{
 				taskMethod: 'SendConsole',
 				dictionary: {
-					Input: "We're lagging a bit—{@MillisecondsBehind}ms behind, {@TicksSkipped} ticks skipped!",
+					Input:
+						'tellraw @a ["",{"text":"[!] ","color":"red"},{"text":"We\'re lagging a bit—"},{"text":"{@MillisecondsBehind}","color":"gold"},{"text":"ms behind, "},{"text":"{@TicksSkipped}","color":"gold"},{"text":"ticks skipped!","insertion":"ticks skipped!"}]',
 				},
 			},
 		],
