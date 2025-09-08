@@ -1,4 +1,4 @@
-const CRAFATAR_URL = (uuid: string) => `https://crafatar.com/renders/head/${uuid}?size=5&overlay=true`;
+const CRAFATAR_URL = (uuid: string) => `https://crafatar.com/renders/head/${uuid}?scale=10&overlay`;
 const USERNAME_LOOKUP_URL = (username: string) => `https://api.minecraftservices.com/minecraft/profile/lookup/name/${encodeURIComponent(username)}`;
 const STEAM_API_URL = (steam64: string) => `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${steamAPIKey}&steamids=${steam64}`;
 
