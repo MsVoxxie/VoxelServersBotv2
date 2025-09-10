@@ -4,7 +4,7 @@ import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import { ExtendedInstance, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { instanceLogin } from '../../utils/ampAPI/mainFuncs';
-import { ChatLinks } from '../../utils/schedulerJobs/jobList';
+import { chatlinkJobs } from '../../utils/schedulerJobs/chatlinkJobs';
 import { applySchedulerJobs, removeSchedulerJobs } from '../../utils/ampAPI/taskFuncs';
 import { chatlinkModel } from '../../models/chatlink';
 
@@ -42,7 +42,7 @@ const chatlinkSetup: CommandData = {
 				avatar: interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }),
 			});
 
-			const rawJobs = ChatLinks[moduleName as keyof typeof ChatLinks];
+			const rawJobs = chatlinkJobs[moduleName as keyof typeof chatlinkJobs];
 			if (!rawJobs) return interaction.editReply({ content: 'No scheduler jobs defined for this module.', flags: MessageFlags.Ephemeral });
 			const jobs = Array.isArray(rawJobs) ? rawJobs : [rawJobs];
 			const schedulerResult = await applySchedulerJobs(instance.InstanceID, moduleName, jobs as any);
@@ -71,7 +71,7 @@ const chatlinkSetup: CommandData = {
 		} else {
 			// If the webhook exists, we should disable chatlink
 			await existingWebhook.delete('Chat link disabled via command.');
-			const schedulerResult = await removeSchedulerJobs(instance.InstanceID, moduleName, ChatLinks[moduleName]);
+			const schedulerResult = await removeSchedulerJobs(instance.InstanceID, moduleName, chatlinkJobs[moduleName]);
 			await chatlinkModel.deleteOne({ webhookId: existingWebhook.id }).then(() => {
 				const embed = new EmbedBuilder()
 					.setColor(client.color)

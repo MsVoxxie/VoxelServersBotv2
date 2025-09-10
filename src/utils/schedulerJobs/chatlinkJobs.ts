@@ -472,7 +472,7 @@ const genericChatLink: SchedulerJobs<'GenericModule'>[] = [
 ];
 
 // A keyed collection so callers can pick by module name
-export const ChatLinks: { [K in keyof ModuleTypeMap]: SchedulerJobs<K>[] } = {
+export const chatlinkJobs: { [K in keyof ModuleTypeMap]: SchedulerJobs<K>[] } = {
 	Minecraft: minecraftChatLink,
 	GenericModule: genericChatLink,
 };

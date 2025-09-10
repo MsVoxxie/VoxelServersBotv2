@@ -88,3 +88,12 @@ export interface SchedulerJobs<M extends keyof ModuleTypeMap> {
 	triggerDescription: M extends 'Minecraft' ? MinecraftAvailableTriggers : GenericModuleAvailableTriggers;
 	tasksToAdd: TaskToAdd<M>[];
 }
+
+export interface IntervalTriggerOptions {
+	months: number[];
+	days: number[];
+	hours: number[];
+	minutes: number[];
+	daysOfMonth: number[];
+	description: string;
+}
