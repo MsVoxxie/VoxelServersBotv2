@@ -53,29 +53,59 @@ const registerUser: CommandData = {
 		const collector = confirmEmbed.createMessageComponentCollector({ filter, time: 60000 });
 		collector.on('collect', async (i: ButtonInteraction) => {
 			if (i.customId === 'register_confirm') {
-				await UserData.findOneAndUpdate({ discordId: interaction.user.id }, { discordId: interaction.user.id, minecraftUuid: id, chatlinkOptOut }, { upsert: true, new: true })
-					.then(() => {
-						logger.info('User Registered', ` ${interaction.member.displayName} (${interaction.user.id}) with Minecraft UUID: ${id}`);
-						i.update({
+				try {
+					await UserData.findOneAndUpdate(
+						{ discordId: interaction.user.id },
+						{ discordId: interaction.user.id, minecraftUuid: id, chatlinkOptOut: chatlinkOptOut },
+						{ upsert: true, new: true }
+					);
+
+					logger.info('User Registered', ` ${interaction.member.displayName} (${interaction.user.id}) with Minecraft UUID: ${id}`);
+
+					try {
+						await i.update({
 							content: `Registration successful!\nUUID **${formatMCUUID(id)}** has been linked!\nOpted out of chat link?: **${chatlinkOptOut ? 'Yes' : 'No'}**`,
 							embeds: [],
 							components: [],
 						});
-						interaction.channel.send({ content: `<@${interaction.user.id}> has registered their Minecraft username **${name}**!\nThey have also **${chatlinkOptOut ? 'not opted out of' : 'opted out of'}** chat link.` });
-					})
-					.catch((error) => {
-						logger.error('User Registration Failed', error instanceof Error ? error.message : String(error));
-						return i.update({ content: 'There was an error during registration. Please try again later.', embeds: [], components: [] });
-					});
+					} catch (err: any) {
+						if (err?.code !== 10008) logger.error('register:update', err instanceof Error ? err.message : String(err));
+					}
+
+					try {
+						await interaction.channel?.send({
+							content: `<@${interaction.user.id}> has registered their Minecraft username **${name}**!\nThey have also **${
+								chatlinkOptOut ? 'opted out of' : 'not opted out of'
+							}** chat link.`,
+						});
+					} catch (err: any) {
+						if (err?.code !== 10008) logger.error('register:announce', err instanceof Error ? err.message : String(err));
+					}
+				} catch (error: any) {
+					logger.error('User Registration Failed', error instanceof Error ? error.message : String(error));
+					try {
+						await i.update({ content: 'There was an error during registration. Please try again later.', embeds: [], components: [] });
+					} catch (err: any) {
+						if (err?.code !== 10008) logger.error('register:update-on-error', err instanceof Error ? err.message : String(err));
+					}
+				}
 			} else if (i.customId === 'register_cancel') {
-				i.update({ content: 'Registration cancelled. Please run the command again with the correct username.', embeds: [], components: [] });
+				try {
+					await i.update({ content: 'Registration cancelled. Please run the command again with the correct username.', embeds: [], components: [] });
+				} catch (err: any) {
+					if (err?.code !== 10008) logger.error('register:cancel', err instanceof Error ? err.message : String(err));
+				}
 			}
 		});
 
-		collector.on('end', (collected: Collection<string, ButtonInteraction>) => {
+		collector.on('end', async (collected: Collection<string, ButtonInteraction>) => {
 			if (collected.size === 0) {
 				if (!confirmEmbed) return;
-				confirmEmbed.edit({ content: 'Registration timed out. Please run the command again.', embeds: [], components: [] });
+				try {
+					const fetched = await interaction.channel?.messages.fetch(confirmEmbed.id).catch(() => null);
+					if (!fetched) return;
+					await fetched.edit({ content: 'Registration timed out. Please run the command again.', embeds: [], components: [] });
+				} catch (err: any) {}
 			}
 		});
 	},

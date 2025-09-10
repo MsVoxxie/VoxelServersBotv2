@@ -11,6 +11,11 @@ const userDataSchema = new Schema({
 		required: false,
 		unique: true,
 	},
+	chatlinkOptOut: {
+		type: Boolean,
+		required: false,
+		default: false,
+	},
 });
 
 const UserData = model('UserData', userDataSchema);
