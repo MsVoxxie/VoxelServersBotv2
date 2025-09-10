@@ -1,11 +1,12 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 
 const mc_blockSpacing: CommandData = {
 	data: new SlashCommandBuilder()
 		.setName('mc_block_spacing')
 		.setDescription('Find evenly spaced positions along a length, including both ends.')
-		.addIntegerOption((option) => option.setName('blocks').setDescription('Total number of blocks in the line (including both ends)').setMinValue(2).setRequired(true)),
+		.addIntegerOption((option) => option.setName('blocks').setDescription('Total number of blocks in the line (including both ends)').setMinValue(2).setRequired(true))
+		.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
 	state: 'enabled',
 	devOnly: false,
 	async execute(client, interaction) {

@@ -12,9 +12,9 @@ const chatlinkSetup: CommandData = {
 	data: new SlashCommandBuilder()
 		.setName('chatlink_setup')
 		.setDescription('Replies with instance information.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		.addStringOption((opt) => opt.setName('instance').setDescription('The instance to get information about.').setRequired(true).setAutocomplete(true))
-		.addChannelOption((opt) => opt.setName('channel').setDescription('The channel to send messages to.').setRequired(true)),
+		.addChannelOption((opt) => opt.setName('channel').setDescription('The channel to send messages to.').setRequired(true))
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 	state: 'enabled',
 	devOnly: false,
 	autoCompleteInstanceType: 'running',

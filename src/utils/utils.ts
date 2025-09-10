@@ -14,3 +14,7 @@ export function msToHuman(ms: number) {
 	if (seconds > 0) parts.push(`${seconds}s`);
 	return parts;
 }
+
+export function formatMCUUID(uuid: string) {
+	return uuid.replace(/^([a-fA-F0-9]{8})([a-fA-F0-9]{4})([a-fA-F0-9]{4})([a-fA-F0-9]{4})([a-fA-F0-9]{12})$/, '$1-$2-$3-$4-$5');
+}
