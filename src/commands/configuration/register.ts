@@ -57,11 +57,11 @@ const registerUser: CommandData = {
 					.then(() => {
 						logger.info('User Registered', ` ${interaction.member.displayName} (${interaction.user.id}) with Minecraft UUID: ${id}`);
 						i.update({
-							content: `Registration successful!\nUUID **${formatMCUUID(id)}** has been linked!\nOpted out of chat link?: ${chatlinkOptOut ? 'Yes' : 'No'}`,
+							content: `Registration successful!\nUUID **${formatMCUUID(id)}** has been linked!\nOpted out of chat link?: **${chatlinkOptOut ? 'Yes' : 'No'}**`,
 							embeds: [],
 							components: [],
 						});
-						interaction.channel.send({ content: `<@${interaction.user.id}> has registered with the Minecraft username **${name}**!` });
+						interaction.channel.send({ content: `<@${interaction.user.id}> has registered their Minecraft username **${name}**!\nThey have also **${chatlinkOptOut ? 'not opted out of' : 'opted out of'}** chat link.` });
 					})
 					.catch((error) => {
 						logger.error('User Registration Failed', error instanceof Error ? error.message : String(error));
