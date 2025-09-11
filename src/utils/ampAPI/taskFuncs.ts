@@ -1,6 +1,7 @@
 import { wait } from '../utils';
 import { SchedulerJobs, ModuleTypeMap, TaskToAdd } from '../../types/ampTypes/ampTypes';
 import { instanceLogin } from './mainFuncs';
+import logger from '../logger';
 
 export async function loginAndGetSchedule(instanceID: string, moduleName: string) {
 	const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
@@ -11,9 +12,15 @@ export async function loginAndGetSchedule(instanceID: string, moduleName: string
 async function addTriggerToInstance(instanceID: string, moduleName: string, triggerData: SchedulerJobs<any>['triggerDescription']) {
 	try {
 		const { API, scheduleData } = await loginAndGetSchedule(instanceID, moduleName);
-		if (!scheduleData) throw new Error('No scheduler data found');
+		if (!scheduleData) {
+			logger.error('AddTrigger', 'No scheduler data found');
+			return { success: false, error: 'No scheduler data found', data: { triggerDesc: triggerData } };
+		}
 		const fetchedTrigger = scheduleData.AvailableTriggers.find((t: any) => t.Description === triggerData);
-		if (!fetchedTrigger) throw new Error('No matching trigger found');
+		if (!fetchedTrigger) {
+			logger.error('AddTrigger', 'No matching trigger found');
+			return { success: false, error: 'No matching trigger found', data: { triggerDesc: triggerData } };
+		}
 		await API.Core.AddEventTrigger(fetchedTrigger.Id);
 		return {
 			success: true,
@@ -29,9 +36,15 @@ async function addTriggerToInstance(instanceID: string, moduleName: string, trig
 async function removeTriggerFromInstance(instanceID: string, moduleName: string, triggerDescription: SchedulerJobs<any>['triggerDescription']) {
 	try {
 		const { API, scheduleData } = await loginAndGetSchedule(instanceID, moduleName);
-		if (!scheduleData) throw new Error('No scheduler data found');
+		if (!scheduleData) {
+			logger.error('RemoveTrigger', 'No scheduler data found');
+			return { success: false, error: 'No scheduler data found', data: { triggerDesc: triggerDescription } };
+		}
 		const fetchedTrigger = scheduleData.PopulatedTriggers.find((t: any) => t.Description === triggerDescription);
-		if (!fetchedTrigger) throw new Error('No matching trigger found');
+		if (!fetchedTrigger) {
+			logger.error('RemoveTrigger', 'No matching trigger found');
+			return { success: false, error: 'No matching trigger found', data: { triggerDesc: triggerDescription } };
+		}
 		await API.Core.DeleteTrigger(fetchedTrigger.Id);
 		return {
 			success: true,
@@ -47,11 +60,11 @@ async function removeTriggerFromInstance(instanceID: string, moduleName: string,
 async function addTasktoTrigger(instanceID: string, moduleName: string, triggerDescription: SchedulerJobs<any>['triggerDescription'], taskData: TaskToAdd<any>) {
 	try {
 		const { API, scheduleData } = await loginAndGetSchedule(instanceID, moduleName);
-		if (!scheduleData) throw new Error('No scheduler data found');
+		if (!scheduleData) return logger.error('AddTask', 'No scheduler data found');
 		const fetchedTrigger = scheduleData.PopulatedTriggers.filter((t: any) => t.Description === triggerDescription);
-		if (!fetchedTrigger.length) throw new Error('No matching trigger found');
+		if (!fetchedTrigger.length) logger.error('AddTask', 'No matching trigger found');
 		const fetchedTask = scheduleData.AvailableMethods.filter((t: any) => t.Name === taskData.taskMethod);
-		if (!fetchedTask.length) throw new Error('No matching task found');
+		if (!fetchedTask.length) logger.error('AddTask', 'No matching task found');
 
 		const [triggerId, triggerDesc] = [fetchedTrigger[0].Id, fetchedTrigger[0].Description];
 		const [taskId, taskDesc] = [fetchedTask[0].Id, fetchedTask[0].Description];
@@ -68,13 +81,13 @@ async function addTasktoTrigger(instanceID: string, moduleName: string, triggerD
 async function removeTaskFromTrigger(instanceID: string, moduleName: string, triggerDescription: SchedulerJobs<any>['triggerDescription'], taskData: TaskToAdd<any>) {
 	try {
 		const { API, scheduleData } = await loginAndGetSchedule(instanceID, moduleName);
-		if (!scheduleData) throw new Error('No scheduler data found');
+		if (!scheduleData) return logger.error('RemoveTask', 'No scheduler data found');
 		const fetchedTrigger = scheduleData.PopulatedTriggers.filter((t: any) => t.Description === triggerDescription);
-		if (!fetchedTrigger.length) throw new Error('No matching trigger found');
+		if (!fetchedTrigger.length) return logger.error('RemoveTask', 'No matching trigger found');
 		const fetchedTask = scheduleData.AvailableMethods.filter((t: any) => t.Name === taskData.taskMethod);
-		if (!fetchedTask.length) throw new Error('No matching task found');
+		if (!fetchedTask.length) return logger.error('RemoveTask', 'No matching task found');
 		const triggerTask = fetchedTrigger[0].Tasks.find((t: any) => t.TaskMethodName === fetchedTask[0].Id);
-		if (!triggerTask) throw new Error('No matching task found in trigger');
+		if (!triggerTask) return logger.error('RemoveTask', 'No matching task found in trigger');
 
 		const [triggerId, triggerDesc] = [fetchedTrigger[0].Id, fetchedTrigger[0].Description];
 		const [taskId, taskDesc] = [triggerTask.Id, fetchedTask[0].Description];

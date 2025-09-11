@@ -2,6 +2,8 @@ import { SchedulerJobs, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 
 const sharedPostDetails = {
 	URI: `${process.env.API_URI}/server/chatlink`,
+	Headers: '{}',
+	AuthorizationHeader: `Bearer UNNECESSARY`,
 	ContentType: 'application/json',
 };
 
