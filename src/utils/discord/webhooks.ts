@@ -67,7 +67,7 @@ export async function toServer(InstanceId: string, message: Message) {
 				break;
 
 			default:
-				await sendServerConsoleCommand(InstanceId, instanceModule, `say [D] ${message.content}`);
+				await sendServerConsoleCommand(InstanceId, instanceModule, `say "[D] ${message.member?.displayName}: ${message.content}"`);
 				break;
 		}
 	} catch (error) {
