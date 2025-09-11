@@ -1,4 +1,4 @@
-import { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 
 const mc_blockSpacing: CommandData = {
@@ -6,6 +6,7 @@ const mc_blockSpacing: CommandData = {
 		.setName('mc_block_spacing')
 		.setDescription('Find evenly spaced positions along a length, including both ends.')
 		.addIntegerOption((option) => option.setName('blocks').setDescription('Total number of blocks in the line (including both ends)').setMinValue(2).setRequired(true))
+		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
 		.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
 	state: 'enabled',
 	devOnly: false,

@@ -1,4 +1,4 @@
-import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
@@ -14,6 +14,8 @@ const chatlinkSetup: CommandData = {
 		.setDescription('Replies with instance information.')
 		.addStringOption((opt) => opt.setName('instance').setDescription('The instance to get information about.').setRequired(true).setAutocomplete(true))
 		.addChannelOption((opt) => opt.setName('channel').setDescription('The channel to send messages to.').setRequired(true))
+		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
+		.setContexts([InteractionContextType.Guild])
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 	state: 'enabled',
 	devOnly: false,

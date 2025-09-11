@@ -95,6 +95,7 @@ export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: st
 	try {
 		const moduleName = instance.ModuleDisplayName || instance.Module;
 		const API = await instanceLogin(instance.InstanceID, moduleName as keyof ModuleTypeMap);
+		if (!API) return [];
 		const getPlayers = await API.Core.GetUserList();
 		return Object.entries(getPlayers).map(([UserID, Username]) => ({
 			UserID: UserID.replace(/^Steam_/, ''),

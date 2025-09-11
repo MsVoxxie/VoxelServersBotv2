@@ -9,6 +9,7 @@ import {
 	Collection,
 	ButtonInteraction,
 	PermissionFlagsBits,
+	ApplicationIntegrationType,
 } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { formatMCUUID } from '../../utils/utils';
@@ -21,6 +22,7 @@ const registerUser: CommandData = {
 		.setDescription('Link your Minecraft account to your Discord account.')
 		.addStringOption((option) => option.setName('username').setDescription('Your Minecraft username').setRequired(true))
 		.addBooleanOption((option) => option.setName('chatlink').setDescription('Would you like to opt OUT of chat link? (TRUE/FALSE)').setRequired(false))
+		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
 		.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
 	state: 'enabled',
 	devOnly: false,
