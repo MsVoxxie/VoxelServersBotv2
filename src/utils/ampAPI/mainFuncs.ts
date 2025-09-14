@@ -97,6 +97,7 @@ export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: st
 		const API = await instanceLogin(instance.InstanceID, moduleName as keyof ModuleTypeMap);
 		if (!API) return [];
 		const getPlayers = await API.Core.GetUserList();
+
 		return Object.entries(getPlayers).map(([UserID, Username]) => ({
 			UserID: UserID.replace(/^Steam_/, ''),
 			Username: Username as string,
@@ -105,6 +106,22 @@ export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: st
 		logger.error('getOnlinePlayers', error instanceof Error ? error.message : String(error));
 		return [];
 	}
+}
+
+export async function getServerPlayerInfo(instance: ExtendedInstance): Promise<{ currentPlayers: { UserID: string; Username: string }[]; maxPlayers: number }> {
+	const moduleName = instance.ModuleDisplayName || instance.Module;
+	const API = await instanceLogin(instance.InstanceID, moduleName as keyof ModuleTypeMap);
+	if (!API) return { currentPlayers: [], maxPlayers: 0 };
+	const searchNodes = moduleName === 'Minecraft' ? 'MinecraftModule.Limits.MaxPlayers' : 'Meta.GenericModule.$MaxUsers';
+	const [getPlayers, configInfo] = await Promise.all([API.Core.GetUserList(), API.Core.GetConfigs([searchNodes])]);
+	const maxPlayers = configInfo[0].CurrentValue;
+
+	const currentPlayers = Object.entries(getPlayers).map(([UserID, Username]) => ({
+		UserID: UserID.replace(/^Steam_/, ''),
+		Username: Username as string,
+	}));
+
+	return { currentPlayers, maxPlayers };
 }
 
 export async function sendServerConsoleCommand(instanceId: string, module: string, command: string): Promise<void> {

@@ -1,4 +1,4 @@
-import { StateChangeEvent } from '../../types/apiTypes/chatlinkAPITypes';
+import { BackupEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
 import { Client } from 'discord.js';
@@ -6,7 +6,7 @@ import { Client } from 'discord.js';
 const restoreBackupComplete: EventData = {
 	name: 'restoreBackupComplete',
 	runType: 'always',
-	async execute(client: Client, event: StateChangeEvent) {
+	async execute(client: Client, event: BackupEvent) {
 		await toDiscord(event);
 	},
 };

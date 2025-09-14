@@ -1,4 +1,4 @@
-import { StateChangeEvent } from '../../types/apiTypes/chatlinkAPITypes';
+import { BackupEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
 import redis from '../../loaders/database/redisLoader';
@@ -8,7 +8,7 @@ import { Client } from 'discord.js';
 const backupStarting: EventData = {
 	name: 'backupStarting',
 	runType: 'always',
-	async execute(client: Client, event: StateChangeEvent) {
+	async execute(client: Client, event: BackupEvent) {
 		await toDiscord(event);
 
 		const startTime = Date.now();

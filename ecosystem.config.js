@@ -2,7 +2,7 @@ export const apps = [
 	{
 		name: 'VSBotv2',
 		script: './dist/vsb.js',
-		watch: true,
-		ignore_watch: ['node_modules', '.git', 'package-lock.json', 'package.json', './src/*'],
+		watch: ['dist'],
+		ignore_watch: ['node_modules', '.git', 'package-lock.json', 'package.json'],
 	},
 ];

@@ -1,4 +1,4 @@
-import { StateChangeEvent } from '../../types/apiTypes/chatlinkAPITypes';
+import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { delJson, getJson } from '../../utils/redisHelpers';
 import { toDiscord } from '../../utils/discord/webhooks';
@@ -9,7 +9,7 @@ import { Client } from 'discord.js';
 const userLeaves: EventData = {
 	name: 'userLeaves',
 	runType: 'always',
-	async execute(client: Client, event: StateChangeEvent) {
+	async execute(client: Client, event: PlayerEvent) {
 		const joinData = (await getJson(redis, `joinDuration:${event.InstanceId}:${event.Username}`)) as { time: number };
 
 		if (joinData) {

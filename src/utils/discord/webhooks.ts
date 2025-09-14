@@ -50,7 +50,7 @@ export async function toDiscord(data: ChatlinkBase) {
 export async function toServer(InstanceId: string, message: Message) {
 	try {
 		const [instanceData, chatlinkData] = await Promise.all([getJson<ExtendedInstance>(redis, `instance:${InstanceId}`), chatlinkModel.findOne({ instanceId: InstanceId })]);
-		if (!instanceData || !chatlinkData) throw new Error('Failed to retrieve necessary data');
+		if (!instanceData || !chatlinkData) return logger.warn('Discord Webhook', `Failed to retrieve necessary data for instance ID ${InstanceId}`);
 		const instanceModule = instanceData.Module;
 
 		switch (instanceModule) {
