@@ -22,7 +22,7 @@ const userLeaves_MCSleep: EventData = {
 			const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
 			await sendServerConsoleCommand(event.InstanceId, instanceData.Module, `gamerule playersSleepingPercentage ${sleepPercentage}`);
 			if (currentPlayers.length === 0) {
-				event.Message = `-# ${currentPlayers.length} players online.\n-# The server is now empty.`;
+				event.Message = `-# There are ${currentPlayers.length} players online.\n-# The server is now empty.`;
 			} else {
 				event.Message = `-# ${currentPlayers.length} players online.\n-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${requiredToSleep === 1 ? '' : 's'} required to sleep)`;
 			}
