@@ -21,7 +21,7 @@ const userJoins_MCSleep: EventData = {
 			const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
 			const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
 			await sendServerConsoleCommand(event.InstanceId, instanceData.Module, `gamerule playersSleepingPercentage ${sleepPercentage}`);
-			event.Message = `-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${requiredToSleep === 1 ? '' : 's'} required to sleep)`;
+			event.Message = `-# ${currentPlayers.length} players online.\n-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${requiredToSleep === 1 ? '' : 's'} required to sleep)`;
 			event.Username = 'SERVER';
 			await Promise.all([wait(500), toDiscord(event)]);
 		}

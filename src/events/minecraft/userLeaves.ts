@@ -24,7 +24,7 @@ const userLeaves_MCSleep: EventData = {
 			if (currentPlayers.length === 0) {
 				event.Message = `-# Server is now empty.`;
 			} else {
-				event.Message = `-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${requiredToSleep === 1 ? '' : 's'} required to sleep)`;
+				event.Message = `-# ${currentPlayers.length} players online.\n-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${requiredToSleep === 1 ? '' : 's'} required to sleep)`;
 			}
 			event.Username = 'SERVER';
 			await Promise.all([wait(500), toDiscord(event)]);
