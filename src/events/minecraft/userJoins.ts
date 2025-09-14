@@ -31,7 +31,6 @@ const userJoins_MCSleep: EventData = {
 			const serverMsg = tellRawBuilder([
 				part('[S]', 'yellow', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 				part('Updating sleep percentage,', 'white'),
-				// part(`${sleepPercentage}%`, 'aqua', { bold: true }),
 				part(`${requiredToSleep}`, 'aqua', { bold: true }),
 				part(`player${requiredToSleep === 1 ? '' : 's'} ${requiredToSleep === 1 ? 'is' : 'are'} now required to sleep`, 'white'),
 			]);
