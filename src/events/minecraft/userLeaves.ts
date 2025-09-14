@@ -1,5 +1,6 @@
-import { calculateSleepingPercentage } from '../../utils/gameSpecific/minecraft';
 import { getServerPlayerInfo, sendServerConsoleCommand } from '../../utils/ampAPI/mainFuncs';
+import { calculateSleepingPercentage } from '../../utils/gameSpecific/minecraft';
+import { part, tellRawBuilder } from '../../utils/gameSpecific/minecraftTellraw';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
@@ -24,10 +25,21 @@ const userLeaves_MCSleep: EventData = {
 			if (currentPlayers.length === 0) {
 				event.Message = `-# There are ${currentPlayers.length} players online.\n-# The server is now empty.`;
 			} else {
-				event.Message = `-# ${currentPlayers.length} players online.\n-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${requiredToSleep === 1 ? '' : 's'} required to sleep)`;
+				event.Message = `-# ${currentPlayers.length} players online.\n-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${
+					requiredToSleep === 1 ? '' : 's'
+				} required to sleep)`;
 			}
+
+			// Build tellraw
+			const serverMsg = tellRawBuilder([
+				part('[S]', 'yellow', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
+				part('Updating sleep percentage,', 'white'),
+				part(`${requiredToSleep}`, 'aqua', { bold: true }),
+				part(`player${requiredToSleep === 1 ? '' : 's'} ${requiredToSleep === 1 ? 'is' : 'are'} now required to sleep`, 'white'),
+			]);
+
 			event.Username = 'SERVER';
-			await Promise.all([wait(500), toDiscord(event)]);
+			await Promise.all([wait(500), toDiscord(event), sendServerConsoleCommand(event.InstanceId, instanceData.Module, serverMsg)]);
 		}
 	},
 };

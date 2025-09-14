@@ -1,5 +1,6 @@
-import { calculateSleepingPercentage } from '../../utils/gameSpecific/minecraft';
 import { getServerPlayerInfo, sendServerConsoleCommand } from '../../utils/ampAPI/mainFuncs';
+import { calculateSleepingPercentage } from '../../utils/gameSpecific/minecraft';
+import { part, tellRawBuilder } from '../../utils/gameSpecific/minecraftTellraw';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
@@ -21,9 +22,21 @@ const userJoins_MCSleep: EventData = {
 			const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
 			const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
 			await sendServerConsoleCommand(event.InstanceId, instanceData.Module, `gamerule playersSleepingPercentage ${sleepPercentage}`);
-			event.Message = `-# There are ${currentPlayers.length} players online.\n-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${requiredToSleep === 1 ? '' : 's'} required to sleep)`;
+			event.Message = `-# There are ${currentPlayers.length} players online.\n-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${
+				requiredToSleep === 1 ? '' : 's'
+			} required to sleep)`;
 			event.Username = 'SERVER';
-			await Promise.all([wait(500), toDiscord(event)]);
+
+			// Build tellraw
+			const serverMsg = tellRawBuilder([
+				part('[S]', 'yellow', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
+				part('Updating sleep percentage,', 'white'),
+				// part(`${sleepPercentage}%`, 'aqua', { bold: true }),
+				part(`${requiredToSleep}`, 'aqua', { bold: true }),
+				part(`player${requiredToSleep === 1 ? '' : 's'} ${requiredToSleep === 1 ? 'is' : 'are'} now required to sleep`, 'white'),
+			]);
+
+			await Promise.all([wait(500), toDiscord(event), sendServerConsoleCommand(event.InstanceId, instanceData.Module, serverMsg)]);
 		}
 	},
 };
