@@ -6,6 +6,7 @@ declare module 'discord.js' {
 		backupTimers: Collection<string, NodeJS.Timeout>;
 		typingState: Collection<string, any>;
 		cooldowns: Collection<string, Collection<string, number>>;
+		mcSleepCache: Collection<string, number>;
 		commands: Collection<string, any>;
 		events: Collection<string, any>;
 		redis?: RedisClientType | null;

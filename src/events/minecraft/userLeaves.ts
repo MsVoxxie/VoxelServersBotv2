@@ -14,33 +14,33 @@ const userLeaves_MCSleep: EventData = {
 	name: 'userLeaves',
 	runType: 'always',
 	async execute(client: Client, event: PlayerEvent) {
+		// Sleep Percentage Calculation
 		const instanceData: ExtendedInstance | null = await getJson(redis, `instance:${event.InstanceId}`);
 		if (!instanceData) return;
+		if (instanceData.Module !== 'Minecraft') return;
 
-		// Sleep Percentage Calculation
-		if (instanceData.Module === 'Minecraft') {
-			const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
-			const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
-			await sendServerConsoleCommand(event.InstanceId, instanceData.Module, `gamerule playersSleepingPercentage ${sleepPercentage}`);
-			if (currentPlayers.length === 0) {
-				event.Message = `-# There are ${currentPlayers.length} players online.\n-# The server is now empty.`;
-			} else {
-				event.Message = `-# ${currentPlayers.length} players online.\n-# Updating sleep percentage to ${sleepPercentage}% (${requiredToSleep} player${
-					requiredToSleep === 1 ? '' : 's'
-				} required to sleep)`;
-			}
+		const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
+		const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
+		event.Message = `-# There ${currentPlayers.length === 1 ? 'is' : 'are'} now ${currentPlayers.length} player${currentPlayers.length === 1 ? '' : 's'} online.`;
+		if (currentPlayers.length === 0) event.Message += '\n-# The server is now empty.';
 
-			// Build tellraw
+		if (!client.mcSleepCache.has(event.InstanceId)) client.mcSleepCache.set(event.InstanceId, sleepPercentage);
+		const mcSleepCache = client.mcSleepCache.get(event.InstanceId) ?? 0;
+		client.mcSleepCache.set(event.InstanceId, sleepPercentage);
+
+		// only announce if the sleep percentage has changed since last time
+		if (mcSleepCache !== sleepPercentage) {
 			const serverMsg = tellRawBuilder([
 				part('[S]', 'yellow', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 				part('Updating sleep percentage,', 'white'),
 				part(`${requiredToSleep}`, 'aqua', { bold: true }),
-				part(`player${requiredToSleep === 1 ? '' : 's'} ${requiredToSleep === 1 ? 'is' : 'are'} now required to sleep`, 'white'),
+				part(`player${requiredToSleep === 1 ? '' : 's'} ${requiredToSleep === 1 ? 'is' : 'are'} are required to sleep`, 'white'),
 			]);
-
-			event.Username = 'SERVER';
-			await Promise.all([wait(500), toDiscord(event), sendServerConsoleCommand(event.InstanceId, instanceData.Module, serverMsg)]);
+			event.Message += `\n-# Updating sleep percentage, ${requiredToSleep} player${requiredToSleep === 1 ? '' : 's'} now required to sleep.`;
+			await sendServerConsoleCommand(event.InstanceId, instanceData.Module, serverMsg);
 		}
+		event.Username = 'SERVER';
+		await Promise.all([wait(500), toDiscord(event), sendServerConsoleCommand(event.InstanceId, instanceData.Module, `gamerule playersSleepingPercentage ${sleepPercentage}`)]);
 	},
 };
 
