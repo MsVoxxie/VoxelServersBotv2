@@ -20,3 +20,17 @@ export async function getJson<T>(client: RedisClientType, key: string, path = '.
 export async function delJson(client: RedisClientType, key: string, path = '.') {
 	await client.sendCommand(['JSON.DEL', key, path]);
 }
+
+type TTLUnit = 'Days' | 'Hours' | 'Minutes' | 'Seconds';
+
+const TTL_SECONDS: Record<TTLUnit, number> = {
+	Days: 86400,
+	Hours: 3600,
+	Minutes: 60,
+	Seconds: 1,
+};
+
+export function TTL(value: number, duration: TTLUnit): number {
+	if (!isFinite(value) || value <= 0) return 0;
+	return Math.floor(value * TTL_SECONDS[duration]);
+}

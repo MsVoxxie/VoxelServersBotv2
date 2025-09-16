@@ -1,6 +1,6 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
-import { getJson, setJson } from '../../utils/redisHelpers';
+import { getJson, setJson, TTL } from '../../utils/redisHelpers';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 import logger from '../../utils/logger';
 const watchInstances: ScheduleTaskData = {
@@ -31,7 +31,7 @@ const watchInstances: ScheduleTaskData = {
 					}
 				}
 				// update the instance cache so next run compares against this snapshot
-				await setJson(redisClient, 'instances:cached', current, '$', 864_000); // 10 days TTL
+				await setJson(redisClient, 'instances:cached', current, '$', TTL(7, 'Days'));
 			} catch (error) {
 				logger.error('watchInstances', error instanceof Error ? error.message : String(error));
 			}

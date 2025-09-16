@@ -4,9 +4,9 @@ import { part, tellRawBuilder } from '../../utils/gameSpecific/minecraftTellraw'
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
+import { getJson, setJson, TTL } from '../../utils/redisHelpers';
 import { toDiscord } from '../../utils/discord/webhooks';
 import redis from '../../loaders/database/redisLoader';
-import { getJson } from '../../utils/redisHelpers';
 import { wait } from '../../utils/utils';
 import { Client } from 'discord.js';
 
@@ -16,21 +16,19 @@ const userJoins_MCSleep: EventData = {
 	async execute(client: Client, event: PlayerEvent) {
 		// Sleep Percentage Calculation
 		const instanceData: ExtendedInstance | null = await getJson(redis, `instance:${event.InstanceId}`);
+		const prevPercentage: { sleepPercentage: number; requiredToSleep: number } | null = await getJson(redis, `instance:minecraft:${event.InstanceId}`);
 		if (!instanceData) return;
 		if (instanceData.Module !== 'Minecraft') return;
 
 		const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
 		const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
+		setJson(redis, `instance:minecraft:${event.InstanceId}`, { sleepPercentage, requiredToSleep }, '$', TTL(1, 'Days'));
 		event.Message = `-# There ${currentPlayers.length === 1 ? 'is' : 'are'} now ${currentPlayers.length} player${currentPlayers.length === 1 ? '' : 's'} online.`;
 
-		if (!client.mcSleepCache.has(event.InstanceId)) client.mcSleepCache.set(event.InstanceId, sleepPercentage);
-		const mcSleepCache = client.mcSleepCache.get(event.InstanceId) ?? 0;
-		client.mcSleepCache.set(event.InstanceId, sleepPercentage);
-
 		// only announce if the sleep percentage has changed since last time
-		if (mcSleepCache !== sleepPercentage) {
+		if (prevPercentage?.sleepPercentage !== sleepPercentage) {
 			const serverMsg = tellRawBuilder([
-				part('[S]', 'yellow', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
+				part('[S]', 'gold', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 				part('Updating sleep percentage,', 'white'),
 				part(`${requiredToSleep}`, 'aqua', { bold: true }),
 				part(`player${requiredToSleep === 1 ? '' : 's'} ${requiredToSleep === 1 ? 'is' : 'are'} are required to sleep`, 'white'),

@@ -6,6 +6,7 @@ import { Message, WebhookClient } from 'discord.js';
 import { getJson } from '../redisHelpers';
 import { sendServerConsoleCommand } from '../ampAPI/mainFuncs';
 import logger from '../logger';
+import { part, tellRawBuilder } from '../gameSpecific/minecraftTellraw';
 
 export async function toDiscord(data: ChatlinkBase) {
 	try {
@@ -55,15 +56,15 @@ export async function toServer(InstanceId: string, message: Message) {
 
 		switch (instanceModule) {
 			case 'Minecraft':
-				await sendServerConsoleCommand(
-					InstanceId,
-					instanceModule,
-					`tellraw @a ["",{"text":"[D] ","color":"blue","hoverEvent":{"action":"show_text","contents":[{"text":"${
-						message.guild ? message.guild.name : 'Unknown Server'
-					}","color":"blue"}]}},{"text":"<"},{"text":"${message.member?.displayName}","color":"${
-						message.member?.displayHexColor
-					}"},{"text":">"},{"text":"${` ${message.content}`}"}]`
-				);
+				const serverMsg = tellRawBuilder([
+					part('[D]', 'blue', { hoverEvent: { action: 'show_text', contents: message.guild ? message.guild.name : 'Unknown Server' } }),
+					part('<', 'white'),
+					part(message.member?.displayName || 'Unknown', message.member?.displayHexColor || 'white'),
+					part('>', 'white'),
+					part(` ${message.content}`, 'white'),
+				]);
+
+				await sendServerConsoleCommand(InstanceId, instanceModule, serverMsg);
 				break;
 
 			default:

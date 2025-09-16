@@ -24,7 +24,6 @@ const client = new Client({
 
 // Define Collections
 client.color = Colors.White;
-client.mcSleepCache = new Collection();
 client.backupTimers = new Collection();
 client.typingState = new Collection();
 client.cooldowns = new Collection();
