@@ -5,14 +5,13 @@ export function tellrawJson(parts: TellrawText | TellrawText[]): TellrawText | T
 }
 
 // Example: tellraw @a [{"text":"Hello","color":"green"},{"text":" world","color":"yellow"}]
-export function tellRawBuilder(parts: TellrawText | TellrawText[], target = '@a'): string {
+export function tellRawBuilder(parts: TellrawText | TellrawText[], target: string = '@a'): string {
 	const payload = Array.isArray(parts) ? parts : [parts];
 	const spacedParts: TellrawText[] = [];
 	for (let i = 0; i < payload.length; i++) {
 		spacedParts.push(payload[i]);
 		if (i < payload.length - 1) spacedParts.push({ text: ' ' });
 	}
-
 	return `tellraw ${target} ${JSON.stringify(spacedParts)}`;
 }
 
