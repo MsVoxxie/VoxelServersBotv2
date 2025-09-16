@@ -15,8 +15,11 @@ const userJoins_MCSleep: EventData = {
 	runType: 'always',
 	async execute(client: Client, event: PlayerEvent) {
 		// Sleep Percentage Calculation
-		const instanceData: ExtendedInstance | null = await getJson(redis, `instance:${event.InstanceId}`);
-		const prevPercentage: { sleepPercentage: number; requiredToSleep: number } | null = await getJson(redis, `instance:minecraft:${event.InstanceId}`);
+		const [instanceData, prevPercentage] = (await Promise.all([getJson(redis, `instance:${event.InstanceId}`), getJson(redis, `instance:minecraft:${event.InstanceId}`)])) as [
+			ExtendedInstance | null,
+			{ sleepPercentage: number; requiredToSleep: number } | null
+		];
+
 		if (!instanceData) return;
 		if (instanceData.Module !== 'Minecraft') return;
 
