@@ -1,4 +1,3 @@
-import { wait } from '../utils';
 import { SchedulerJobs, ModuleTypeMap, TaskToAdd } from '../../types/ampTypes/ampTypes';
 import { instanceLogin } from './mainFuncs';
 import logger from '../logger';

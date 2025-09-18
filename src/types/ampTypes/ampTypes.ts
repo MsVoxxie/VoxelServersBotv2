@@ -97,3 +97,5 @@ export interface IntervalTriggerOptions {
 	daysOfMonth: number[];
 	description: string;
 }
+
+export type configType = Record<string, string>;
