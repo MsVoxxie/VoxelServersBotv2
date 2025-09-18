@@ -25,16 +25,17 @@ const instanceInfo: CommandData = {
 			return urlPattern.test(str);
 		};
 
+		// Build embed
 		const isModpack = getModpack(instance.WelcomeMessage);
 		const description = [
 			`**State:** ${instance.AppState}`,
 			`**${isModpack ? 'Modpack' : 'MOTD'}:** ${isModpack ? `[Modpack Link](${instance.WelcomeMessage})` : instance.WelcomeMessage || 'None'}`,
-			``,
+			'',
 			`**Server Metrics:**`,
 			`CPU Usage: ${instance.Metrics['CPU Usage'].Percent}%`,
 			`Memory Usage: ${instance.Metrics['Memory Usage'].RawValue}/${instance.Metrics['Memory Usage'].MaxValue} MB`,
 			`Player Count: ${instance.Metrics['Active Users'].RawValue}/${instance.Metrics['Active Users'].MaxValue}`,
-			``,
+			'',
 			`**Player List:**`,
 			`${instance.Metrics['Active Users'].PlayerList?.length ? instance.Metrics['Active Users'].PlayerList.map((p) => `${p.Username}`).join(', ') : '• No active players'}`,
 		].join('\n');

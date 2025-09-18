@@ -37,6 +37,8 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 				.filter((instance) => instance.FriendlyName !== 'ADS')
 				.map(async (instance) => {
 					let PlayerList: any[] = [];
+					let scheduleOffset: number = 0;
+					let scheduledRestarts: object[] | undefined;
 					if (instance.Running) {
 						PlayerList = (await getOnlinePlayers(instance)) || [];
 					}
