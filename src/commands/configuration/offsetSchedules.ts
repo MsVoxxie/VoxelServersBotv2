@@ -30,7 +30,7 @@ const offsetSchedules: CommandData = {
 	autoCompleteInstanceType: 'running',
 	async execute(client, interaction) {
 		interaction.deferReply();
-		const instances = (await getAllInstances({ fetch: 'running_and_not_hidden' })) as ExtendedInstance[];
+		const instances = (await getAllInstances({ fetch: 'running' })) as ExtendedInstance[];
 		if (!instances) return interaction.reply({ content: 'Instances not found or invalid data.', flags: MessageFlags.Ephemeral });
 
 		const value = interaction.options.getNumber('value', true);
