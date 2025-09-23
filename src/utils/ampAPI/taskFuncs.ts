@@ -8,16 +8,16 @@ export async function loginAndGetSchedule(instanceID: string, moduleName: string
 	return { API, scheduleData } as { API: any; scheduleData: any };
 }
 
-async function addTriggerToInstance(instanceID: string, moduleName: string, triggerData: SchedulerJobs<any>['triggerDescription']) {
+async function addTriggerToInstance(instanceID: string, moduleName: string, scheduleData: any, triggerData: SchedulerJobs<any>['triggerDescription']) {
 	try {
-		const { API, scheduleData } = await loginAndGetSchedule(instanceID, moduleName);
+		const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
 		if (!scheduleData) {
-			logger.error('AddTrigger', 'No scheduler data found');
+			logger.error('AddTrigger', `No scheduler data found for ${triggerData}`);
 			return { success: false, error: 'No scheduler data found', data: { triggerDesc: triggerData } };
 		}
 		const fetchedTrigger = scheduleData.AvailableTriggers.find((t: any) => t.Description === triggerData);
 		if (!fetchedTrigger) {
-			logger.error('AddTrigger', 'No matching trigger found');
+			logger.error('AddTrigger', `No matching trigger found for ${triggerData}`);
 			return { success: false, error: 'No matching trigger found', data: { triggerDesc: triggerData } };
 		}
 		await API.Core.AddEventTrigger(fetchedTrigger.Id);
@@ -32,16 +32,16 @@ async function addTriggerToInstance(instanceID: string, moduleName: string, trig
 	}
 }
 
-async function removeTriggerFromInstance(instanceID: string, moduleName: string, triggerDescription: SchedulerJobs<any>['triggerDescription']) {
+async function removeTriggerFromInstance(instanceID: string, moduleName: string, scheduleData: any, triggerDescription: SchedulerJobs<any>['triggerDescription']) {
 	try {
-		const { API, scheduleData } = await loginAndGetSchedule(instanceID, moduleName);
+		const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
 		if (!scheduleData) {
-			logger.error('RemoveTrigger', 'No scheduler data found');
+			logger.error('RemoveTrigger', `No scheduler data found for ${triggerDescription}`);
 			return { success: false, error: 'No scheduler data found', data: { triggerDesc: triggerDescription } };
 		}
 		const fetchedTrigger = scheduleData.PopulatedTriggers.find((t: any) => t.Description === triggerDescription);
 		if (!fetchedTrigger) {
-			logger.error('RemoveTrigger', 'No matching trigger found');
+			logger.error('RemoveTrigger', `No matching trigger found for ${triggerDescription}`);
 			return { success: false, error: 'No matching trigger found', data: { triggerDesc: triggerDescription } };
 		}
 		await API.Core.DeleteTrigger(fetchedTrigger.Id);
@@ -56,14 +56,20 @@ async function removeTriggerFromInstance(instanceID: string, moduleName: string,
 	}
 }
 
-async function addTasktoTrigger(instanceID: string, moduleName: string, triggerDescription: SchedulerJobs<any>['triggerDescription'], taskData: TaskToAdd<any>) {
+async function addTasktoTrigger(
+	instanceID: string,
+	moduleName: string,
+	scheduleData: any,
+	triggerDescription: SchedulerJobs<any>['triggerDescription'],
+	taskData: TaskToAdd<any>
+) {
 	try {
-		const { API, scheduleData } = await loginAndGetSchedule(instanceID, moduleName);
+		const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
 		if (!scheduleData) return logger.error('AddTask', 'No scheduler data found');
 		const fetchedTrigger = scheduleData.PopulatedTriggers.filter((t: any) => t.Description === triggerDescription);
-		if (!fetchedTrigger.length) logger.error('AddTask', 'No matching trigger found');
+		if (!fetchedTrigger.length) logger.error('AddTask', `No matching trigger found for ${triggerDescription}`);
 		const fetchedTask = scheduleData.AvailableMethods.filter((t: any) => t.Name === taskData.taskMethod);
-		if (!fetchedTask.length) logger.error('AddTask', 'No matching task found');
+		if (!fetchedTask.length) logger.error('AddTask', `No matching task found for ${taskData.taskMethod}`);
 
 		const [triggerId, triggerDesc] = [fetchedTrigger[0].Id, fetchedTrigger[0].Description];
 		const [taskId, taskDesc] = [fetchedTask[0].Id, fetchedTask[0].Description];
@@ -77,14 +83,20 @@ async function addTasktoTrigger(instanceID: string, moduleName: string, triggerD
 	}
 }
 
-async function removeTaskFromTrigger(instanceID: string, moduleName: string, triggerDescription: SchedulerJobs<any>['triggerDescription'], taskData: TaskToAdd<any>) {
+async function removeTaskFromTrigger(
+	instanceID: string,
+	moduleName: string,
+	scheduleData: any,
+	triggerDescription: SchedulerJobs<any>['triggerDescription'],
+	taskData: TaskToAdd<any>
+) {
 	try {
-		const { API, scheduleData } = await loginAndGetSchedule(instanceID, moduleName);
+		const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
 		if (!scheduleData) return logger.error('RemoveTask', 'No scheduler data found');
 		const fetchedTrigger = scheduleData.PopulatedTriggers.filter((t: any) => t.Description === triggerDescription);
-		if (!fetchedTrigger.length) return logger.error('RemoveTask', 'No matching trigger found');
+		if (!fetchedTrigger.length) return logger.error('RemoveTask', `No matching trigger found for ${triggerDescription}`);
 		const fetchedTask = scheduleData.AvailableMethods.filter((t: any) => t.Name === taskData.taskMethod);
-		if (!fetchedTask.length) return logger.error('RemoveTask', 'No matching task found');
+		if (!fetchedTask.length) return logger.error('RemoveTask', `No matching task found for ${taskData.taskMethod}`);
 		const triggerTask = fetchedTrigger[0].Tasks.find((t: any) => t.TaskMethodName === fetchedTask[0].Id);
 		if (!triggerTask) return logger.error('RemoveTask', 'No matching task found in trigger');
 
@@ -103,24 +115,29 @@ export async function applySchedulerJobs(instanceID: string, moduleName: string,
 	if (!jobs || typeof jobs[Symbol.iterator] !== 'function') {
 		throw new TypeError('jobs is not iterable');
 	}
+
+	const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
+	if (!API) return { success: false, error: 'Failed to login to instance' };
+
 	const successTriggers: { triggerDesc: string; tasks: string[]; total: number; failedCount: number }[] = [];
 	const failedTriggers: { triggerDesc: string; error?: string }[] = [];
 	const successTasks: { triggerDesc: string; taskDesc: string }[] = [];
 	const failedTasks: { triggerDesc: string; taskDesc: string; error?: string }[] = [];
 
-	// Phase 1: add all triggers
+	// Add triggers for all jobs
 	const triggerResults: Array<{ job: SchedulerJobs<any>; result: any }> = [];
+	const triggerScheduleData = await API.Core.GetScheduleData();
 	for (const job of jobs) {
-		const triggerResult = await addTriggerToInstance(instanceID, moduleName, job.triggerDescription);
+		const triggerResult = await addTriggerToInstance(instanceID, moduleName, triggerScheduleData, job.triggerDescription);
 		const triggerDesc = triggerResult.data?.triggerDesc || job.triggerDescription;
 		if (!triggerResult.success) {
 			failedTriggers.push({ triggerDesc, error: triggerResult.error });
 		}
 		triggerResults.push({ job, result: triggerResult });
-		// await wait(5);
 	}
 
-	// Phase 2: add tasks sequentially for triggers that were created successfully
+	// Add tasks for triggers that were created successfully
+	const taskScheduleData = await API.Core.GetScheduleData();
 	for (const tr of triggerResults) {
 		const job = tr.job;
 		const triggerResult = tr.result;
@@ -131,7 +148,7 @@ export async function applySchedulerJobs(instanceID: string, moduleName: string,
 		const tasksAddedForTrigger: string[] = [];
 		for (const task of job.tasksToAdd) {
 			try {
-				const r = await addTasktoTrigger(instanceID, moduleName, job.triggerDescription, task);
+				const r = await addTasktoTrigger(instanceID, moduleName, taskScheduleData, job.triggerDescription, task);
 				if (r && r.success) {
 					const td = r.data?.taskDesc || task.taskMethod;
 					successTasks.push({ triggerDesc, taskDesc: td });
@@ -192,14 +209,18 @@ export async function removeSchedulerJobs(instanceID: string, moduleName: string
 	const successTasks: { triggerDesc: string; taskDesc: string }[] = [];
 	const failedTasks: { triggerDesc: string; taskDesc: string; error?: string }[] = [];
 
-	// Phase 1: remove tasks for all triggers
+	const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
+	if (!API) return { success: false, error: 'Failed to login to instance' };
+
+	// Remove tasks from all triggers
 	const taskRemovalResults: Array<{ job: SchedulerJobs<any>; tasksRemoved: string[] }> = [];
+	const taskScheduleData = await API.Core.GetScheduleData();
 	for (const job of jobs) {
 		const triggerDesc = job.triggerDescription;
 		const tasksRemovedForTrigger: string[] = [];
 		for (const task of job.tasksToAdd) {
 			try {
-				const r = await removeTaskFromTrigger(instanceID, moduleName, job.triggerDescription, task);
+				const r = await removeTaskFromTrigger(instanceID, moduleName, taskScheduleData, job.triggerDescription, task);
 				if (r && r.success) {
 					const td = r.data?.taskDesc || task.taskMethod;
 					successTasks.push({ triggerDesc, taskDesc: td });
@@ -214,16 +235,16 @@ export async function removeSchedulerJobs(instanceID: string, moduleName: string
 			}
 		}
 		taskRemovalResults.push({ job, tasksRemoved: tasksRemovedForTrigger });
-		// await wait(5);
 	}
 
-	// Phase 2: remove triggers for all jobs
+	// Remove triggers for all jobs
+	const triggerScheduleData = await API.Core.GetScheduleData();
 	for (const tr of taskRemovalResults) {
 		const job = tr.job;
 		const triggerDesc = job.triggerDescription;
 		const tasksRemovedForTrigger = tr.tasksRemoved;
 
-		const triggerResult = await removeTriggerFromInstance(instanceID, moduleName, job.triggerDescription);
+		const triggerResult = await removeTriggerFromInstance(instanceID, moduleName, triggerScheduleData, job.triggerDescription);
 		const totalTasksForJob = job.tasksToAdd.length;
 		const failedCountForJob = totalTasksForJob - tasksRemovedForTrigger.length;
 		if (!triggerResult.success) {
@@ -231,8 +252,6 @@ export async function removeSchedulerJobs(instanceID: string, moduleName: string
 		} else {
 			successTriggers.push({ triggerDesc, tasks: tasksRemovedForTrigger, total: totalTasksForJob, failedCount: failedCountForJob });
 		}
-
-		// await wait(5);
 	}
 
 	// Build Markdown summaries

@@ -61,7 +61,7 @@ const chatlinkSetup: CommandData = {
 					const embed = new EmbedBuilder()
 						.setColor(client.color)
 						.setTitle('Chatlink Setup')
-						.setDescription(`${channel.url}'s Chatlink has been enabled.\n${chatlinkListMD(schedulerResult, 'add')}`)
+						.setDescription(`${instance.FriendlyName}'s Chatlink has been linked to ${channel.url}.\n${chatlinkListMD(schedulerResult, 'add')}`)
 						.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
 						.setThumbnail(interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }));
 
@@ -78,7 +78,7 @@ const chatlinkSetup: CommandData = {
 				const embed = new EmbedBuilder()
 					.setColor(client.color)
 					.setTitle('Chatlink Setup')
-					.setDescription(`${channel.url}'s chat link has been disabled.\n${chatlinkListMD(schedulerResult, 'remove')}`)
+					.setDescription(`${instance.FriendlyName}'s Chatlink has been unlinked from ${channel.url}.\n${chatlinkListMD(schedulerResult, 'remove')}`)
 					.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
 					.setThumbnail(interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }));
 

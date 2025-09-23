@@ -191,6 +191,42 @@ const minecraftChatLink: SchedulerJobs<'Minecraft'>[] = [
 	},
 	{
 		module: 'Minecraft',
+		triggerDescription: 'The server enters sleep mode',
+		tasksToAdd: [
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: 'SERVER',
+						Message: 'is now asleep, zzz...',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+					}),
+				},
+			},
+		],
+	},
+	{
+		module: 'Minecraft',
+		triggerDescription: "A player tries to join the server while it's sleeping",
+		tasksToAdd: [
+			{
+				taskMethod: 'MakePOSTRequest',
+				dictionary: {
+					...sharedPostDetails,
+					Payload: JSON.stringify({
+						Username: 'SERVER',
+						Message: 'a player has attempted to connect, waking up...',
+						InstanceId: '{@InstanceId}',
+						EventId: '{@TriggerName}',
+					}),
+				},
+			},
+		],
+	},
+	{
+		module: 'Minecraft',
 		triggerDescription: 'A backup has started.',
 		tasksToAdd: [
 			{

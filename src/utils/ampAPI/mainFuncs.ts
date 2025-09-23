@@ -1,15 +1,19 @@
 import { ExtendedInstance, AppStateMap, InstanceSearchFilter, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getImageSource } from './getSourceImage';
+const instanceApiCache = new Map<string, any>();
 import logger from '../logger';
+let globalAPI: ADS;
 
 export async function apiLogin(): Promise<ADS> {
 	try {
 		const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
 		if (!AMP_URI || !AMP_USER || !AMP_PASS) throw new Error('AMP_URI, AMP_USER, and AMP_PASS environment variables must be defined');
+		if (globalAPI) return globalAPI;
 		const API = new ADS(AMP_URI, AMP_USER, AMP_PASS);
 		await API.APILogin();
-		return API;
+		globalAPI = API;
+		return globalAPI;
 	} catch (error) {
 		logger.error('apiLogin', error instanceof Error ? error.message : String(error));
 		throw error;
@@ -18,8 +22,13 @@ export async function apiLogin(): Promise<ADS> {
 
 export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: string, instanceModule: K): Promise<ModuleTypeMap[K]> {
 	try {
+		const cacheKey = `${instanceID}:${instanceModule}`;
+		if (instanceApiCache.has(cacheKey)) {
+			return instanceApiCache.get(cacheKey) as ModuleTypeMap[K];
+		}
 		const API = await apiLogin();
 		const instanceAPI = await API.InstanceLogin<ModuleTypeMap[K]>(instanceID, instanceModule);
+		instanceApiCache.set(cacheKey, instanceAPI);
 		return instanceAPI as ModuleTypeMap[K];
 	} catch (error) {
 		logger.error('instanceLogin', error instanceof Error ? error.message : String(error));
