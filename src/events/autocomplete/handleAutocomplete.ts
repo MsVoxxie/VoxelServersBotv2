@@ -22,7 +22,7 @@ const handleInteraction: EventData = {
 
 			function formattedName(instance: ExtendedInstance): string {
 				const emoji = AppStateEmoji[instance.AppState] || '⚪';
-				return `${emoji} ${instance.AppState} ⟩ ${instance.FriendlyName}`;
+				return `${emoji} ${instance.AppState} ⟩ ${instance.FriendlyName} (${instance.ModuleDisplayName || instance.Module})`;
 			}
 
 			switch (command.autoCompleteInstanceType) {
