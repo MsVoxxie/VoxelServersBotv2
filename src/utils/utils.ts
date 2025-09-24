@@ -18,3 +18,8 @@ export function msToHuman(ms: number) {
 export function formatMCUUID(uuid: string) {
 	return uuid.replace(/^([a-fA-F0-9]{8})([a-fA-F0-9]{4})([a-fA-F0-9]{4})([a-fA-F0-9]{4})([a-fA-F0-9]{12})$/, '$1-$2-$3-$4-$5');
 }
+
+export function getModpack(str: string): boolean {
+	const urlPattern = /^https?:\/\/.+/i;
+	return urlPattern.test(str);
+}

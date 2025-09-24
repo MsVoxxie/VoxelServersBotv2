@@ -7,6 +7,7 @@ import { instanceLogin } from '../../utils/ampAPI/mainFuncs';
 import { chatlinkJobs } from '../../utils/schedulerJobs/chatlinkJobs';
 import { applySchedulerJobs, removeSchedulerJobs } from '../../utils/ampAPI/taskFuncs';
 import { chatlinkModel } from '../../models/chatlink';
+import logger from '../../utils/logger';
 
 const chatlinkSetup: CommandData = {
 	data: new SlashCommandBuilder()
@@ -21,47 +22,65 @@ const chatlinkSetup: CommandData = {
 	devOnly: false,
 	autoCompleteInstanceType: 'running',
 	async execute(client, interaction) {
-		interaction.deferReply();
-		const instanceId = interaction.options.getString('instance');
-		const instanceData = await getJson(redis, `instance:${instanceId}`);
-		if (!instanceData) return interaction.reply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
-		const instance = instanceData as ExtendedInstance;
-		const moduleName = (instance.Module || 'GenericModule') as keyof ModuleTypeMap;
-		const instanceAPI = await instanceLogin(instance.InstanceID, moduleName);
-		if (!instanceAPI) return interaction.reply({ content: 'Failed to login to instance API.', flags: MessageFlags.Ephemeral });
+		try {
+			interaction.deferReply();
+			const instanceId = interaction.options.getString('instance');
+			const instanceData = await getJson(redis, `instance:${instanceId}`);
+			if (!instanceData) return interaction.reply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
+			const instance = instanceData as ExtendedInstance;
+			const moduleName = (instance.Module || 'GenericModule') as keyof ModuleTypeMap;
+			const instanceAPI = await instanceLogin(instance.InstanceID, moduleName);
+			if (!instanceAPI) return interaction.reply({ content: 'Failed to login to instance API.', flags: MessageFlags.Ephemeral });
 
-		// Create the Discord Webhook for the specified channel
-		const channelOpt = interaction.options.getChannel('channel');
-		const channel = await interaction.guild.channels.fetch(channelOpt.id);
-		if (!channel || !channel.isTextBased()) return interaction.reply({ content: 'Invalid channel selected.', flags: MessageFlags.Ephemeral });
-		const webhooks = await channel.fetchWebhooks();
-		const existingWebhook = webhooks.find((w: any) => w.name === instanceId);
+			// Create the Discord Webhook for the specified channel
+			const channelOpt = interaction.options.getChannel('channel');
+			const channel = await interaction.guild.channels.fetch(channelOpt.id);
+			if (!channel || !channel.isTextBased()) return interaction.reply({ content: 'Invalid channel selected.', flags: MessageFlags.Ephemeral });
+			const webhooks = await channel.fetchWebhooks();
+			const existingWebhook = webhooks.find((w: any) => w.name === instanceId);
 
-		// If the webhook doesn't exist, we should enable chatlink
-		if (!existingWebhook) {
-			const newWebhook = await channel.createWebhook({
-				name: instanceId,
-				avatar: interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }),
-			});
+			// If the webhook doesn't exist, we should enable chatlink
+			if (!existingWebhook) {
+				const newWebhook = await channel.createWebhook({
+					name: instanceId,
+					avatar: interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }),
+				});
 
-			const rawJobs = chatlinkJobs[moduleName as keyof typeof chatlinkJobs];
-			if (!rawJobs) return interaction.editReply({ content: 'No scheduler jobs defined for this module.', flags: MessageFlags.Ephemeral });
-			const jobs = Array.isArray(rawJobs) ? rawJobs : [rawJobs];
-			const schedulerResult = await applySchedulerJobs(instance.InstanceID, moduleName, jobs as any);
+				const rawJobs = chatlinkJobs[moduleName as keyof typeof chatlinkJobs];
+				if (!rawJobs) return interaction.editReply({ content: 'No scheduler jobs defined for this module.', flags: MessageFlags.Ephemeral });
+				const jobs = Array.isArray(rawJobs) ? rawJobs : [rawJobs];
+				const schedulerResult = await applySchedulerJobs(instance.InstanceID, moduleName, jobs as any);
 
-			await chatlinkModel
-				.create({
-					webhookId: newWebhook.id,
-					webhookToken: newWebhook.token,
-					channelId: channel.id,
-					guildId: interaction.guild.id,
-					instanceId: instance.InstanceID,
-				})
-				.then(() => {
+				await chatlinkModel
+					.create({
+						webhookId: newWebhook.id,
+						webhookToken: newWebhook.token,
+						channelId: channel.id,
+						guildId: interaction.guild.id,
+						instanceId: instance.InstanceID,
+					})
+					.then(() => {
+						const embed = new EmbedBuilder()
+							.setColor(client.color)
+							.setTitle('Chatlink Setup')
+							.setDescription(`${instance.FriendlyName}'s Chatlink has been linked to ${channel.url}.\n${chatlinkListMD(schedulerResult, 'add')}`)
+							.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
+							.setThumbnail(interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }));
+
+						interaction.editReply({
+							embeds: [embed],
+							flags: MessageFlags.Ephemeral,
+						});
+					});
+			} else {
+				// If the webhook exists, we should disable chatlink
+				await existingWebhook.delete('Chat link disabled via command.');
+				const schedulerResult = await removeSchedulerJobs(instance.InstanceID, moduleName, chatlinkJobs[moduleName]);
+				await chatlinkModel.deleteOne({ webhookId: existingWebhook.id }).then(() => {
 					const embed = new EmbedBuilder()
 						.setColor(client.color)
 						.setTitle('Chatlink Setup')
-						.setDescription(`${instance.FriendlyName}'s Chatlink has been linked to ${channel.url}.\n${chatlinkListMD(schedulerResult, 'add')}`)
+						.setDescription(`${instance.FriendlyName}'s Chatlink has been unlinked from ${channel.url}.\n${chatlinkListMD(schedulerResult, 'remove')}`)
 						.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
 						.setThumbnail(interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }));
 
@@ -70,23 +89,10 @@ const chatlinkSetup: CommandData = {
 						flags: MessageFlags.Ephemeral,
 					});
 				});
-		} else {
-			// If the webhook exists, we should disable chatlink
-			await existingWebhook.delete('Chat link disabled via command.');
-			const schedulerResult = await removeSchedulerJobs(instance.InstanceID, moduleName, chatlinkJobs[moduleName]);
-			await chatlinkModel.deleteOne({ webhookId: existingWebhook.id }).then(() => {
-				const embed = new EmbedBuilder()
-					.setColor(client.color)
-					.setTitle('Chatlink Setup')
-					.setDescription(`${instance.FriendlyName}'s Chatlink has been unlinked from ${channel.url}.\n${chatlinkListMD(schedulerResult, 'remove')}`)
-					.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
-					.setThumbnail(interaction.guild.iconURL({ size: 1024, extension: 'png', forceStatic: true }));
-
-				interaction.editReply({
-					embeds: [embed],
-					flags: MessageFlags.Ephemeral,
-				});
-			});
+			}
+		} catch (error) {
+			logger.error('Chatlink Setup', `Error occurred during chatlink setup: ${error}`);
+			interaction.editReply({ content: 'An error occurred while setting up chatlink. Please try again later.', flags: MessageFlags.Ephemeral });
 		}
 	},
 };

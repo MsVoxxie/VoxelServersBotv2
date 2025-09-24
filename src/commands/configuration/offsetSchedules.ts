@@ -29,22 +29,26 @@ const offsetSchedules: CommandData = {
 	devOnly: false,
 	autoCompleteInstanceType: 'running',
 	async execute(client, interaction) {
-		interaction.deferReply();
-		const instances = (await getAllInstances({ fetch: 'running' })) as ExtendedInstance[];
-		if (!instances) return interaction.reply({ content: 'Instances not found or invalid data.', flags: MessageFlags.Ephemeral });
+		try {
+			interaction.deferReply();
+			const instances = (await getAllInstances({ fetch: 'running' })) as ExtendedInstance[];
+			if (!instances) return interaction.reply({ content: 'Instances not found or invalid data.', flags: MessageFlags.Ephemeral });
 
-		const value = interaction.options.getNumber('value', true);
-		const nomination = interaction.options.getString('nomination', true);
-		const secondsToOffset = TTL(value, nomination as 'Days' | 'Hours' | 'Minutes');
+			const value = interaction.options.getNumber('value', true);
+			const nomination = interaction.options.getString('nomination', true);
+			const secondsToOffset = TTL(value, nomination as 'Days' | 'Hours' | 'Minutes');
 
-		for (const [idx, instance] of instances.entries()) {
-			const offsetForInstance = secondsToOffset * idx;
-			const module = instance.ModuleDisplayName || instance.Module;
-			logger.info('OffsetSchedules', `Offsetting instance ${instance.FriendlyName} by ${offsetForInstance} seconds`);
-			await setInstanceConfig(instance.InstanceID, module, { key: 'Core.AMP.ScheduleOffsetSeconds', value: `${offsetForInstance}` });
+			for (const [idx, instance] of instances.entries()) {
+				const offsetForInstance = secondsToOffset * idx;
+				const module = instance.ModuleDisplayName || instance.Module;
+				logger.info('OffsetSchedules', `Offsetting instance ${instance.FriendlyName} by ${offsetForInstance} seconds`);
+				await setInstanceConfig(instance.InstanceID, module, { key: 'Core.AMP.ScheduleOffsetSeconds', value: `${offsetForInstance}` });
+			}
+			interaction.editReply({ content: `Offset schedules for ${instances.length} instances by ${value} ${nomination}.` });
+		} catch (error) {
+			logger.error('OffsetSchedules', `Error offsetting schedules: ${error}`);
+			interaction.editReply({ content: 'An error occurred while offsetting schedules.', flags: MessageFlags.Ephemeral });
 		}
-
-		interaction.editReply({ content: `Offset schedules for ${instances.length} instances by ${value} ${nomination}.` });
 	},
 };
 export default offsetSchedules;

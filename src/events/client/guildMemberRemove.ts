@@ -7,9 +7,13 @@ const ready: EventData = {
 	name: Events.GuildMemberRemove,
 	runType: 'always',
 	async execute(client: Client, member: GuildMember) {
-		await UserData.findOneAndDelete({ discordId: member.id }).catch(() =>
-			logger.error('Guild Member Remove', `Failed to remove user data for ${member.user.tag} (${member.id})`)
-		);
+		try {
+			await UserData.findOneAndDelete({ discordId: member.id }).catch(() =>
+				logger.error('Guild Member Remove', `Failed to remove user data for ${member.user.tag} (${member.id})`)
+			);
+		} catch (error) {
+			logger.error('Guild Member Remove', `Error processing guild member remove event: ${error}`);
+		}
 	},
 };
 

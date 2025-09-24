@@ -5,19 +5,24 @@ import { toServer } from '../../utils/discord/webhooks';
 import { getJson } from '../../utils/redisHelpers';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 import redis from '../../loaders/database/redisLoader';
+import logger from '../../utils/logger';
 
 const messageCreate: EventData = {
 	name: Events.MessageCreate,
 	runType: 'always',
 	async execute(client: Client, message: Message) {
-		if (message.author.bot) return;
-		const chatLinks = await chatlinkModel.find({ channelId: message.channel.id });
-		if (!chatLinks.some((cl: any) => cl.channelId === message.channel.id)) return;
-		if (!chatLinks[0].instanceId) return;
-	const instanceData = await getJson<ExtendedInstance>(redis, `instance:${chatLinks[0].instanceId}`);
-		if (!instanceData) return;
+		try {
+			if (message.author.bot) return;
+			const chatLinks = await chatlinkModel.find({ channelId: message.channel.id });
+			if (!chatLinks.some((cl: any) => cl.channelId === message.channel.id)) return;
+			if (!chatLinks[0].instanceId) return;
+			const instanceData = await getJson<ExtendedInstance>(redis, `instance:${chatLinks[0].instanceId}`);
+			if (!instanceData) return;
 
-		await toServer(chatLinks[0].instanceId, message);
+			await toServer(chatLinks[0].instanceId, message);
+		} catch (error) {
+			logger.error('DiscordToServer', `Error processing message: ${error}`);
+		}
 	},
 };
 

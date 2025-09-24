@@ -8,6 +8,7 @@ export interface ExtendedInstance extends Omit<Instance, 'AppState' | 'Metrics'>
 	WelcomeMessage: string | '';
 	AppState: string;
 	ServerIcon: string;
+	ServerModpack: string | undefined;
 	Metrics: { [key: string]: Metric };
 }
 

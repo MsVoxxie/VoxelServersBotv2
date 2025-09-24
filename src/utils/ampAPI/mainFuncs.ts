@@ -3,6 +3,7 @@ import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getImageSource } from './getSourceImage';
 const instanceApiCache = new Map<string, any>();
 import logger from '../logger';
+import { getModpack } from '../utils';
 let globalAPI: ADS;
 
 export async function apiLogin(): Promise<ADS> {
@@ -44,13 +45,16 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 			targets
 				.flatMap((target) => target.AvailableInstances)
 				.filter((instance) => instance.FriendlyName !== 'ADS')
-				.map(async (instance) => {
+				.map(async (instance: Instance) => {
 					let PlayerList: any[] = [];
-					let scheduleOffset: number = 0;
-					let scheduledRestarts: object[] | undefined;
 					if (instance.Running) {
 						PlayerList = (await getOnlinePlayers(instance)) || [];
 					}
+
+					// Define the WelcomeMessage as a string to avoid type issues
+					const WelcomeMessage = (instance as any).WelcomeMessage ?? '';
+					// Compare welcome message to see if the instance has a "Modpack"
+					const isModpack = getModpack(WelcomeMessage);
 
 					// Get server icon
 					const serverIcon = await getImageSource(instance.DisplayImageSource);
@@ -73,9 +77,10 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 
 					const mappedInstance: ExtendedInstance = {
 						...instance,
-						WelcomeMessage: (instance as any).WelcomeMessage ?? '',
+						WelcomeMessage: WelcomeMessage,
 						AppState: appState,
 						ServerIcon: serverIcon,
+						ServerModpack: isModpack ? WelcomeMessage : undefined,
 						Metrics: metrics,
 					};
 					return mappedInstance;

@@ -1,5 +1,6 @@
-import { ApplicationIntegrationType, EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
+import logger from '../../utils/logger';
 
 const mc_blockSpacing: CommandData = {
 	data: new SlashCommandBuilder()
@@ -11,51 +12,55 @@ const mc_blockSpacing: CommandData = {
 	state: 'enabled',
 	devOnly: false,
 	async execute(client, interaction) {
-		await interaction.deferReply();
-		const blocks = interaction.options.getInteger('blocks', true);
-		const span = blocks - 1;
-		const spacings: string[] = [];
+		try {
+			await interaction.deferReply();
+			const blocks = interaction.options.getInteger('blocks', true);
+			const span = blocks - 1;
+			const spacings: string[] = [];
 
-		for (let placements = 2; placements <= blocks; placements++) {
-			const gaps = placements - 1;
-			if (span % gaps === 0) {
-				const distance = span / gaps;
-				const blocksBetween = distance - 1;
-				// Skip options with zero space between placements
-				if (blocksBetween > 0) {
-					spacings.push(`Total placements: ${placements}\nSpace between each: ${blocksBetween} block${blocksBetween === 1 ? '' : 's'}`);
+			for (let placements = 2; placements <= blocks; placements++) {
+				const gaps = placements - 1;
+				if (span % gaps === 0) {
+					const distance = span / gaps;
+					const blocksBetween = distance - 1;
+					// Skip options with zero space between placements
+					if (blocksBetween > 0) {
+						spacings.push(`Total placements: ${placements}\nSpace between each: ${blocksBetween} block${blocksBetween === 1 ? '' : 's'}`);
+					}
 				}
 			}
+
+			const limitedSpacings = spacings.slice(0, 5);
+			const centerType = blocks % 2 === 1 ? 'Single center block (ODD)' : 'Double center (EVEN)';
+
+			const embed = new EmbedBuilder()
+				.setTitle('Block Spacing Calculator')
+				.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
+				.setColor(client.color)
+				.setDescription(
+					`You chose a line that is **${blocks}** blocks long.\n` +
+						`This means your build has a **${centerType}**.\n` +
+						(spacings.length === 2 && blocks > 4
+							? 'With this length, you can only place blocks at both ends or fill every spot. Try a different length for more options.'
+							: spacings.length === 0
+							? 'No even spacing options are available for this block length. Please try another number.'
+							: 'Here are your evenly spaced placement options:')
+				);
+
+			if (limitedSpacings.length) {
+				embed.addFields(
+					limitedSpacings.map((s, i) => ({
+						name: `Option ${i + 1}`,
+						value: s,
+						inline: false,
+					}))
+				);
+			}
+			await interaction.editReply({ embeds: [embed] });
+		} catch (error) {
+			logger.error('MC Block Spacing', `Error calculating block spacing: ${error}`);
+			interaction.editReply({ content: 'An error occurred while executing the command.', flags: MessageFlags.Ephemeral });
 		}
-
-		const limitedSpacings = spacings.slice(0, 5);
-		const centerType = blocks % 2 === 1 ? 'Single center block (ODD)' : 'Double center (EVEN)';
-
-		const embed = new EmbedBuilder()
-			.setTitle('Block Spacing Calculator')
-			.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
-			.setColor(client.color)
-			.setDescription(
-				`You chose a line that is **${blocks}** blocks long.\n` +
-					`This means your build has a **${centerType}**.\n` +
-					(spacings.length === 2 && blocks > 4
-						? 'With this length, you can only place blocks at both ends or fill every spot. Try a different length for more options.'
-						: spacings.length === 0
-						? 'No even spacing options are available for this block length. Please try another number.'
-						: 'Here are your evenly spaced placement options:')
-			);
-
-		if (limitedSpacings.length) {
-			embed.addFields(
-				limitedSpacings.map((s, i) => ({
-					name: `Option ${i + 1}`,
-					value: s,
-					inline: false,
-				}))
-			);
-		}
-
-		await interaction.editReply({ embeds: [embed] });
 	},
 };
 

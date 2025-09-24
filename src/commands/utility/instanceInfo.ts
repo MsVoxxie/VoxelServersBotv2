@@ -3,6 +3,7 @@ import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
+import logger from '../../utils/logger';
 
 const instanceInfo: CommandData = {
 	data: new SlashCommandBuilder()
@@ -15,44 +16,44 @@ const instanceInfo: CommandData = {
 	devOnly: false,
 	autoCompleteInstanceType: 'running_and_not_hidden',
 	async execute(client, interaction) {
-		await interaction.deferReply();
-		const instanceId = interaction.options.getString('instance');
-		const instanceData = await getJson(redis, `instance:${instanceId}`);
-		if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
-		const instance = instanceData as ExtendedInstance;
-		const getModpack = (str: string): boolean => {
-			const urlPattern = /^https?:\/\/.+/i;
-			return urlPattern.test(str);
-		};
+		try {
+			await interaction.deferReply();
+			const instanceId = interaction.options.getString('instance');
+			const instanceData = await getJson(redis, `instance:${instanceId}`);
+			if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
+			const instance = instanceData as ExtendedInstance;
 
-		// Build embed
-		const isModpack = getModpack(instance.WelcomeMessage);
-		const { calculatedRawMB, calculatedMaxMB } = {
-			calculatedRawMB: (instance.Metrics['Memory Usage'].RawValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
-			calculatedMaxMB: (instance.Metrics['Memory Usage'].MaxValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
-		};
-		const description = [
-			`**State:** ${instance.AppState}`,
-			`**${isModpack ? 'Modpack' : 'MOTD'}:** ${isModpack ? `[Modpack Link](${instance.WelcomeMessage})` : instance.WelcomeMessage || 'None'}`,
-			'',
-			`**Server Metrics:**`,
-			`CPU Usage: ${instance.Metrics['CPU Usage'].Percent}%`,
-			`Memory Usage: ${calculatedRawMB} / ${calculatedMaxMB} GB`,
-			`Player Count: ${instance.Metrics['Active Users'].RawValue.toLocaleString()} / ${instance.Metrics['Active Users'].MaxValue.toLocaleString()}`,
-			'',
-			`**Player List:**`,
-			`${instance.Metrics['Active Users'].PlayerList?.length ? instance.Metrics['Active Users'].PlayerList.map((p) => `${p.Username}`).join(', ') : '• No active players'}`,
-		].join('\n');
+			// Build embed
+			const { calculatedRawMB, calculatedMaxMB } = {
+				calculatedRawMB: (instance.Metrics['Memory Usage'].RawValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
+				calculatedMaxMB: (instance.Metrics['Memory Usage'].MaxValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
+			};
+			const description = [
+				`**State:** ${instance.AppState}`,
+				`**Modpack:** ${instance.ServerModpack ? `[Modpack Link](${instance.ServerModpack})` : 'N/A'}`,
+				'',
+				`**Server Metrics:**`,
+				`CPU Usage: ${instance.Metrics['CPU Usage'].Percent}%`,
+				`Memory Usage: ${calculatedRawMB} / ${calculatedMaxMB} GB`,
+				`Player Count: ${instance.Metrics['Active Users'].RawValue.toLocaleString()} / ${instance.Metrics['Active Users'].MaxValue.toLocaleString()}`,
+				'',
+				`**Player List:**`,
+				`${instance.Metrics['Active Users'].PlayerList?.length ? instance.Metrics['Active Users'].PlayerList.map((p) => `${p.Username}`).join(', ') : '• No active players'}`,
+			].join('\n');
 
-		const embed = new EmbedBuilder()
-			.setTitle(`**${instance.FriendlyName} Server Info**`)
-			.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
-			.setThumbnail(instance.ServerIcon)
-			.setColor(client.color)
-			.setDescription(description)
-			.setFooter({ text: `ID: ${instance.InstanceID}` })
-			.setTimestamp();
-		return interaction.editReply({ embeds: [embed] });
+			const embed = new EmbedBuilder()
+				.setTitle(`**${instance.FriendlyName} Server Info**`)
+				.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
+				.setThumbnail(instance.ServerIcon)
+				.setColor(client.color)
+				.setDescription(description)
+				.setFooter({ text: `ID: ${instance.InstanceID}` })
+				.setTimestamp();
+			return interaction.editReply({ embeds: [embed] });
+		} catch (error) {
+			logger.error('InstanceInfo', `Error fetching instance info: ${error}`);
+			interaction.editReply({ content: 'An error occurred while fetching instance information.', flags: MessageFlags.Ephemeral });
+		}
 	},
 };
 
