@@ -27,14 +27,18 @@ const instanceInfo: CommandData = {
 
 		// Build embed
 		const isModpack = getModpack(instance.WelcomeMessage);
+		const { calculatedRawMB, calculatedMaxMB } = {
+			calculatedRawMB: (instance.Metrics['Memory Usage'].RawValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
+			calculatedMaxMB: (instance.Metrics['Memory Usage'].MaxValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
+		};
 		const description = [
 			`**State:** ${instance.AppState}`,
 			`**${isModpack ? 'Modpack' : 'MOTD'}:** ${isModpack ? `[Modpack Link](${instance.WelcomeMessage})` : instance.WelcomeMessage || 'None'}`,
 			'',
 			`**Server Metrics:**`,
 			`CPU Usage: ${instance.Metrics['CPU Usage'].Percent}%`,
-			`Memory Usage: ${instance.Metrics['Memory Usage'].RawValue}/${instance.Metrics['Memory Usage'].MaxValue} MB`,
-			`Player Count: ${instance.Metrics['Active Users'].RawValue}/${instance.Metrics['Active Users'].MaxValue}`,
+			`Memory Usage: ${calculatedRawMB} / ${calculatedMaxMB} GB`,
+			`Player Count: ${instance.Metrics['Active Users'].RawValue.toLocaleString()} / ${instance.Metrics['Active Users'].MaxValue.toLocaleString()}`,
 			'',
 			`**Player List:**`,
 			`${instance.Metrics['Active Users'].PlayerList?.length ? instance.Metrics['Active Users'].PlayerList.map((p) => `${p.Username}`).join(', ') : '• No active players'}`,
@@ -43,9 +47,11 @@ const instanceInfo: CommandData = {
 		const embed = new EmbedBuilder()
 			.setTitle(`**${instance.FriendlyName} Server Info**`)
 			.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
+			.setThumbnail(instance.ServerIcon)
 			.setColor(client.color)
 			.setDescription(description)
-			.setFooter({ text: `Instance ID: ${instance.InstanceID}` });
+			.setFooter({ text: `ID: ${instance.InstanceID}` })
+			.setTimestamp();
 		return interaction.editReply({ embeds: [embed] });
 	},
 };
