@@ -30,7 +30,7 @@ const instanceInfo: CommandData = {
 			};
 			const description = [
 				`**State:** ${instance.AppState}`,
-				`**Modpack:** ${instance.ServerModpack ? `[Modpack Link](${instance.ServerModpack})` : 'N/A'}`,
+				`**Modpack:** ${instance.ServerModpack ? `[${instance.ServerModpack.Name}](${instance.ServerModpack.URL})` : 'N/A'}`,
 				'',
 				`**Server Metrics:**`,
 				`CPU Usage: ${instance.Metrics['CPU Usage'].Percent}%`,

@@ -53,8 +53,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 
 					// Define the WelcomeMessage as a string to avoid type issues
 					const WelcomeMessage = (instance as any).WelcomeMessage ?? '';
-					// Compare welcome message to see if the instance has a "Modpack"
-					const isModpack = getModpack(WelcomeMessage);
+					const modpackInfo = getModpack(WelcomeMessage);
 
 					// Get server icon
 					const serverIcon = await getImageSource(instance.DisplayImageSource);
@@ -80,7 +79,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 						WelcomeMessage: WelcomeMessage,
 						AppState: appState,
 						ServerIcon: serverIcon,
-						ServerModpack: isModpack ? WelcomeMessage : undefined,
+						ServerModpack: modpackInfo.isModpack ? { Name: modpackInfo.modpackName, URL: modpackInfo.modpackUrl } : undefined,
 						Metrics: metrics,
 					};
 					return mappedInstance;

@@ -19,7 +19,11 @@ export function formatMCUUID(uuid: string) {
 	return uuid.replace(/^([a-fA-F0-9]{8})([a-fA-F0-9]{4})([a-fA-F0-9]{4})([a-fA-F0-9]{4})([a-fA-F0-9]{12})$/, '$1-$2-$3-$4-$5');
 }
 
-export function getModpack(str: string): boolean {
+export function getModpack(str: string): { modpackName: string; modpackUrl: string; isModpack: boolean } {
+	let [modpackName = '', modpackUrl = ''] = str.split('||');
+	modpackName = modpackName.trim();
+	modpackUrl = modpackUrl.trim();
 	const urlPattern = /^https?:\/\/.+/i;
-	return urlPattern.test(str);
+	const isModpack = !!modpackUrl && urlPattern.test(modpackUrl);
+	return { modpackName, modpackUrl, isModpack };
 }
