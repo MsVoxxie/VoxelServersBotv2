@@ -16,8 +16,7 @@ export async function apiLogin(): Promise<ADS> {
 		globalAPI = API;
 		return globalAPI;
 	} catch (error) {
-		logger.error('apiLogin', error instanceof Error ? error.message : String(error));
-		throw error;
+		throw logger.error('apiLogin', error instanceof Error ? error.message : String(error));
 	}
 }
 
@@ -32,8 +31,7 @@ export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: s
 		instanceApiCache.set(cacheKey, instanceAPI);
 		return instanceAPI as ModuleTypeMap[K];
 	} catch (error) {
-		logger.error('instanceLogin', error instanceof Error ? error.message : String(error));
-		throw error;
+		throw logger.error('instanceLogin', error instanceof Error ? error.message : String(error));
 	}
 }
 
@@ -99,10 +97,22 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 			case 'all':
 				break;
 		}
+
+		allInstances.sort((a, b) => {
+			// Running Minecraft first
+			if (a.Running && a.Module === 'Minecraft' && (!b.Running || b.Module !== 'Minecraft')) return -1;
+			if (b.Running && b.Module === 'Minecraft' && (!a.Running || a.Module !== 'Minecraft')) return 1;
+
+			// Other running instances next
+			if (a.Running && !b.Running) return -1;
+			if (!a.Running && b.Running) return 1;
+
+			return a.FriendlyName.localeCompare(b.FriendlyName);
+		});
+
 		return allInstances;
 	} catch (error) {
-		logger.error('getAllInstances', error instanceof Error ? error.message : String(error));
-		throw error;
+		throw logger.error('getAllInstances', error instanceof Error ? error.message : String(error));
 	}
 }
 
@@ -112,6 +122,7 @@ export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: st
 		const API = await instanceLogin(instance.InstanceID, moduleName as keyof ModuleTypeMap);
 		if (!API) return [];
 		const getPlayers = await API.Core.GetUserList();
+		if (!getPlayers) return [];
 
 		return Object.entries(getPlayers).map(([UserID, Username]) => ({
 			UserID: UserID.replace(/^Steam_/, ''),
