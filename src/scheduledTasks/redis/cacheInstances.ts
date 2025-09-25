@@ -8,6 +8,7 @@ const cacheInstances: ScheduleTaskData = {
 		const cache = async () => {
 			try {
 				const instances = await getAllInstances({ fetch: 'all' });
+				if (!instances || instances.length === 0) return logger.warn('cacheInstances', 'Failed to fetch instances, skipping cache update.');
 				await Promise.all(instances.map(async (instance) => await setJson(redisClient, `instance:${instance.InstanceID}`, instance, '$', TTL(15, 'Seconds'))));
 				await setJson(redisClient, 'instances:all', instances, '$', TTL(15, 'Seconds'));
 			} catch (error) {

@@ -9,14 +9,14 @@ let globalAPI: ADS;
 export async function apiLogin(): Promise<ADS> {
 	try {
 		const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
-		if (!AMP_URI || !AMP_USER || !AMP_PASS) throw new Error('AMP_URI, AMP_USER, and AMP_PASS environment variables must be defined');
+		if (!AMP_URI || !AMP_USER || !AMP_PASS) throw logger.error('apiLogin', 'Missing AMP environment variables');
 		if (globalAPI) return globalAPI;
 		const API = new ADS(AMP_URI, AMP_USER, AMP_PASS);
 		await API.APILogin();
 		globalAPI = API;
 		return globalAPI;
 	} catch (error) {
-		throw logger.error('apiLogin', error instanceof Error ? error.message : String(error));
+		throw logger.error('apiLogin', 'Failed to login to base AMP API');
 	}
 }
 
@@ -31,7 +31,7 @@ export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: s
 		instanceApiCache.set(cacheKey, instanceAPI);
 		return instanceAPI as ModuleTypeMap[K];
 	} catch (error) {
-		throw logger.error('instanceLogin', error instanceof Error ? error.message : String(error));
+		throw logger.error('instanceLogin', 'Failed to login to instance API');
 	}
 }
 
@@ -112,7 +112,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 
 		return allInstances;
 	} catch (error) {
-		throw logger.error('getAllInstances', error instanceof Error ? error.message : String(error));
+		throw logger.error('getAllInstances', 'Failed to fetch instances from AMP');
 	}
 }
 
@@ -129,7 +129,7 @@ export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: st
 			Username: Username as string,
 		}));
 	} catch (error) {
-		logger.error('getOnlinePlayers', error instanceof Error ? error.message : String(error));
+		logger.error(`getOnlinePlayers`, `Failed to fetch online players for ${instance.FriendlyName}`);
 		return [];
 	}
 }
@@ -157,6 +157,6 @@ export async function sendServerConsoleCommand(instanceId: string, module: strin
 		return result;
 	} catch (error) {
 		logger.error('sendServerConsoleCommand', error instanceof Error ? error.message : String(error));
-		throw error;
+		throw logger.error('sendServerConsoleCommand', `Failed to send console command to ${instanceId}`);
 	}
 }

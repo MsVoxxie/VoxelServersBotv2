@@ -12,6 +12,7 @@ const watchInstances: ScheduleTaskData = {
 				const prev: ExtendedInstance[] = rawPrev ? (Array.isArray(rawPrev) ? rawPrev : [rawPrev]) : [];
 				// fetch current set
 				const current = (await getAllInstances({ fetch: 'all' })) as ExtendedInstance[];
+				if (!current || current.length === 0) return logger.warn('watchInstances', 'Failed to fetch instances, skipping update check.');
 
 				// build maps by InstanceID
 				const prevMap = new Map(prev.map((i: ExtendedInstance) => [i.InstanceID, i]));
