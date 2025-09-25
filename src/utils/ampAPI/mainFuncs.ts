@@ -21,18 +21,32 @@ export async function apiLogin(): Promise<ADS> {
 }
 
 export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: string, instanceModule: K): Promise<ModuleTypeMap[K]> {
-	try {
-		const cacheKey = `${instanceID}:${instanceModule}`;
-		if (instanceApiCache.has(cacheKey)) {
-			return instanceApiCache.get(cacheKey) as ModuleTypeMap[K];
-		}
+	const cacheKey = `${instanceID}:${instanceModule}`;
+	let instanceAPI = instanceApiCache.get(cacheKey) as ModuleTypeMap[K] | undefined;
+
+	// Helper to (re)login and update cache
+	const doLogin = async () => {
 		const API = await apiLogin();
-		const instanceAPI = await API.InstanceLogin<ModuleTypeMap[K]>(instanceID, instanceModule);
-		instanceApiCache.set(cacheKey, instanceAPI);
-		return instanceAPI as ModuleTypeMap[K];
-	} catch (error) {
-		throw logger.error('instanceLogin', 'Failed to login to instance API');
+		const newAPI = await API.InstanceLogin<ModuleTypeMap[K]>(instanceID, instanceModule);
+		instanceApiCache.set(cacheKey, newAPI);
+		return newAPI as ModuleTypeMap[K];
+	};
+
+	// Check if the cached API is still valid
+	if (instanceAPI) {
+		try {
+			await instanceAPI.Core.AsyncTest();
+			return instanceAPI;
+		} catch (err: any) {
+			const msg = err?.message || String(err);
+			if (msg.includes('session') || msg.includes('invalid') || msg.includes('unavailable')) {
+				instanceApiCache.delete(cacheKey);
+				return await doLogin();
+			}
+			throw logger.error('instanceLogin', `Failed to use cached instance API: ${msg}`);
+		}
 	}
+	return await doLogin();
 }
 
 export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter } = {}): Promise<ExtendedInstance[]> {
@@ -118,6 +132,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 
 export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: string; Username: string }[]> {
 	try {
+		if (!instance.Running) return [];
 		const moduleName = instance.ModuleDisplayName || instance.Module;
 		const API = await instanceLogin(instance.InstanceID, moduleName as keyof ModuleTypeMap);
 		if (!API) return [];
