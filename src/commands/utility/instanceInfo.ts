@@ -1,4 +1,4 @@
-import { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, ApplicationIntegrationType } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
@@ -11,6 +11,7 @@ const instanceInfo: CommandData = {
 		.setDescription('Replies with instance information.')
 		.addStringOption((opt) => opt.setName('instance').setDescription('The instance to get information about.').setRequired(true).setAutocomplete(true))
 		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall])
+		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
 		.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
 	state: 'enabled',
 	devOnly: false,

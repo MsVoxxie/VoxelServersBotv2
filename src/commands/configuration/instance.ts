@@ -33,8 +33,8 @@ const manageInstances: CommandData = {
 				.setDescription('Updates an instance')
 				.addStringOption((opt) => opt.setName('instance').setDescription('The instance to update.').setRequired(true).setAutocomplete(true))
 		)
-		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
-		.setContexts([InteractionContextType.Guild])
+		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall])
+		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 	state: 'enabled',
 	devOnly: false,

@@ -33,8 +33,8 @@ const manageServers: CommandData = {
 				.setDescription('Updates a server')
 				.addStringOption((opt) => opt.setName('server').setDescription('The server to update.').setRequired(true).setAutocomplete(true))
 		)
-		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
-		.setContexts([InteractionContextType.Guild])
+		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall])
+		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 	state: 'enabled',
 	devOnly: false,

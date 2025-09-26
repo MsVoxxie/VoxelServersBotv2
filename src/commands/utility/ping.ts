@@ -1,4 +1,4 @@
-import { ApplicationIntegrationType, Client, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import logger from '../../utils/logger';
 
@@ -7,6 +7,7 @@ const ping: CommandData = {
 		.setName('ping')
 		.setDescription('Replies with Pong!')
 		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall])
+		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
 		.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
 	state: 'enabled',
 	devOnly: false,
