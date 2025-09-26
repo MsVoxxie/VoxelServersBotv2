@@ -16,7 +16,7 @@ const manageServers: CommandData = {
 				.setDescription('Sends a command to the server console via RCON')
 				.addStringOption((opt) => opt.setName('server').setDescription('The server to send the command to.').setRequired(true).setAutocomplete(true))
 				.addStringOption((opt) => opt.setName('command').setDescription('The command to send to the server console.').setRequired(true))
-				.addBooleanOption((opt) => opt.setName('return_output').setDescription('Whether to return the console output from the command. Defaults to true.').setRequired(false))
+				.addBooleanOption((opt) => opt.setName('verbose').setDescription('Whether to return the console output from the command. Defaults to true.').setRequired(false))
 		)
 		.addSubcommand((sc) =>
 			sc
@@ -65,11 +65,11 @@ const manageServers: CommandData = {
 			switch (subcommand) {
 				case 'rcon': {
 					const command = interaction.options.getString('command', true);
-					const returnOutput = interaction.options.getBoolean('return_output') ?? true;
+					const verbose = interaction.options.getBoolean('verbose') ?? true;
 					if (!command || command.trim().length === 0) return interaction.editReply({ content: 'Command cannot be empty.', flags: MessageFlags.Ephemeral });
 					if (!instance.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
-					res = await sendServerConsoleCommand(instance.InstanceID, moduleName, command, { returnResult: returnOutput });
-					if (!returnOutput) return interaction.editReply({ content: `Command sent to ${instance.FriendlyName}.`, flags: MessageFlags.Ephemeral });
+					res = await sendServerConsoleCommand(instance.InstanceID, moduleName, command, { returnResult: verbose });
+					if (!verbose) return interaction.editReply({ content: `Command sent to ${instance.FriendlyName}.`, flags: MessageFlags.Ephemeral });
 
 					const embed = new EmbedBuilder()
 						.setTitle(`RCON Command Executed on ${instance.FriendlyName}`)
