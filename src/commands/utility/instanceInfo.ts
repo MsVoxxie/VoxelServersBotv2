@@ -1,9 +1,10 @@
-import { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType, inlineCode } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 import logger from '../../utils/logger';
+import { getPort } from '../../utils/utils';
 
 const instanceInfo: CommandData = {
 	data: new SlashCommandBuilder()
@@ -32,6 +33,7 @@ const instanceInfo: CommandData = {
 			const description = [
 				`**State:** ${instance.AppState}`,
 				`**Modpack:** ${instance.ServerModpack ? `[${instance.ServerModpack.Name}](${instance.ServerModpack.URL})` : 'N/A'}`,
+				`**IP / Port:** ${inlineCode(`${process.env.SERVER_IP}:${getPort(instance)}`)}`,
 				'',
 				`**Server Metrics:**`,
 				`CPU Usage: ${instance.Metrics['CPU Usage'].Percent}%`,

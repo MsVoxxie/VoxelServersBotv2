@@ -1,3 +1,5 @@
+import { ExtendedInstance } from '../types/ampTypes/ampTypes';
+
 export async function wait(ms: number) {
 	return new Promise((res) => setTimeout(res, ms));
 }
@@ -26,4 +28,27 @@ export function getModpack(str: string): { modpackName: string; modpackUrl: stri
 	const urlPattern = /^https?:\/\/.+/i;
 	const isModpack = !!modpackUrl && urlPattern.test(modpackUrl);
 	return { modpackName, modpackUrl, isModpack };
+}
+
+export function getPort(instance: ExtendedInstance) {
+	const deploymentArgs = instance.DeploymentArgs;
+	if (!deploymentArgs) return null;
+
+	const mcPort = deploymentArgs['MinecraftModule.Minecraft.PortNumber'];
+	if (mcPort) {
+		return parseInt(mcPort, 10);
+	}
+
+	const rawPorts = deploymentArgs['GenericModule.App.Ports'];
+	if (rawPorts) {
+		try {
+			const ports = JSON.parse(rawPorts);
+			const primary = ports.find((p: any) => p.Ref === 'ServerPort') || ports[0];
+			return primary?.Port || null;
+		} catch (err) {
+			console.error('Failed to parse ports:', err);
+			return null;
+		}
+	}
+	return null;
 }
