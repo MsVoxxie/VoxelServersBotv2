@@ -55,6 +55,31 @@ export const AppStateMap: Record<number, string> = {
 	999: 'Indeterminate',
 };
 
+export const AppState = {
+	Stopped: 'Stopped',
+	PreStart: 'PreStart',
+	Configuring: 'Configuring',
+	Starting: 'Starting',
+	Running: 'Running',
+	Restarting: 'Restarting',
+	Stopping: 'Stopping',
+	PreparingForSleep: 'PreparingForSleep',
+	Sleeping: 'Sleeping',
+	Waiting: 'Waiting',
+	Installing: 'Installing',
+	Updating: 'Updating',
+	AwaitingUserInput: 'AwaitingUserInput',
+	Failed: 'Failed',
+	Suspended: 'Suspended',
+	Maintainence: 'Maintainence',
+	Indeterminate: 'Indeterminate',
+	Offline: 'Offline',
+	Unknown: 'Unknown',
+} as const;
+
+export type AppStateKey = keyof typeof AppState;
+export type AppStateValue = (typeof AppState)[AppStateKey];
+
 export const AppStateEmoji: Record<string, string> = {
 	Stopped: '🔴',
 	PreStart: '🟠',

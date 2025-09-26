@@ -23,19 +23,19 @@ const chatlinkSetup: CommandData = {
 	autoCompleteInstanceType: 'running',
 	async execute(client, interaction) {
 		try {
-			interaction.deferReply();
+			await interaction.deferReply();
 			const instanceId = interaction.options.getString('instance');
 			const instanceData = await getJson(redis, `instance:${instanceId}`);
-			if (!instanceData) return interaction.reply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
+			if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
 			const instance = instanceData as ExtendedInstance;
 			const moduleName = (instance.Module || 'GenericModule') as keyof ModuleTypeMap;
 			const instanceAPI = await instanceLogin(instance.InstanceID, moduleName);
-			if (!instanceAPI) return interaction.reply({ content: 'Failed to login to instance API.', flags: MessageFlags.Ephemeral });
+			if (!instanceAPI) return interaction.editReply({ content: 'Failed to login to instance API.', flags: MessageFlags.Ephemeral });
 
 			// Create the Discord Webhook for the specified channel
 			const channelOpt = interaction.options.getChannel('channel');
 			const channel = await interaction.guild.channels.fetch(channelOpt.id);
-			if (!channel || !channel.isTextBased()) return interaction.reply({ content: 'Invalid channel selected.', flags: MessageFlags.Ephemeral });
+			if (!channel || !channel.isTextBased()) return interaction.editReply({ content: 'Invalid channel selected.', flags: MessageFlags.Ephemeral });
 			const webhooks = await channel.fetchWebhooks();
 			const existingWebhook = webhooks.find((w: any) => w.name === instanceId);
 
