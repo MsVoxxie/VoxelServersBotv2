@@ -4,6 +4,10 @@ export async function wait(ms: number) {
 	return new Promise((res) => setTimeout(res, ms));
 }
 
+export function trimString(str: string, max: number): string {
+	return str.length > max ? `${str.slice(0, max - 3)}...` : str;
+}
+
 export function msToHuman(ms: number) {
 	const parts = [];
 	const seconds = Math.floor((ms / 1000) % 60);

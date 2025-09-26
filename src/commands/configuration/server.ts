@@ -1,14 +1,23 @@
-import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, ApplicationIntegrationType, InteractionContextType, codeBlock } from 'discord.js';
 import { AppState, ExtendedInstance, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
-import { instanceLogin } from '../../utils/ampAPI/mainFuncs';
+import { instanceLogin, sendServerConsoleCommand } from '../../utils/ampAPI/mainFuncs';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
+import { trimString } from '../../utils/utils';
 
 const manageServers: CommandData = {
 	data: new SlashCommandBuilder()
 		.setName('server')
 		.setDescription('Various server management commands.')
+		.addSubcommand((sc) =>
+			sc
+				.setName('rcon')
+				.setDescription('Sends a command to the server console via RCON')
+				.addStringOption((opt) => opt.setName('server').setDescription('The server to send the command to.').setRequired(true).setAutocomplete(true))
+				.addStringOption((opt) => opt.setName('command').setDescription('The command to send to the server console.').setRequired(true))
+				.addBooleanOption((opt) => opt.setName('return_output').setDescription('Whether to return the console output from the command. Defaults to true.').setRequired(false))
+		)
 		.addSubcommand((sc) =>
 			sc
 				.setName('stop')
@@ -54,6 +63,32 @@ const manageServers: CommandData = {
 
 			// Switch case for subcommands
 			switch (subcommand) {
+				case 'rcon': {
+					const command = interaction.options.getString('command', true);
+					const returnOutput = interaction.options.getBoolean('return_output') ?? true;
+					if (!command || command.trim().length === 0) return interaction.editReply({ content: 'Command cannot be empty.', flags: MessageFlags.Ephemeral });
+					if (!instance.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
+					res = await sendServerConsoleCommand(instance.InstanceID, moduleName, command, { returnResult: returnOutput });
+					if (!returnOutput) return interaction.editReply({ content: `Command sent to ${instance.FriendlyName}.`, flags: MessageFlags.Ephemeral });
+
+					const embed = new EmbedBuilder()
+						.setTitle(`RCON Command Executed on ${instance.FriendlyName}`)
+						.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
+						.addFields({
+							name: '📥 Command',
+							value: codeBlock('js', command),
+							inline: true,
+						})
+						.addFields({
+							name: '📤 Result',
+							value: codeBlock('js', trimString(res?.data || 'No output.', 812)),
+						})
+						.setColor(client.color)
+						.setTimestamp();
+
+					interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+					break;
+				}
 				case 'start': {
 					if (instance.AppState !== AppState.Stopped) return interaction.editReply({ content: `${instance.FriendlyName} is not stopped.`, flags: MessageFlags.Ephemeral });
 					res = await instanceAPI.Core.Start();

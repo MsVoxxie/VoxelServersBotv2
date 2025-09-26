@@ -3,7 +3,7 @@ import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getImageSource } from './getSourceImage';
 const instanceApiCache = new Map<string, any>();
 import logger from '../logger';
-import { getModpack } from '../utils';
+import { getModpack, wait } from '../utils';
 let globalAPI: ADS;
 
 export async function apiLogin(): Promise<ADS> {
@@ -165,13 +165,27 @@ export async function getServerPlayerInfo(instance: ExtendedInstance): Promise<{
 	return { currentPlayers, maxPlayers };
 }
 
-export async function sendServerConsoleCommand(instanceId: string, module: string, command: string): Promise<void> {
+export async function sendServerConsoleCommand(
+	instanceId: string,
+	module: string,
+	command: string,
+	options?: { returnResult: false | boolean }
+): Promise<{ success: boolean; data: string | undefined }> {
 	try {
 		const API = await instanceLogin(instanceId, module as keyof ModuleTypeMap);
-		const result = await API.Core.SendConsoleMessage(command);
-		return result;
+
+		if (options?.returnResult) {
+			await Promise.all([API.Core.GetUpdates(), API.Core.SendConsoleMessage(command), wait(250)]);
+			const consoleResponse = await API.Core.GetUpdates();
+			const consoleOutput = consoleResponse.ConsoleEntries.sort((a: any, b: any) => a.Timestamp - b.Timestamp);
+			const cleanOutput = consoleOutput.map((i) => `${i.Contents}`).join('\n') || 'No console output returned';
+			return { success: true, data: cleanOutput };
+		} else {
+			await API.Core.SendConsoleMessage(command);
+			return { success: true, data: undefined };
+		}
 	} catch (error) {
-		logger.error('sendServerConsoleCommand', error instanceof Error ? error.message : String(error));
-		throw logger.error('sendServerConsoleCommand', `Failed to send console command to ${instanceId}`);
+		logger.error('sendServerConsoleCommand', `Failed to send console command to ${instanceId}`);
+		return { success: false, data: undefined };
 	}
 }
