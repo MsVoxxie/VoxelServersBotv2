@@ -59,7 +59,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 				.filter((instance) => instance.FriendlyName !== 'ADS')
 				.map(async (instance: Instance) => {
 					let PlayerList: any[] = [];
-					if (instance.Running) {
+					if (API && instance.Running) {
 						PlayerList = (await getOnlinePlayers(instance)) || [];
 					}
 
