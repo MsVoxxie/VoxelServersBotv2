@@ -4,6 +4,7 @@
 	"main": "src/vsb.js",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/ping": "^0.4.4",
 		"typescript": "^5.8.3"
 	},
 	"dependencies": {
@@ -19,6 +20,7 @@
 		"fs": "^0.0.1-security",
 		"mongoose": "^8.18.0",
 		"path": "^0.12.7",
+		"ping": "^0.4.4",
 		"redis": "^5.7.0"
 	},
 	"scripts": {

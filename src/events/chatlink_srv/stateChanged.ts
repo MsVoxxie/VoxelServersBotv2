@@ -21,7 +21,7 @@ const stateChanged: EventData = {
 
 				case 'Ready':
 					const startDuration = (await getJson(redis, `serverStart:${event.InstanceId}`)) as { time: number };
-					const duration = msToHuman(Date.now() - startDuration.time);
+					const duration = msToHuman(Date.now() - startDuration?.time);
 					if (duration.length) {
 						event.Message += `\n-# Took ${duration.join(' ')}`;
 					}

@@ -1,11 +1,13 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
-import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
 import { getJson, setJson, TTL } from '../../utils/redisHelpers';
 import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
+import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
 import logger from '../../utils/logger';
+
+const INTERVAL_MS = 300_000; // 5 minutes
 const watchInstances: ScheduleTaskData = {
 	name: 'Watch Instance Updates',
-	async run({ client, redisClient }) {
+	run({ client, redisClient }) {
 		const checkUpdates = async () => {
 			try {
 				const rawPrev = (await getJson<ExtendedInstance | ExtendedInstance[] | null>(redisClient, 'instances:cached')) ?? null;
@@ -37,8 +39,8 @@ const watchInstances: ScheduleTaskData = {
 				logger.error('watchInstances', error instanceof Error ? error.message : String(error));
 			}
 		};
-		await checkUpdates();
-		setInterval(checkUpdates, 300_000); // 5min
+		checkUpdates();
+		setInterval(checkUpdates, INTERVAL_MS);
 	},
 };
 

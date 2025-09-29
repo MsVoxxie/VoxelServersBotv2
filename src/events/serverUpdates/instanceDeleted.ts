@@ -1,4 +1,4 @@
-import { ExtendedInstance } from './../../types/ampTypes/ampTypes';
+import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { Client, EmbedBuilder } from 'discord.js';
 import logger from '../../utils/logger';

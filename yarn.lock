@@ -193,6 +193,11 @@
   dependencies:
     undici-types "~7.10.0"
 
+"@types/ping@^0.4.4":
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@types/ping/-/ping-0.4.4.tgz#ec45bd022f40949fe8eaf76778a704f73d0be72c"
+  integrity sha512-ifvo6w2f5eJYlXm+HiVx67iJe8WZp87sfa683nlqED5Vnt9Z93onkokNoWqOG21EaE8fMxyKPobE+mkPEyxsdw==
+
 "@types/qs@*":
   version "6.14.0"
   resolved "https://registry.yarnpkg.com/@types/qs/-/qs-6.14.0.tgz#d8b60cecf62f2db0fb68e5e006077b9178b85de5"
@@ -771,6 +776,11 @@ path@^0.12.7:
   dependencies:
     process "^0.11.1"
     util "^0.10.3"
+
+ping@^0.4.4:
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/ping/-/ping-0.4.4.tgz#f70c5c8ad7b476d903100c9d45ecd52cf83e1de3"
+  integrity sha512-56ZMC0j7SCsMMLdOoUg12VZCfj/+ZO+yfOSjaNCRrmZZr6GLbN2X/Ui56T15dI8NhiHckaw5X2pvyfAomanwqQ==
 
 process@^0.11.1:
   version "0.11.10"

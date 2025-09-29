@@ -1,11 +1,13 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
-import logger from '../../utils/logger';
 import { setJson, TTL } from '../../utils/redisHelpers';
+import logger from '../../utils/logger';
+
+const INTERVAL_MS = 10_000; // 10 seconds
 const cacheInstances: ScheduleTaskData = {
 	name: 'Cache AMP Instances',
-	async run({ client, redisClient }) {
-		const cache = async () => {
+	run({ client, redisClient }) {
+		const runCache = async () => {
 			try {
 				const instances = await getAllInstances({ fetch: 'all' });
 				if (!instances || instances.length === 0) return logger.warn('cacheInstances', 'Failed to fetch instances, skipping cache update.');
@@ -15,8 +17,8 @@ const cacheInstances: ScheduleTaskData = {
 				logger.error('cacheInstances', error instanceof Error ? error.message : String(error));
 			}
 		};
-		await cache();
-		setInterval(cache, 10_000); // 10s
+		runCache();
+		setInterval(runCache, INTERVAL_MS);
 	},
 };
 

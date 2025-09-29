@@ -1,0 +1,63 @@
+import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
+import { NetworkTestResult } from '../../types/apiTypes/networkTypes';
+import { getJson, setJson, TTL } from '../../utils/redisHelpers';
+import redis from '../../loaders/database/redisLoader';
+import logger from '../../utils/logger';
+import ping from 'ping';
+
+const hostToPing: string = '1.1.1.1'; // Cloudflare DNS
+const pingFailValue: number = 9999; // Value to use when ping fails
+const pingMaxHistory: number = 60;
+const pingHistory: number[] = [];
+
+const INTERVAL_MS = 5_000; // 5 seconds
+const networkCheck: ScheduleTaskData = {
+	name: 'Network Check',
+	run({ client }) {
+		const checkNetwork = async () => {
+			try {
+				// Fetch previous result (if any)
+				const oldResult = await getJson<NetworkTestResult>(redis, 'server:networkCheck');
+
+				// Ping host and measure latency
+				const { alive: isAlive, time: latencyMs } = await ping.promise.probe(hostToPing, { timeout: 2, extra: ['-c', '1'] });
+
+				// Format latency and update history
+				const latencyNum = isAlive && latencyMs !== 'unknown' ? Number(latencyMs.toFixed(1)) : pingFailValue;
+				pingHistory.push(latencyNum);
+				if (pingHistory.length > pingMaxHistory) pingHistory.shift();
+				const latencyAvgMs = Number((pingHistory.reduce((a, b) => a + b, 0) / pingHistory.length).toFixed(1));
+
+				// Create the result object
+				let result: NetworkTestResult = {
+					isAlive,
+					lastOffline: isAlive ? undefined : Date.now(),
+					lastOnline: isAlive ? Date.now() : undefined,
+					latencyMs: isAlive ? latencyNum : pingFailValue,
+					latencyAvgMs: latencyAvgMs,
+					historyLength: pingHistory.length,
+				};
+				if (oldResult) isAlive ? (result.lastOnline = Date.now()) : (result.lastOffline = Date.now());
+
+				// If the server just came back online, only emit if lastOffline was >5min ago
+				if (isAlive && oldResult && !oldResult.isAlive) {
+					const now = Date.now();
+					const lastOffline = oldResult.lastOffline ?? 0;
+					if (now - lastOffline > 5 * 60 * 1000) {
+						client.emit('networkRestored', result);
+						logger.info('networkCheck', `Network connectivity restored to ${hostToPing}.`);
+					}
+				}
+
+				// Save the result to Redis
+				await setJson<NetworkTestResult>(redis, 'server:networkCheck', result, '$', TTL(1, 'Days'));
+			} catch (error) {
+				logger.error('networkCheck', error instanceof Error ? error.message : String(error));
+			}
+		};
+		checkNetwork();
+		setInterval(checkNetwork, INTERVAL_MS);
+	},
+};
+
+export default networkCheck;

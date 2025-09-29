@@ -14,7 +14,9 @@ export async function toDiscord(data: ChatlinkBase) {
 			getJson<ExtendedInstance>(redis, `instance:${data.InstanceId}`),
 			chatlinkModel.findOne({ instanceId: data.InstanceId }),
 		]);
-		if (!instanceData || !chatlinkData) throw new Error('Failed to retrieve necessary data');
+
+		if (!instanceData) throw new Error(`Failed to fetch instance data for ID ${data.InstanceId}`);
+		if (!chatlinkData) throw new Error(`Failed to fetch chatlink data for ID ${data.InstanceId}`);
 
 		const instanceModule = instanceData.Module;
 		const [webhookId, webhookToken] = [chatlinkData.webhookId, chatlinkData.webhookToken];

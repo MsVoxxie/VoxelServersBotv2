@@ -12,17 +12,16 @@ const ready: EventData = {
 	async execute(client: Client) {
 		try {
 			logger.success('Ready Event', `Logged in as ${client.user!.tag}!`);
-
 			// Log into Redis
-			const redisClient = await connectRedis();
-			client.redis = redisClient;
-
-			// Load Mongoose
-			mongoLoader.init();
-
-			// Start Scheduler
-			await wait(100);
-			await runScheduledTasks({ client, redisClient });
+			await connectRedis().then(async (redisClient) => {
+				logger.success('Redis', 'Connected to Redis successfully.');
+				client.redis = redisClient;
+				// Load Mongoose
+				await mongoLoader.init().then(async () => {
+					// Start Scheduler
+					await runScheduledTasks({ client, redisClient });
+				});
+			});
 		} catch (error) {
 			logger.error('Ready Event', `Error processing ready event: ${error}`);
 		}

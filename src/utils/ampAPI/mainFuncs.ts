@@ -7,17 +7,32 @@ import { getModpack, wait } from '../utils';
 let globalAPI: ADS;
 
 export async function apiLogin(): Promise<ADS> {
-	try {
-		const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
-		if (!AMP_URI || !AMP_USER || !AMP_PASS) throw logger.error('apiLogin', 'Missing AMP environment variables');
-		if (globalAPI) return globalAPI;
+	const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
+	if (!AMP_URI || !AMP_USER || !AMP_PASS) throw logger.error('apiLogin', 'Missing AMP environment variables');
+
+	// Helper to (re)login and update cache
+	const doLogin = async () => {
 		const API = new ADS(AMP_URI, AMP_USER, AMP_PASS);
 		await API.APILogin();
 		globalAPI = API;
 		return globalAPI;
-	} catch (error) {
-		throw logger.error('apiLogin', 'Failed to login to base AMP API');
+	};
+
+	if (globalAPI) {
+		try {
+			// Try a lightweight call to check session validity
+			await globalAPI.ADSModule.GetInstances();
+			return globalAPI;
+		} catch (err: any) {
+			const msg = err?.message || String(err);
+			if (msg.includes('Session.Exists')) {
+				globalAPI = undefined as any;
+				return await doLogin();
+			}
+			throw logger.error('apiLogin', `Failed to use cached global API: ${msg}`);
+		}
 	}
+	return await doLogin();
 }
 
 export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: string, instanceModule: K): Promise<ModuleTypeMap[K]> {
@@ -39,7 +54,7 @@ export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: s
 			return instanceAPI;
 		} catch (err: any) {
 			const msg = err?.message || String(err);
-			if (msg.includes('session') || msg.includes('invalid') || msg.includes('unavailable')) {
+			if (msg.includes('Session.Exists')) {
 				instanceApiCache.delete(cacheKey);
 				return await doLogin();
 			}

@@ -21,10 +21,10 @@ async function connectWithRetry(): Promise<void> {
 	}
 }
 
-export function init(): void {
+export function init(): Promise<void> {
 	if (!Key) {
 		logger.error('Mongo', 'DATABASE_TOKEN is not set; skipping mongoose.connect');
-		return;
+		return Promise.resolve();
 	}
 
 	// Use native promises
@@ -47,7 +47,8 @@ export function init(): void {
 		logger.success('Mongo', 'Mongo DB Reconnected');
 	});
 
-	void connectWithRetry();
+	// Return the connectWithRetry promise so you can .then after init
+	return connectWithRetry();
 }
 
 export default { init };

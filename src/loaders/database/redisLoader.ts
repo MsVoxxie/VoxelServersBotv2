@@ -31,7 +31,7 @@ redis.on('end', () => {
 	logger.info('Redis', 'Connection to Redis closed.');
 });
 
-export async function connectRedis() {
+export async function connectRedis(): Promise<RedisClientType> {
 	if (!redis.isOpen) {
 		try {
 			await redis.connect();
