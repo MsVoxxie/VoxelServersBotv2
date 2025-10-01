@@ -18,7 +18,7 @@ const instanceCreated: EventData = {
 			const descriptionData = [
 				`**Name**: ${instance.FriendlyName}`,
 				`${instance.Description ? `**Desc**: ${instance.Description}` : ''}`,
-				`${instance.ServerModpack ? `**Modpack**: ${instance.ServerModpack}` : ''}`,
+				`${instance.ServerModpack ? `**Modpack**: [${instance.ServerModpack.Name}](${instance.ServerModpack.URL})` : ''}`,
 				`**Module**: ${instance.ModuleDisplayName || instance.Module}`,
 			];
 

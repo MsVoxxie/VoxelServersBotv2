@@ -73,11 +73,6 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 				.flatMap((target) => target.AvailableInstances)
 				.filter((instance) => instance.FriendlyName !== 'ADS')
 				.map(async (instance: Instance) => {
-					let PlayerList: any[] = [];
-					if (API && instance.Running) {
-						PlayerList = (await getOnlinePlayers(instance)) || [];
-					}
-
 					// Define the WelcomeMessage as a string to avoid type issues
 					const WelcomeMessage = (instance as any).WelcomeMessage ?? '';
 					const modpackInfo = getModpack(WelcomeMessage);
@@ -85,13 +80,18 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 					// Get server icon
 					const serverIcon = await getImageSource(instance.DisplayImageSource);
 
-					// Clone metrics and append PlayerInfo to 'Active Users' metric
 					const metrics: any = { ...(instance.Metrics || {}) };
 					if (metrics['Active Users']) {
 						metrics['Active Users'] = {
 							...metrics['Active Users'],
-							PlayerList: PlayerList,
+							PlayerList: [],
 						} as any;
+
+						let PlayerList: any[] = [];
+						if (API && instance.Running && metrics['Active Users'].RawValue > 0) {
+							PlayerList = (await getOnlinePlayers(instance)) || [];
+						}
+						metrics['Active Users'].PlayerList = PlayerList;
 					}
 
 					let appState: string;
@@ -141,6 +141,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 
 		return allInstances;
 	} catch (error) {
+		console.log(error);
 		throw logger.error('getAllInstances', 'Failed to fetch instances from AMP');
 	}
 }
