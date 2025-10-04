@@ -11,6 +11,9 @@ const pingMaxHistory: number = 60;
 const pingHistory: number[] = [];
 
 const INTERVAL_MS = 5_000; // 5 seconds
+const OFFLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const ONLINE_THRESHOLD_MS = 30 * 1000; // 30 seconds
+
 const networkCheck: ScheduleTaskData = {
 	name: 'Network Check',
 	run({ client }) {
@@ -20,7 +23,7 @@ const networkCheck: ScheduleTaskData = {
 				const oldResult = await getJson<NetworkTestResult>(redis, 'server:networkCheck');
 
 				// Ping host and measure latency
-				const { alive: isAlive, time: latencyMs } = await ping.promise.probe(hostToPing, { timeout: 2, extra: ['-c', '1'] });
+				const { alive: isAlive, time: latencyMs } = await ping.promise.probe(client.pingIP, { timeout: 2, extra: ['-c', '1'] });
 
 				// Format latency and update history
 				const latencyNum = isAlive && latencyMs !== 'unknown' ? Number(latencyMs.toFixed(1)) : pingFailValue;
@@ -31,21 +34,34 @@ const networkCheck: ScheduleTaskData = {
 				// Create the result object
 				let result: NetworkTestResult = {
 					isAlive,
-					lastOffline: isAlive ? undefined : Date.now(),
-					lastOnline: isAlive ? Date.now() : undefined,
+					lastOffline: isAlive ? oldResult?.lastOffline : Date.now(),
+					lastOnline: isAlive ? Date.now() : oldResult?.lastOnline,
 					latencyMs: isAlive ? latencyNum : pingFailValue,
 					latencyAvgMs: latencyAvgMs,
 					historyLength: pingHistory.length,
 				};
-				if (oldResult) isAlive ? (result.lastOnline = Date.now()) : (result.lastOffline = Date.now());
 
-				// If the server just came back online, only emit if lastOffline was >5min ago
+				// If the server just came back online, only emit if lastOffline was > OFFLINE_THRESHOLD_MS
 				if (isAlive && oldResult && !oldResult.isAlive) {
 					const now = Date.now();
 					const lastOffline = oldResult.lastOffline ?? 0;
-					if (now - lastOffline > 5 * 60 * 1000) {
-						client.emit('networkRestored', result);
+					const difference = now - lastOffline;
+
+					if (difference > OFFLINE_THRESHOLD_MS) {
+						client.emit('networkOnline', result);
 						logger.info('networkCheck', `Network connectivity restored to ${hostToPing}.`);
+					}
+				}
+
+				// If the server just went offline, only emit if lastOnline was > ONLINE_THRESHOLD_MS
+				if (!isAlive && oldResult && oldResult.isAlive) {
+					const now = Date.now();
+					const lastOnline = oldResult.lastOnline ?? 0;
+					const difference = now - lastOnline;
+
+					if (difference > ONLINE_THRESHOLD_MS) {
+						client.emit('networkOffline', result);
+						logger.warn('networkCheck', `Network connectivity lost to ${hostToPing}.`);
 					}
 				}
 

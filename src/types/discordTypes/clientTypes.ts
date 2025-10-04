@@ -10,5 +10,6 @@ declare module 'discord.js' {
 		events: Collection<string, any>;
 		redis?: RedisClientType | null;
 		color: ColorResolvable;
+		pingIP: string;
 	}
 }
