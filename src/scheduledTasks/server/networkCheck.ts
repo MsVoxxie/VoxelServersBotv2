@@ -23,7 +23,7 @@ const networkCheck: ScheduleTaskData = {
 				const oldResult = await getJson<NetworkTestResult>(redis, 'server:networkCheck');
 
 				// Ping host and measure latency
-				const { alive: isAlive, time: latencyMs } = await ping.promise.probe(client.pingIP, { timeout: 2, extra: ['-c', '1'] });
+				const { alive: isAlive, time: latencyMs } = await ping.promise.probe(hostToPing, { timeout: 2, extra: ['-c', '1'] });
 
 				// Format latency and update history
 				const latencyNum = isAlive && latencyMs !== 'unknown' ? Number(latencyMs.toFixed(1)) : pingFailValue;

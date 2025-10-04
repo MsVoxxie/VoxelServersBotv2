@@ -29,7 +29,6 @@ client.typingState = new Collection();
 client.cooldowns = new Collection();
 client.commands = new Collection();
 client.events = new Collection();
-client.pingIP = '1.1.1.1'
 
 // Load Events
 import eventLoader from './loaders/discord/eventLoader';
