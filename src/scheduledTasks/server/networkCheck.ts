@@ -11,8 +11,8 @@ const pingMaxHistory: number = 60;
 const pingHistory: number[] = [];
 
 const INTERVAL_MS = 5_000; // 5 seconds
-const OFFLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
-const ONLINE_THRESHOLD_MS = 30 * 1000; // 30 seconds
+const OFFLINE_THRESHOLD_MS = 5 * 60 * 1000; // Network must be offline for 5 minutes before emitting event
+const ONLINE_THRESHOLD_MS = 1 * 60 * 1000; // Network must be online for 1 minute before emitting event
 
 const networkCheck: ScheduleTaskData = {
 	name: 'Network Check',
