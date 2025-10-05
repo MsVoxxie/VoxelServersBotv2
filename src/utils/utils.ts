@@ -1,4 +1,4 @@
-import { ExtendedInstance } from '../types/ampTypes/ampTypes';
+import { Instance } from '@neuralnexus/ampapi';
 
 export async function wait(ms: number) {
 	return new Promise((res) => setTimeout(res, ms));
@@ -34,7 +34,7 @@ export function getModpack(str: string): { modpackName: string; modpackUrl: stri
 	return { modpackName, modpackUrl, isModpack };
 }
 
-export function getPort(instance: ExtendedInstance) {
+export function getPort(instance: Instance) {
 	const deploymentArgs = instance.DeploymentArgs;
 	if (!deploymentArgs) return null;
 

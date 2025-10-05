@@ -1,9 +1,9 @@
-import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
-import { TTL } from '../../utils/redisHelpers';
-import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
-import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
 import { setInstanceConfig } from '../../utils/ampAPI/configFuncs';
+import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
+import { TTL } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
 
 const offsetSchedules: CommandData = {
@@ -31,7 +31,7 @@ const offsetSchedules: CommandData = {
 	async execute(client, interaction) {
 		try {
 			interaction.deferReply();
-			const instances = (await getAllInstances({ fetch: 'running' })) as ExtendedInstance[];
+			const instances = (await getAllInstances({ fetch: 'running' })) as SanitizedInstance[];
 			if (!instances) return interaction.reply({ content: 'Instances not found or invalid data.', flags: MessageFlags.Ephemeral });
 
 			const value = interaction.options.getNumber('value', true);
@@ -40,7 +40,7 @@ const offsetSchedules: CommandData = {
 
 			for (const [idx, instance] of instances.entries()) {
 				const offsetForInstance = secondsToOffset * idx;
-				const module = instance.ModuleDisplayName || instance.Module;
+				const module = instance.Module;
 				logger.info('OffsetSchedules', `Offsetting instance ${instance.FriendlyName} by ${offsetForInstance} seconds`);
 				await setInstanceConfig(instance.InstanceID, module, { key: 'Core.AMP.ScheduleOffsetSeconds', value: `${offsetForInstance}` });
 			}

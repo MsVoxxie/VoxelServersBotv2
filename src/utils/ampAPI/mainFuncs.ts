@@ -1,9 +1,10 @@
-import { ExtendedInstance, AppStateMap, InstanceSearchFilter, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
+import { AppStateMap, InstanceSearchFilter, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getImageSource } from './getSourceImage';
 const instanceApiCache = new Map<string, any>();
 import logger from '../logger';
-import { getModpack, wait } from '../utils';
+import { getModpack, getPort, wait } from '../utils';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 let globalAPI: ADS;
 
 export async function apiLogin(): Promise<ADS> {
@@ -64,11 +65,11 @@ export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: s
 	return await doLogin();
 }
 
-export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter } = {}): Promise<ExtendedInstance[]> {
+export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter } = {}): Promise<SanitizedInstance[]> {
 	try {
 		const API = await apiLogin();
 		const targets: IADSInstance[] = await API.ADSModule.GetInstances();
-		let allInstances: ExtendedInstance[] = await Promise.all(
+		let allInstances: SanitizedInstance[] = await Promise.all(
 			targets
 				.flatMap((target) => target.AvailableInstances)
 				.filter((instance) => instance.FriendlyName !== 'ADS')
@@ -80,6 +81,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 					// Get server icon
 					const serverIcon = await getImageSource(instance.DisplayImageSource);
 
+					// Metrics with player list if applicable
 					const metrics: any = { ...(instance.Metrics || {}) };
 					if (metrics['Active Users']) {
 						metrics['Active Users'] = {
@@ -94,6 +96,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 						metrics['Active Users'].PlayerList = PlayerList;
 					}
 
+					// Appstate mapping
 					let appState: string;
 					if (typeof instance.AppState === 'number') {
 						appState = AppStateMap[instance.AppState as keyof typeof AppStateMap] || 'Offline';
@@ -101,13 +104,24 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 						appState = instance.AppState;
 					}
 
-					const mappedInstance: ExtendedInstance = {
-						...instance,
+					// Get connection info
+					const port = getPort(instance);
+
+					const mappedInstance: SanitizedInstance = {
+						InstanceID: instance.InstanceID,
+						TargetID: instance.TargetID,
+						InstanceName: instance.InstanceName,
+						FriendlyName: instance.FriendlyName,
 						WelcomeMessage: WelcomeMessage,
-						AppState: appState,
-						ServerIcon: serverIcon,
+						Description: instance.Description || '',
 						ServerModpack: modpackInfo.isModpack ? { Name: modpackInfo.modpackName, URL: modpackInfo.modpackUrl } : undefined,
+						ServerIcon: serverIcon,
+						Module: instance.ModuleDisplayName || instance.Module,
+						Running: instance.Running,
+						AppState: appState,
+						Suspended: instance.Suspended,
 						Metrics: metrics,
+						ConnectionInfo: { Port: port },
 					};
 					return mappedInstance;
 				})
@@ -165,8 +179,8 @@ export async function getOnlinePlayers(instance: Instance): Promise<{ UserID: st
 	}
 }
 
-export async function getServerPlayerInfo(instance: ExtendedInstance): Promise<{ currentPlayers: { UserID: string; Username: string }[]; maxPlayers: number }> {
-	const moduleName = instance.ModuleDisplayName || instance.Module;
+export async function getServerPlayerInfo(instance: SanitizedInstance): Promise<{ currentPlayers: { UserID: string; Username: string }[]; maxPlayers: number }> {
+	const moduleName = instance.Module;
 	const API = await instanceLogin(instance.InstanceID, moduleName as keyof ModuleTypeMap);
 	if (!API) return { currentPlayers: [], maxPlayers: 0 };
 	const searchNodes = moduleName === 'Minecraft' ? 'MinecraftModule.Limits.MaxPlayers' : 'Meta.GenericModule.$MaxUsers';

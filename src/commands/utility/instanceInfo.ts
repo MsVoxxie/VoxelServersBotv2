@@ -1,10 +1,9 @@
 import { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType, inlineCode } from 'discord.js';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
-import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 import logger from '../../utils/logger';
-import { getPort } from '../../utils/utils';
 
 const instanceInfo: CommandData = {
 	data: new SlashCommandBuilder()
@@ -23,7 +22,7 @@ const instanceInfo: CommandData = {
 			const instanceId = interaction.options.getString('instance');
 			const instanceData = await getJson(redis, `instance:${instanceId}`);
 			if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
-			const instance = instanceData as ExtendedInstance;
+			const instance = instanceData as SanitizedInstance;
 
 			// Build embed
 			const { calculatedRawMB, calculatedMaxMB } = {
@@ -33,7 +32,7 @@ const instanceInfo: CommandData = {
 			const description = [
 				`**State:** ${instance.AppState}`,
 				`**Modpack:** ${instance.ServerModpack ? `[${instance.ServerModpack.Name}](${instance.ServerModpack.URL})` : 'N/A'}`,
-				`**IP / Port:** ${inlineCode(`${process.env.SERVER_IP}:${getPort(instance)}`)}`,
+				`**IP / Port:** ${inlineCode(`${process.env.SERVER_IP}:${instance.ConnectionInfo.Port}`)}`,
 				'',
 				`**Server Metrics:**`,
 				`CPU Usage: ${instance.Metrics['CPU Usage'].Percent}%`,

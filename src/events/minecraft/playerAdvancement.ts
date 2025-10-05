@@ -1,8 +1,8 @@
 import { part, tellRawBuilder } from '../../utils/gameSpecific/minecraftTellraw';
 import { AdvancementEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { sendServerConsoleCommand } from '../../utils/ampAPI/mainFuncs';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
-import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import { Client } from 'discord.js';
@@ -11,7 +11,7 @@ const playerAdvancement: EventData = {
 	name: 'playerAdvancement',
 	runType: 'always',
 	async execute(client: Client, event: AdvancementEvent) {
-		const instanceData = (await getJson(redis, `instance:${event.InstanceId}`)) as ExtendedInstance | null;
+		const instanceData = (await getJson(redis, `instance:${event.InstanceId}`)) as SanitizedInstance | null;
 		if (!instanceData) return;
 		if (instanceData.Module !== 'Minecraft') return;
 

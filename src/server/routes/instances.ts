@@ -1,4 +1,5 @@
-import { InstanceSearchFilter, ExtendedInstance } from '../../types/ampTypes/ampTypes';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
+import { InstanceSearchFilter } from '../../types/ampTypes/ampTypes';
 import express from 'express';
 import { getJson } from '../../utils/redisHelpers';
 import redis from '../../loaders/database/redisLoader';
@@ -20,7 +21,7 @@ export const routeDescriptions = [
 // Get all instances
 router.get('/data/instances', async (req, res) => {
 	if (!redis.isOpen) return res.status(503).json({ error: 'An error occurred while fetching data.' });
-	const instances = (await getJson(redis, 'instances:all')) as ExtendedInstance[];
+	const instances = (await getJson(redis, 'instances:all')) as SanitizedInstance[];
 	const stateFilter = req.query.filter as InstanceSearchFilter;
 	let filteredInstances = instances.flat() || [];
 	filteredInstances = sortInstances(filteredInstances, stateFilter);

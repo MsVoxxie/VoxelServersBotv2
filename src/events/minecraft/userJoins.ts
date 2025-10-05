@@ -1,9 +1,9 @@
 import { getServerPlayerInfo, sendServerConsoleCommand } from '../../utils/ampAPI/mainFuncs';
 import { calculateSleepingPercentage } from '../../utils/gameSpecific/minecraft';
 import { part, tellRawBuilder } from '../../utils/gameSpecific/minecraftTellraw';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
-import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 import { getJson, setJson, TTL } from '../../utils/redisHelpers';
 import { toDiscord } from '../../utils/discord/webhooks';
 import redis from '../../loaders/database/redisLoader';
@@ -16,7 +16,7 @@ const userJoins_MCSleep: EventData = {
 	async execute(client: Client, event: PlayerEvent) {
 		// Sleep Percentage Calculation
 		const [instanceData, prevPercentage] = (await Promise.all([getJson(redis, `instance:${event.InstanceId}`), getJson(redis, `instance:minecraft:${event.InstanceId}`)])) as [
-			ExtendedInstance | null,
+			SanitizedInstance | null,
 			{ sleepPercentage: number; requiredToSleep: number } | null
 		];
 

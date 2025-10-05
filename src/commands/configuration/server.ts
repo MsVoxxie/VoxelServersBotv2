@@ -1,7 +1,8 @@
 import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, ApplicationIntegrationType, InteractionContextType, codeBlock } from 'discord.js';
-import { AppState, ExtendedInstance, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
-import { CommandData } from '../../types/discordTypes/commandTypes';
 import { instanceLogin, sendServerConsoleCommand } from '../../utils/ampAPI/mainFuncs';
+import { AppState, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
+import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import { trimString } from '../../utils/utils';
@@ -55,7 +56,7 @@ const manageServers: CommandData = {
 			const instanceId = interaction.options.getString('server');
 			const instanceData = await getJson(redis, `instance:${instanceId}`);
 			if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
-			const instance = instanceData as ExtendedInstance;
+			const instance = instanceData as SanitizedInstance;
 			const moduleName = (instance.Module || 'GenericModule') as keyof ModuleTypeMap;
 			const instanceAPI = await instanceLogin(instance.InstanceID, moduleName);
 			if (!instanceAPI) return interaction.editReply({ content: 'Failed to login to instance API.', flags: MessageFlags.Ephemeral });

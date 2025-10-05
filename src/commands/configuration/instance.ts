@@ -1,5 +1,5 @@
 import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
-import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { apiLogin } from '../../utils/ampAPI/mainFuncs';
 import redis from '../../loaders/database/redisLoader';
@@ -48,7 +48,7 @@ const manageInstances: CommandData = {
 			const subcommand = interaction.options.getSubcommand();
 			const instanceData = await getJson(redis, `instance:${instanceId}`);
 			if (!instanceData) return interaction.editReply({ content: 'Instance data not found.', flags: MessageFlags.Ephemeral });
-			const instance = instanceData as ExtendedInstance;
+			const instance = instanceData as SanitizedInstance;
 			if (!instance) return interaction.editReply({ content: 'Instance data not found.', flags: MessageFlags.Ephemeral });
 
 			// Switch case for subcommands

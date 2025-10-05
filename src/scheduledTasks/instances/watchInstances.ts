@@ -1,6 +1,6 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { getJson, setJson, TTL } from '../../utils/redisHelpers';
-import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
 import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
 import logger from '../../utils/logger';
 
@@ -10,15 +10,15 @@ const watchInstances: ScheduleTaskData = {
 	run({ client, redisClient }) {
 		const checkUpdates = async () => {
 			try {
-				const rawPrev = (await getJson<ExtendedInstance | ExtendedInstance[] | null>(redisClient, 'instances:cached')) ?? null;
-				const prev: ExtendedInstance[] = rawPrev ? (Array.isArray(rawPrev) ? rawPrev : [rawPrev]) : [];
+				const rawPrev = (await getJson<SanitizedInstance | SanitizedInstance[] | null>(redisClient, 'instances:cached')) ?? null;
+				const prev: SanitizedInstance[] = rawPrev ? (Array.isArray(rawPrev) ? rawPrev : [rawPrev]) : [];
 				// fetch current set
-				const current = (await getAllInstances({ fetch: 'all' })) as ExtendedInstance[];
+				const current = (await getAllInstances({ fetch: 'all' })) as SanitizedInstance[];
 				if (!current || current.length === 0) return logger.warn('watchInstances', 'Failed to fetch instances, skipping update check.');
 
 				// build maps by InstanceID
-				const prevMap = new Map(prev.map((i: ExtendedInstance) => [i.InstanceID, i]));
-				const currMap = new Map(current.map((i: ExtendedInstance) => [i.InstanceID, i]));
+				const prevMap = new Map(prev.map((i: SanitizedInstance) => [i.InstanceID, i]));
+				const currMap = new Map(current.map((i: SanitizedInstance) => [i.InstanceID, i]));
 
 				// created
 				for (const [id, inst] of currMap) {

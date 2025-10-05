@@ -1,12 +1,13 @@
 import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
-import { CommandData } from '../../types/discordTypes/commandTypes';
-import redis from '../../loaders/database/redisLoader';
-import { getJson } from '../../utils/redisHelpers';
-import { ExtendedInstance, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
-import { instanceLogin } from '../../utils/ampAPI/mainFuncs';
-import { chatlinkJobs } from '../../utils/schedulerJobs/chatlinkJobs';
 import { applySchedulerJobs, removeSchedulerJobs } from '../../utils/ampAPI/taskFuncs';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
+import { chatlinkJobs } from '../../utils/schedulerJobs/chatlinkJobs';
+import { CommandData } from '../../types/discordTypes/commandTypes';
+import { ModuleTypeMap } from '../../types/ampTypes/ampTypes';
+import { instanceLogin } from '../../utils/ampAPI/mainFuncs';
+import redis from '../../loaders/database/redisLoader';
 import { chatlinkModel } from '../../models/chatlink';
+import { getJson } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
 
 const chatlinkSetup: CommandData = {
@@ -27,7 +28,7 @@ const chatlinkSetup: CommandData = {
 			const instanceId = interaction.options.getString('instance');
 			const instanceData = await getJson(redis, `instance:${instanceId}`);
 			if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
-			const instance = instanceData as ExtendedInstance;
+			const instance = instanceData as SanitizedInstance;
 			const moduleName = (instance.Module || 'GenericModule') as keyof ModuleTypeMap;
 			const instanceAPI = await instanceLogin(instance.InstanceID, moduleName);
 			if (!instanceAPI) return interaction.editReply({ content: 'Failed to login to instance API.', flags: MessageFlags.Ephemeral });

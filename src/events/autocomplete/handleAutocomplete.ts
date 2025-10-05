@@ -1,6 +1,7 @@
-import { BaseInteraction, Client, Events, MessageFlags } from 'discord.js';
+import { BaseInteraction, Client, Events } from 'discord.js';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import type { EventData } from '../../types/discordTypes/commandTypes';
-import { ExtendedInstance, AppStateEmoji } from '../../types/ampTypes/ampTypes';
+import { AppStateEmoji } from '../../types/ampTypes/ampTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
@@ -17,29 +18,31 @@ const handleInteraction: EventData = {
 
 			// Grab the instances from redis
 			const cacheFetch = (await getJson(redis, 'instances:all')) ?? [];
-			const instances = Array.isArray(cacheFetch) && cacheFetch.length === 1 ? cacheFetch[0] : (cacheFetch as ExtendedInstance[]);
-			const filteredInstances = instances.filter((i: ExtendedInstance) => i.InstanceName.toLowerCase().includes(getFocusedOption.toLowerCase()));
+			const instances = Array.isArray(cacheFetch) && cacheFetch.length === 1 ? cacheFetch[0] : (cacheFetch as SanitizedInstance[]);
+			const filteredInstances = instances.filter((i: SanitizedInstance) => i.InstanceName.toLowerCase().includes(getFocusedOption.toLowerCase()));
 
-			function formattedName(instance: ExtendedInstance): string {
+			function formattedName(instance: SanitizedInstance): string {
 				const emoji = AppStateEmoji[instance.AppState] || '⚪';
-				return `${emoji} ${instance.AppState} ⟩ ${instance.FriendlyName} (${instance.ModuleDisplayName || instance.Module})`;
+				return `${emoji} ${instance.AppState} ⟩ ${instance.FriendlyName} (${instance.Module})`;
 			}
 
 			switch (command.autoCompleteInstanceType) {
 				case 'all':
-					await interaction.respond(filteredInstances.map((i: ExtendedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
+					await interaction.respond(filteredInstances.map((i: SanitizedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
 					break;
 				case 'running':
-					const runningInstances = filteredInstances.filter((i: ExtendedInstance) => i.Running === true);
-					await interaction.respond(runningInstances.map((i: ExtendedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
+					const runningInstances = filteredInstances.filter((i: SanitizedInstance) => i.Running === true);
+					await interaction.respond(runningInstances.map((i: SanitizedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
 					break;
 				case 'running_and_not_hidden':
-					const runningAndNotHiddenInstances = filteredInstances.filter((i: ExtendedInstance) => i.Running === true && i.WelcomeMessage !== 'hidden');
-					await interaction.respond(runningAndNotHiddenInstances.map((i: ExtendedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
+					const runningAndNotHiddenInstances = filteredInstances.filter((i: SanitizedInstance) => i.Running === true && i.WelcomeMessage !== 'hidden');
+					await interaction
+						.respond(runningAndNotHiddenInstances.map((i: SanitizedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25))
+						.catch(() => {});
 					break;
 				case 'not_hidden':
-					const notHiddenInstances = filteredInstances.filter((i: ExtendedInstance) => i.WelcomeMessage !== 'hidden');
-					await interaction.respond(notHiddenInstances.map((i: ExtendedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
+					const notHiddenInstances = filteredInstances.filter((i: SanitizedInstance) => i.WelcomeMessage !== 'hidden');
+					await interaction.respond(notHiddenInstances.map((i: SanitizedInstance) => ({ name: formattedName(i), value: i.InstanceID })).slice(0, 25)).catch(() => {});
 					break;
 				default:
 					await interaction.respond([{ name: 'No instances found', value: '' }]);

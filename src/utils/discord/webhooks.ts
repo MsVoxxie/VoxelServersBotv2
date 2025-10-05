@@ -1,17 +1,17 @@
+import { part, tellRawBuilder } from '../gameSpecific/minecraftTellraw';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { ChatlinkBase } from '../../types/apiTypes/chatlinkAPITypes';
-import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
+import { sendServerConsoleCommand } from '../ampAPI/mainFuncs';
 import redis from '../../loaders/database/redisLoader';
 import { chatlinkModel } from '../../models/chatlink';
 import { Message, WebhookClient } from 'discord.js';
 import { getJson } from '../redisHelpers';
-import { sendServerConsoleCommand } from '../ampAPI/mainFuncs';
 import logger from '../logger';
-import { part, tellRawBuilder } from '../gameSpecific/minecraftTellraw';
 
 export async function toDiscord(data: ChatlinkBase) {
 	try {
 		const [instanceData, chatlinkData] = await Promise.all([
-			getJson<ExtendedInstance>(redis, `instance:${data.InstanceId}`),
+			getJson<SanitizedInstance>(redis, `instance:${data.InstanceId}`),
 			chatlinkModel.findOne({ instanceId: data.InstanceId }),
 		]);
 
@@ -52,7 +52,7 @@ export async function toDiscord(data: ChatlinkBase) {
 
 export async function toServer(InstanceId: string, message: Message) {
 	try {
-		const [instanceData, chatlinkData] = await Promise.all([getJson<ExtendedInstance>(redis, `instance:${InstanceId}`), chatlinkModel.findOne({ instanceId: InstanceId })]);
+		const [instanceData, chatlinkData] = await Promise.all([getJson<SanitizedInstance>(redis, `instance:${InstanceId}`), chatlinkModel.findOne({ instanceId: InstanceId })]);
 		if (!instanceData || !chatlinkData) return logger.warn('Discord Webhook', `Failed to retrieve necessary data for instance ID ${InstanceId}`);
 		const instanceModule = instanceData.Module;
 

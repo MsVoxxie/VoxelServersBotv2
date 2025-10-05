@@ -1,4 +1,4 @@
-import { ExtendedInstance } from '../../types/ampTypes/ampTypes';
+import { SanitizedInstance } from './../../types/ampTypes/instanceTypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { Client, EmbedBuilder } from 'discord.js';
 import logger from '../../utils/logger';
@@ -6,7 +6,7 @@ import logger from '../../utils/logger';
 const instanceDeleted: EventData = {
 	name: 'instanceDeleted',
 	runType: 'always',
-	async execute(client: Client, instance: ExtendedInstance) {
+	async execute(client: Client, instance: SanitizedInstance) {
 		try {
 			if (instance.WelcomeMessage === 'hidden') return;
 			const [guildID, updatesChannelId] = [process.env.GUILD_ID, process.env.UPDATES_CH];
@@ -15,11 +15,7 @@ const instanceDeleted: EventData = {
 			const channel = await guild.channels.fetch(updatesChannelId);
 			if (!channel || !channel.isTextBased()) return;
 
-			const descriptionData = [
-				`**Name**: ${instance.FriendlyName}`,
-				`${instance.ModuleDisplayName ? `**Desc**: ${instance.ModuleDisplayName}` : ''}`,
-				`**Module**: ${instance.ModuleDisplayName || instance.Module}`,
-			];
+			const descriptionData = [`**Name**: ${instance.FriendlyName}`, `**Module**: ${instance.Module}`];
 
 			const embed = new EmbedBuilder()
 				.setTitle('Instance Deleted')
