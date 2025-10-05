@@ -22,6 +22,7 @@ const userLeaves_MCSleep: EventData = {
 
 		if (!instanceData) return;
 		if (instanceData.Module !== 'Minecraft') return;
+		await wait(2000); // 2 seconds
 
 		const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
 		const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
