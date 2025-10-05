@@ -10,13 +10,19 @@ export function trimString(str: string, max: number): string {
 
 export function msToHuman(ms: number) {
 	const parts = [];
-	const seconds = Math.floor((ms / 1000) % 60);
-	const minutes = Math.floor((ms / (1000 * 60)) % 60);
-	const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
-	const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-	const weeks = Math.floor(ms / (1000 * 60 * 60 * 24 * 7));
-	const months = Math.floor(ms / (1000 * 60 * 60 * 24 * 30));
-	const years = Math.floor(ms / (1000 * 60 * 60 * 24 * 365));
+	let seconds = Math.floor(ms / 1000);
+	let minutes = Math.floor(seconds / 60);
+	seconds = seconds % 60;
+	let hours = Math.floor(minutes / 60);
+	minutes = minutes % 60;
+	let days = Math.floor(hours / 24);
+	hours = hours % 24;
+	let weeks = Math.floor(days / 7);
+	days = days % 7;
+	let months = Math.floor(weeks / 4.34812); // average weeks per month
+	weeks = Math.floor(weeks % 4.34812);
+	let years = Math.floor(months / 12);
+	months = months % 12;
 
 	if (years > 0) parts.push(`${years}y`);
 	if (months > 0) parts.push(`${months}mo`);
