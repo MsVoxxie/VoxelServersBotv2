@@ -116,7 +116,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 						Description: instance.Description || '',
 						ServerModpack: modpackInfo.isModpack ? { Name: modpackInfo.modpackName, URL: modpackInfo.modpackUrl } : undefined,
 						ServerIcon: serverIcon,
-						Module: instance.ModuleDisplayName || instance.Module,
+						Module: instance.Module || instance.ModuleDisplayName,
 						Running: instance.Running,
 						AppState: appState,
 						Suspended: instance.Suspended,
