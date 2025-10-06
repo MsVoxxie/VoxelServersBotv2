@@ -8,8 +8,8 @@ const convertToHuman: CommandData = {
 		.setName('ms_to_human')
 		.setDescription('Convert milliseconds to a human-readable format.')
 		.addNumberOption((option) => option.setName('milliseconds').setDescription('The number of milliseconds to convert').setMinValue(0).setRequired(true))
-		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
-		.setContexts([InteractionContextType.Guild])
+		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall])
+		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 	state: 'enabled',
 	devOnly: false,
