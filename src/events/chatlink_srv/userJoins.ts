@@ -27,7 +27,8 @@ const userJoins: EventData = {
 
 			// Record join time
 			if (event.Username !== 'SERVER') {
-				const userData: playerSchema = { Username: event.Username, userId: event.UserId || '', lastJoin: Date.now(), lastSeen: Date.now() };
+				const firstSeen = oldData?.firstSeen || Date.now();
+				const userData: playerSchema = { Username: event.Username, userId: event.UserId || '', lastJoin: Date.now(), lastSeen: Date.now(), firstSeen };
 				setJson(redis, `playerdata:${event.InstanceId}:${event.Username}`, userData, '$', TTL(30, 'Days'));
 			}
 		} catch (error) {

@@ -27,7 +27,7 @@ const userLeaves: EventData = {
 			// Record last seen and playtime
 			if (event.Username === 'SERVER') return;
 			const totalPlaytime = (oldData?.totalPlaytimeMs || 0) + (Date.now() - oldData.lastJoin || 0);
-			const userData: playerSchema = { Username: event.Username, userId: oldData?.userId || '', lastJoin: oldData.lastJoin, lastSeen: Date.now(), totalPlaytimeMs: totalPlaytime };
+			const userData: playerSchema = { Username: event.Username, userId: oldData?.userId || '', lastJoin: oldData.lastJoin, lastSeen: Date.now(), firstSeen: oldData?.firstSeen || Date.now(), totalPlaytimeMs: totalPlaytime };
 			setJson(redis, `playerdata:${event.InstanceId}:${event.Username}`, userData, '$', TTL(30, 'Days'));
 		} catch (error) {
 			logger.error('UserLeaves', `Error processing user leaves event: ${error}`);

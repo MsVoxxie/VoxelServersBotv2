@@ -3,5 +3,6 @@ export interface playerSchema {
 	userId: string | '';
 	lastJoin: number;
 	lastSeen: number;
+	firstSeen: number;
 	totalPlaytimeMs?: number;
 }
