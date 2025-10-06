@@ -4,4 +4,4 @@ dist
 EventList.json
 src/server/public/playerAvatars/Minecraft
 src/server/public/playerAvatars/Steam
-src/commands/development
+src/commands/development/testbench.ts
