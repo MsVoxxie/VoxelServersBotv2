@@ -28,8 +28,24 @@ const userJoins: EventData = {
 
 			// Record join time
 			if (event.Username !== 'SERVER') {
-				const firstSeen = oldData?.firstSeen || Date.now();
-				const userData: playerSchema = { Username: event.Username, userId: event.UserId || '', lastJoin: Date.now(), lastSeen: Date.now(), firstSeen };
+				const now = Date.now();
+				let totalPlaytimeMs = oldData?.totalPlaytimeMs || 0;
+				const firstSeen = oldData?.firstSeen || now;
+
+				// If lastJoin exists and lastSeen < lastJoin, add missed session
+				if (oldData?.lastJoin && oldData?.lastSeen && oldData.lastSeen < oldData.lastJoin) {
+					const missedSession = now - oldData.lastJoin;
+					totalPlaytimeMs += missedSession;
+				}
+
+				const userData: playerSchema = {
+					Username: event.Username,
+					userId: event.UserId || '',
+					lastJoin: now,
+					lastSeen: now,
+					firstSeen,
+					totalPlaytimeMs,
+				};
 				setJson(redis, `playerdata:${event.InstanceId}:${event.Username}`, userData, '$', TTL(30, 'Days'));
 			}
 		} catch (error) {
