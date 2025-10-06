@@ -30,7 +30,7 @@ const userJoins_MCSleep: EventData = {
 		event.Message = `-# There ${currentPlayers.length === 1 ? 'is' : 'are'} now ${currentPlayers.length} player${currentPlayers.length === 1 ? '' : 's'} online.`;
 
 		// only announce if the sleep percentage has changed since last time
-		if (prevPercentage?.sleepPercentage !== sleepPercentage) {
+		if (prevPercentage?.requiredToSleep !== requiredToSleep) {
 			const serverMsg = tellRawBuilder([
 				part('[S]', 'gold', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 				part('Updating sleep percentage,', 'white'),
