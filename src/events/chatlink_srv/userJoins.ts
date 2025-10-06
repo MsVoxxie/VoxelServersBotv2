@@ -16,7 +16,8 @@ const userJoins: EventData = {
 		try {
 			const oldData = (await getJson(redis, `playerdata:${event.InstanceId}:${event.Username}`)) as playerSchema;
 
-			if (oldData) {
+			if (!oldData) event.Message += `\n-# This is their first time joining.`;
+			else {
 				const convertedLast = new Date(oldData.lastSeen);
 				const lastSeen = toDiscordTimestamp(convertedLast, 'R');
 				if (lastSeen.length) event.Message += `\n-# Last seen: ${lastSeen}`;
