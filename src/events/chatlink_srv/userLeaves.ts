@@ -19,6 +19,10 @@ const userLeaves: EventData = {
 				const duration = Date.now() - oldData.lastJoin;
 				const timePlayed = msToHuman(duration);
 				if (timePlayed.length) event.Message += `\n-# Played for: ${timePlayed.join(' ')}`;
+				if (oldData.totalPlaytimeMs) {
+					const totalTimePlayed = msToHuman(oldData.totalPlaytimeMs + duration);
+					if (totalTimePlayed.length) event.Message += `\n-# Total playtime: ${totalTimePlayed.join(' ')}`;
+				}
 			}
 
 			// Send to Discord
