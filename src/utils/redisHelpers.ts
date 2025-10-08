@@ -17,6 +17,16 @@ export async function getJson<T>(client: RedisClientType, key: string, path = '.
 	return parsed as T;
 }
 
+export async function getKeys<T>(client: RedisClientType, pattern: string, path = '.'): Promise<T[]> {
+	const keys = await client.keys(pattern);
+	const results: T[] = [];
+	for (const key of keys) {
+		const obj = await getJson<T>(client, key, path);
+		if (obj) results.push(obj);
+	}
+	return results;
+}
+
 export async function delJson(client: RedisClientType, key: string, path = '.') {
 	await client.sendCommand(['JSON.DEL', key, path]);
 }

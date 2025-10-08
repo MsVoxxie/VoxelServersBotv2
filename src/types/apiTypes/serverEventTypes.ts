@@ -1,4 +1,5 @@
 export interface playerSchema {
+	isPlaying: boolean;
 	Username: string;
 	userId: string | '';
 	lastJoin: number;

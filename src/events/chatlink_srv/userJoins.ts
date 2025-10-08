@@ -39,6 +39,7 @@ const userJoins: EventData = {
 				}
 
 				const userData: playerSchema = {
+					isPlaying: true,
 					Username: event.Username,
 					userId: event.UserId || '',
 					lastJoin: now,

@@ -32,6 +32,7 @@ const userLeaves: EventData = {
 			if (event.Username === 'SERVER') return;
 			const totalPlaytime = (oldData?.totalPlaytimeMs || 0) + (Date.now() - oldData.lastJoin || 0);
 			const userData: playerSchema = {
+				isPlaying: false,
 				Username: event.Username,
 				userId: oldData?.userId || '',
 				lastJoin: oldData.lastJoin,
