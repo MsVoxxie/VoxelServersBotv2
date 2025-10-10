@@ -3,7 +3,7 @@ import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import type { EventData } from '../../types/discordTypes/commandTypes';
 import { AppStateEmoji } from '../../types/ampTypes/ampTypes';
 import redis from '../../loaders/database/redisLoader';
-import { getJson } from '../../utils/redisHelpers';
+import { getKeys } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
 
 const handleInteraction: EventData = {
@@ -17,8 +17,21 @@ const handleInteraction: EventData = {
 			const getFocusedOption = interaction.options.getFocused();
 
 			// Grab the instances from redis
-			const cacheFetch = (await getJson(redis, 'instances:all')) ?? [];
-			const instances = Array.isArray(cacheFetch) && cacheFetch.length === 1 ? cacheFetch[0] : (cacheFetch as SanitizedInstance[]);
+			const instances = (await getKeys(redis, 'instance:*')) as SanitizedInstance[] | [];
+			if (!instances || instances.length === 0) return interaction.respond([{ name: 'No instances found', value: '' }]).catch(() => {});
+
+			// Sort for user friendliness
+			instances.sort((a, b) => {
+				// Running Minecraft first
+				if (a.Running && a.Module === 'Minecraft' && (!b.Running || b.Module !== 'Minecraft')) return -1;
+				if (b.Running && b.Module === 'Minecraft' && (!a.Running || a.Module !== 'Minecraft')) return 1;
+
+				// Other running instances next
+				if (a.Running && !b.Running) return -1;
+				if (!a.Running && b.Running) return 1;
+
+				return a.FriendlyName.localeCompare(b.FriendlyName);
+			});
 			const filteredInstances = instances.filter((i: SanitizedInstance) => i.InstanceName.toLowerCase().includes(getFocusedOption.toLowerCase()));
 
 			function formattedName(instance: SanitizedInstance): string {

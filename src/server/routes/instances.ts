@@ -1,7 +1,7 @@
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { InstanceSearchFilter } from '../../types/ampTypes/ampTypes';
 import express from 'express';
-import { getJson } from '../../utils/redisHelpers';
+import { getJson, getKeys } from '../../utils/redisHelpers';
 import redis from '../../loaders/database/redisLoader';
 const router = express.Router();
 
@@ -21,7 +21,7 @@ export const routeDescriptions = [
 // Get all instances
 router.get('/data/instances', async (req, res) => {
 	if (!redis.isOpen) return res.status(503).json({ error: 'An error occurred while fetching data.' });
-	const instances = (await getJson(redis, 'instances:all')) as SanitizedInstance[];
+	const instances = (await getKeys(redis, 'instance:*')) as SanitizedInstance[];
 	const stateFilter = req.query.filter as InstanceSearchFilter;
 	let filteredInstances = instances.flat() || [];
 	filteredInstances = sortInstances(filteredInstances, stateFilter);
@@ -39,6 +39,20 @@ router.get('/data/instances/:instanceId', async (req, res) => {
 });
 
 function sortInstances(instances: any[], filter: InstanceSearchFilter) {
+	// Initial sort
+	instances.sort((a, b) => {
+		// Running Minecraft first
+		if (a.Running && a.Module === 'Minecraft' && (!b.Running || b.Module !== 'Minecraft')) return -1;
+		if (b.Running && b.Module === 'Minecraft' && (!a.Running || a.Module !== 'Minecraft')) return 1;
+
+		// Other running instances next
+		if (a.Running && !b.Running) return -1;
+		if (!a.Running && b.Running) return 1;
+
+		return a.FriendlyName.localeCompare(b.FriendlyName);
+	});
+
+	// Apply filter
 	switch (filter) {
 		case 'running_and_not_hidden':
 			return instances.filter((instance) => instance.Running === true && instance.WelcomeMessage !== 'hidden');

@@ -10,7 +10,7 @@ const watchInstances: ScheduleTaskData = {
 	run({ client, redisClient }) {
 		const checkUpdates = async () => {
 			try {
-				const rawPrev = (await getJson<SanitizedInstance | SanitizedInstance[] | null>(redisClient, 'instances:cached')) ?? null;
+				const rawPrev = (await getJson<SanitizedInstance | SanitizedInstance[] | null>(redisClient, 'instanceSnapshot')) ?? null;
 				const prev: SanitizedInstance[] = rawPrev ? (Array.isArray(rawPrev) ? rawPrev : [rawPrev]) : [];
 				// fetch current set
 				const current = (await getAllInstances({ fetch: 'all' })) as SanitizedInstance[];
@@ -34,7 +34,7 @@ const watchInstances: ScheduleTaskData = {
 					}
 				}
 				// update the instance cache so next run compares against this snapshot
-				await setJson(redisClient, 'instances:cached', current, '$', TTL(7, 'Days'));
+				await setJson(redisClient, 'instanceSnapshot', current, '$', TTL(7, 'Days'));
 			} catch (error) {
 				logger.error('watchInstances', error instanceof Error ? error.message : String(error));
 			}

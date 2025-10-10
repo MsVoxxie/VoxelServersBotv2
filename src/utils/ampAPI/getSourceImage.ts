@@ -5,7 +5,7 @@ export async function getImageSource(DisplayImageSource: string): Promise<string
 	let source: string;
 	switch (type) {
 		case 'internal':
-			source = `${process.env.AMP_URI}/Plugins/ADSModule/Images/${game}.jpg`;
+			source = `${process.env.PUB_AMP_URI}/Plugins/ADSModule/Images/${game}.jpg`;
 			break;
 		case 'steam':
 			source = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game}/header.jpg`;
