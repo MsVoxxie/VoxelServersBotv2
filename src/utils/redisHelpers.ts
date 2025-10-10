@@ -8,6 +8,12 @@ export async function setJson<T>(client: RedisClientType, key: string, value: T,
 	}
 }
 
+export async function mergeJson<T extends object>(client: RedisClientType, key: string, partial: Partial<T>, path = '.', ttlSeconds?: number) {
+	const existing = await getJson<T>(client, key, path);
+	const merged = existing ? { ...existing, ...partial } : { ...partial };
+	await setJson(client, key, merged, path, ttlSeconds);
+}
+
 export async function getJson<T>(client: RedisClientType, key: string, path = '.'): Promise<T | null> {
 	const result = await client.sendCommand(['JSON.GET', key, path]);
 	if (!result) return null;

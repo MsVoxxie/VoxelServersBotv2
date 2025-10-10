@@ -29,6 +29,7 @@ export function markAllPlayersOffline(instanceId: string): Promise<void> {
 
 export function handlePlayerJoin(instanceId: string, event: PlayerEvent): Promise<string> {
 	return new Promise(async (resolve, reject) => {
+		if (!event.Username || event.Username.length === 0) return resolve('');
 		if (event.Username === 'SERVER') return resolve('');
 		try {
 			let messageModifier: string = '';
@@ -66,6 +67,7 @@ export function handlePlayerJoin(instanceId: string, event: PlayerEvent): Promis
 
 export function handlePlayerLeave(instanceId: string, event: PlayerEvent): Promise<string> {
 	return new Promise(async (resolve, reject) => {
+		if (!event.Username || event.Username.length === 0) return resolve('');
 		if (event.Username === 'SERVER') return resolve('');
 		try {
 			let messageModifier: string = '';

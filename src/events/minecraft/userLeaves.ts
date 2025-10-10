@@ -1,10 +1,10 @@
 import { getServerPlayerInfo, sendServerConsoleCommand } from '../../utils/ampAPI/mainFuncs';
+import { SanitizedInstance, SleepGamerule } from '../../types/ampTypes/instanceTypes';
 import { calculateSleepingPercentage } from '../../utils/gameSpecific/minecraft';
 import { part, tellRawBuilder } from '../../utils/gameSpecific/minecraftTellraw';
-import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
-import { getJson, setJson, TTL } from '../../utils/redisHelpers';
+import { getJson, setJson } from '../../utils/redisHelpers';
 import { toDiscord } from '../../utils/discord/webhooks';
 import redis from '../../loaders/database/redisLoader';
 import { wait } from '../../utils/utils';
@@ -19,22 +19,19 @@ async function processBatch(client: Client, instanceId: string) {
 	if (queue.length === 0) return;
 	const event = queue[queue.length - 1];
 
-	const [instanceData, prevPercentage] = (await Promise.all([getJson(redis, `instance:${instanceId}`), getJson(redis, `instance:minecraft:${instanceId}`)])) as [
-		SanitizedInstance | null,
-		{ sleepPercentage: number; requiredToSleep: number } | null
-	];
+	const instanceData = (await getJson(redis, `instance:${event.InstanceId}`)) as SanitizedInstance | null;
 
 	if (!instanceData || instanceData.Module !== 'Minecraft') return;
 
 	const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
 	const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
-	setJson(redis, `instance:minecraft:${instanceId}`, { sleepPercentage, requiredToSleep }, '$', TTL(1, 'Days'));
+	setJson(redis, `instance:${instanceId}`, { playersSleepingPercentage: { sleepPercentage, requiredToSleep } }, '.Gamerules');
 
 	let message = `-# There ${currentPlayers.length === 1 ? 'is' : 'are'} now ${currentPlayers.length} player${currentPlayers.length === 1 ? '' : 's'} online.`;
 	if (currentPlayers.length === 0) message += '\n-# The server is now empty.';
 
-	// Only announce if the sleep percentage has changed since last time
-	if (prevPercentage?.sleepPercentage !== sleepPercentage) {
+	const sleepRule = instanceData.Gamerules?.playersSleepingPercentage as SleepGamerule;
+	if (sleepRule?.requiredToSleep !== requiredToSleep) {
 		const serverMsg = tellRawBuilder([
 			part('[S]', 'gold', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 			part('Updating sleep percentage,', 'white'),

@@ -13,10 +13,16 @@ export interface SanitizedInstance {
 	Suspended: boolean;
 	Metrics: { [key: string]: Metric };
 	ConnectionInfo: ConnectionInfo;
+	Gamerules?: { [key: string]: SleepGamerule } | null;
 }
 
 export interface ConnectionInfo {
 	Port: number;
+}
+
+export interface SleepGamerule {
+	sleepPercentage: number;
+	requiredToSleep: number;
 }
 
 export interface Metric {
