@@ -43,11 +43,7 @@ export function handlePlayerJoin(instanceId: string, event: PlayerEvent): Promis
 			const now = Date.now();
 			let totalPlaytimeMs = oldData?.totalPlaytimeMs || 0;
 			const firstSeen = oldData?.firstSeen || now;
-			// If lastJoin exists and lastSeen < lastJoin, add missed session
-			if (oldData?.lastJoin && oldData?.lastSeen && oldData.lastSeen < oldData.lastJoin) {
-				const missedSession = now - oldData.lastJoin;
-				totalPlaytimeMs += missedSession;
-			}
+
 			const userData: playerSchema = {
 				isPlaying: true,
 				Username: event.Username,
