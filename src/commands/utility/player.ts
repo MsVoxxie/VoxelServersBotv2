@@ -1,7 +1,8 @@
-import { ApplicationIntegrationType, Client, EmbedBuilder, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, Client, EmbedBuilder, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, codeBlock } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { formatMCUUID } from '../../utils/utils';
 import UserData from '../../models/userData';
+import logger from '../../utils/logger';
 
 const playerInfo: CommandData = {
 	data: new SlashCommandBuilder()
@@ -26,19 +27,21 @@ const playerInfo: CommandData = {
 			switch (subcommand) {
 				case 'info':
 					const user = interaction.options.getUser('player');
-					if (!user) return interaction.editReply({ content: 'User not found.', flags: MessageFlags.Ephemeral });
+					const member = user ? await interaction.guild?.members.fetch(user.id) : null;
+
+					if (!member) return interaction.editReply({ content: 'User not found.', flags: MessageFlags.Ephemeral });
 					const userData = await UserData.findOne({ discordId: user?.id });
 					if (!userData) return interaction.editReply({ content: 'No data found for this user.', flags: MessageFlags.Ephemeral });
 
 					const embed = new EmbedBuilder()
-						.setTitle(`Player Info: ${user.displayName()}`)
+						.setTitle(`Player Info: ${member?.displayName}`)
 						.setThumbnail(user.displayAvatarURL())
 						.addFields(
-							{ name: 'Discord ID', value: user.id, inline: true },
+							{ name: 'Discord ID', value: codeBlock(user.id), inline: false },
 							{
 								name: 'Minecraft UUID',
-								value: userData.minecraftUuid ? formatMCUUID(userData.minecraftUuid) : 'N/A',
-								inline: true,
+								value: codeBlock(userData.minecraftUuid ? formatMCUUID(userData.minecraftUuid) : 'N/A'),
+								inline: false,
 							}
 						);
 
@@ -50,6 +53,7 @@ const playerInfo: CommandData = {
 					break;
 			}
 		} catch (error) {
+			logger.error('Playerinfo', `Error executing player info command: ${error}`);
 			interaction.editReply({ content: 'An error occurred while executing the command.', flags: MessageFlags.Ephemeral });
 		}
 	},
