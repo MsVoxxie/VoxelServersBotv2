@@ -11,7 +11,7 @@ export function markAllPlayersOffline(instanceId: string): Promise<void> {
 			const players: playerSchema[] | null = await getKeys(redis, `playerdata:${instanceId}:*`);
 			if (players) {
 				for (const player of players) {
-					if (!player.isPlaying) {
+					if (player.isPlaying) {
 						const totalPlaytime = (player.totalPlaytimeMs || 0) + (Date.now() - player.lastJoin || 0);
 						player.totalPlaytimeMs = totalPlaytime;
 						player.lastSeen = Date.now();
@@ -44,11 +44,14 @@ export function handlePlayerJoin(instanceId: string, event: PlayerEvent): Promis
 			let totalPlaytimeMs = oldData?.totalPlaytimeMs || 0;
 			const firstSeen = oldData?.firstSeen || now;
 
+			// Only update lastJoin if not already playing
+			const lastJoin = oldData?.isPlaying ? oldData.lastJoin : now;
+
 			const userData: playerSchema = {
 				isPlaying: true,
 				Username: event.Username,
 				userId: event.UserId || oldData?.userId || '',
-				lastJoin: now,
+				lastJoin,
 				lastSeen: now,
 				firstSeen,
 				totalPlaytimeMs,
@@ -79,12 +82,14 @@ export function handlePlayerLeave(instanceId: string, event: PlayerEvent): Promi
 				}
 			}
 
-			const now = Date.now();
-			const totalPlaytime = (oldData.totalPlaytimeMs || 0) + (now - oldData.lastJoin || 0);
-			oldData.totalPlaytimeMs = totalPlaytime;
-			oldData.lastSeen = now;
-			oldData.isPlaying = false;
-			await setJson(redis, `playerdata:${instanceId}:${event.Username}`, oldData, '$', TTL(30, 'Days'));
+			if (oldData && oldData.isPlaying) {
+				const now = Date.now();
+				const totalPlaytime = (oldData.totalPlaytimeMs || 0) + (now - oldData.lastJoin || 0);
+				oldData.totalPlaytimeMs = totalPlaytime;
+				oldData.lastSeen = now;
+				oldData.isPlaying = false;
+				await setJson(redis, `playerdata:${instanceId}:${event.Username}`, oldData, '$', TTL(30, 'Days'));
+			}
 			resolve(messageModifier);
 		} catch (error) {
 			reject(error);
