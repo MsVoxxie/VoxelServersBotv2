@@ -2,6 +2,7 @@ import { GenericModule, Minecraft } from '@neuralnexus/ampapi';
 import { MinecraftAvailableTasks, MinecraftAvailableTriggers, GenericModuleAvailableTasks, GenericModuleAvailableTriggers } from './ampScheduleOptions';
 
 export type InstanceSearchFilter = 'all' | 'running' | 'running_and_not_hidden' | 'not_hidden' | 'not_offline';
+export type IntervalLookupType = 'Restart' | 'Backup' | 'Both';
 
 export type ModuleTypeMap = {
 	GenericModule: GenericModule;
@@ -98,3 +99,26 @@ export interface IntervalTriggerOptions {
 }
 
 export type configType = Record<string, string>;
+
+export interface RawTimeIntervalData {
+	DaysOfMonth: number[];
+	Months: number[];
+	Days: number[];
+	Hours: number[];
+	Minutes: number[];
+	Type: string;
+	Id: string;
+}
+
+export interface TimeIntervalData {
+	nextRunMs: number;
+	nextRunDate: Date;
+}
+
+export interface IntervalTriggerResult {
+	type: 'Backup' | 'Restart';
+	data: {
+		nextrunMs: number;
+		nextRunDate: Date;
+	};
+}

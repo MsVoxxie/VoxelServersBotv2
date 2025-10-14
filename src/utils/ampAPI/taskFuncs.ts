@@ -1,5 +1,5 @@
 import { SchedulerJobs, ModuleTypeMap, TaskToAdd } from '../../types/ampTypes/ampTypes';
-import { instanceLogin } from './mainFuncs';
+import { instanceLogin } from './coreFuncs';
 import logger from '../logger';
 
 export async function loginAndGetSchedule(instanceID: string, moduleName: string) {

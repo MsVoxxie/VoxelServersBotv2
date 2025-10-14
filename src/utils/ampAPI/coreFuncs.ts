@@ -1,10 +1,11 @@
-import { AppStateMap, InstanceSearchFilter, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
+import { AppStateMap, InstanceSearchFilter, IntervalTriggerResult, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getImageSource } from './getSourceImage';
 const instanceApiCache = new Map<string, any>();
 import logger from '../logger';
 import { getModpack, getPort, wait } from '../utils';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
+import { getIntervalTrigger } from './intervalFuncs';
 let globalAPI: ADS;
 
 export async function apiLogin(): Promise<ADS> {
@@ -77,7 +78,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 					// Define the WelcomeMessage as a string to avoid type issues
 					const WelcomeMessage = (instance as any).WelcomeMessage ?? '';
 					const modpackInfo = getModpack(WelcomeMessage);
-
+					let nextScheduled: IntervalTriggerResult[] | null = null;
 					// Get server icon
 					const serverIcon = await getImageSource(instance.DisplayImageSource);
 
@@ -107,6 +108,15 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 					// Get connection info
 					const port = getPort(instance);
 
+					// Get next scheduled restart/backup if applicable
+					if (instance.Running) {
+						const rawNextScheduled = (await getIntervalTrigger(instance.InstanceID, instance.ModuleDisplayName || instance.Module, 'Both')) || [];
+						nextScheduled = rawNextScheduled.map((item: any) => ({
+							type: item.type,
+							data: { nextrunMs: item.data.nextrunMs ?? 0, nextRunDate: item.data.nextRunDate ?? new Date(0) },
+						}));
+					}
+
 					const mappedInstance: SanitizedInstance = {
 						InstanceID: instance.InstanceID,
 						TargetID: instance.TargetID,
@@ -120,6 +130,8 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 						Running: instance.Running,
 						AppState: appState,
 						Suspended: instance.Suspended,
+						NextRestart: nextScheduled?.find((s) => s.type === 'Restart')?.data || null,
+						NextBackup: nextScheduled?.find((s) => s.type === 'Backup')?.data || null,
 						Metrics: metrics,
 						ConnectionInfo: { Port: port },
 					};
@@ -152,7 +164,6 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 
 			return a.FriendlyName.localeCompare(b.FriendlyName);
 		});
-
 		return allInstances;
 	} catch (error) {
 		console.log(error);

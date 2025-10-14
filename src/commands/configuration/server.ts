@@ -1,5 +1,5 @@
 import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, ApplicationIntegrationType, InteractionContextType, codeBlock } from 'discord.js';
-import { instanceLogin, sendServerConsoleCommand } from '../../utils/ampAPI/mainFuncs';
+import { instanceLogin, sendServerConsoleCommand } from '../../utils/ampAPI/coreFuncs';
 import { AppState, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';

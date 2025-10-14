@@ -1,7 +1,7 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { getJson, setJson, TTL } from '../../utils/redisHelpers';
-import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
+import { getAllInstances } from '../../utils/ampAPI/coreFuncs';
 import logger from '../../utils/logger';
 
 const INTERVAL_MS = 300_000; // 5 minutes

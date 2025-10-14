@@ -1,5 +1,5 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
-import { getAllInstances } from '../../utils/ampAPI/mainFuncs';
+import { getAllInstances } from '../../utils/ampAPI/coreFuncs';
 import { mergeJson, setJson, TTL } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
 

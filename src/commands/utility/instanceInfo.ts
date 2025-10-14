@@ -4,6 +4,7 @@ import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
+import { toDiscordTimestamp } from '../../utils/discord/timestampGenerator';
 
 const instanceInfo: CommandData = {
 	data: new SlashCommandBuilder()
@@ -29,6 +30,11 @@ const instanceInfo: CommandData = {
 				calculatedRawMB: (instance.Metrics['Memory Usage'].RawValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
 				calculatedMaxMB: (instance.Metrics['Memory Usage'].MaxValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
 			};
+			
+			// Build Restart and Backup Info
+			const nextRestart = `${instance.NextRestart ? `${toDiscordTimestamp(new Date(instance.NextRestart.nextRunDate), 't')} (${toDiscordTimestamp(new Date(instance.NextRestart.nextRunDate), 'R')})` : 'N/A'}`;
+			const nextBackup = `${instance.NextBackup ? `${toDiscordTimestamp(new Date(instance.NextBackup.nextRunDate), 't')} (${toDiscordTimestamp(new Date(instance.NextBackup.nextRunDate), 'R')})` : 'N/A'}`;
+
 			const description = [
 				`**State:** ${instance.AppState}`,
 				`**Modpack:** ${instance.ServerModpack ? `[${instance.ServerModpack.Name}](${instance.ServerModpack.URL})` : 'N/A'}`,
@@ -38,6 +44,10 @@ const instanceInfo: CommandData = {
 				`CPU Usage: ${instance.Metrics['CPU Usage'].Percent}%`,
 				`Memory Usage: ${calculatedRawMB} / ${calculatedMaxMB} GB`,
 				`Player Count: ${instance.Metrics['Active Users'].RawValue.toLocaleString()} / ${instance.Metrics['Active Users'].MaxValue.toLocaleString()}`,
+				'',
+				`**Next Scheduled Tasks:**`,
+				`Next Restart: ${nextRestart}`,
+				`Next Backup: ${nextBackup}`,
 				'',
 				`**Player List:**`,
 				`${instance.Metrics['Active Users'].PlayerList?.length ? instance.Metrics['Active Users'].PlayerList.map((p) => `${p.Username}`).join(', ') : '• No active players'}`,

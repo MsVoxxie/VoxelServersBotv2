@@ -12,6 +12,9 @@ export interface SanitizedInstance {
 	AppState: string;
 	Suspended: boolean;
 	Metrics: { [key: string]: Metric };
+	Schedule?: { [key: string]: any } | null;
+	NextRestart: { nextrunMs: number; nextRunDate: Date } | null;
+	NextBackup: { nextrunMs: number; nextRunDate: Date } | null;
 	ConnectionInfo: ConnectionInfo;
 	Gamerules?: { [key: string]: SleepGamerule } | null;
 }

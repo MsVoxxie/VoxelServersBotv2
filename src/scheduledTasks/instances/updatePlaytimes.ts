@@ -1,6 +1,6 @@
-import { playerSchema } from './../../types/apiTypes/serverEventTypes';
-import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { PlayerList, SanitizedInstance } from '../../types/ampTypes/instanceTypes';
+import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
+import { playerSchema } from './../../types/apiTypes/serverEventTypes';
 import { getKeys, setJson, TTL } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
 
