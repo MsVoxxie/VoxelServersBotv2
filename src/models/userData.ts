@@ -6,6 +6,11 @@ const userDataSchema = new Schema({
 		required: true,
 		unique: true,
 	},
+	minecraftUsername: {
+		type: String,
+		required: false,
+		unique: true,
+	},
 	minecraftUuid: {
 		type: String,
 		required: false,

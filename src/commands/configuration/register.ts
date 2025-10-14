@@ -20,7 +20,7 @@ const registerUser: CommandData = {
 	data: new SlashCommandBuilder()
 		.setName('register')
 		.setDescription('Link your Minecraft account to your Discord account.')
-		.addStringOption((option) => option.setName('username').setDescription('Your Minecraft username').setRequired(true))
+		.addStringOption((option) => option.setName('username').setDescription('Your Minecraft username (Case Sensitive)').setRequired(true))
 		.addBooleanOption((option) => option.setName('chatlink').setDescription('Would you like to opt OUT of chat link? (TRUE/FALSE)').setRequired(false))
 		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
 		.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
@@ -59,7 +59,7 @@ const registerUser: CommandData = {
 					try {
 						await UserData.findOneAndUpdate(
 							{ discordId: interaction.user.id },
-							{ discordId: interaction.user.id, minecraftUuid: id, chatlinkOptOut: chatlinkOptOut },
+							{ discordId: interaction.user.id, minecraftUsername: name, minecraftUuid: id, chatlinkOptOut: chatlinkOptOut },
 							{ upsert: true, new: true }
 						);
 
