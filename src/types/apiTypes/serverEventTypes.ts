@@ -5,5 +5,5 @@ export interface playerSchema {
 	lastJoin: number;
 	lastSeen: number;
 	firstSeen?: number;
-	totalPlaytimeMs?: number;
+	totalPlaytimeMs: number | 0;
 }
