@@ -210,7 +210,7 @@ export const voteRestart = {
 				interaction.followUp({
 					embeds: [
 						new EmbedBuilder()
-							.setDescription(`**${bestMatch.FriendlyName}** ${res.Status ? 'has been told to restart.' : 'failed to restart.'}`)
+							.setDescription(`**${bestMatch.FriendlyName}** ${res.Status ? 'has been told to restart.' : 'failed to restart.\n-# Time to get <@101789503634554880>'}`)
 							.setColor(res.Status ? 'Green' : 'Red')
 							.setThumbnail(bestMatch.ServerIcon)
 							.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`),
