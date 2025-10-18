@@ -1,4 +1,4 @@
-import { handlePlayerJoin } from '../../utils/gameSpecific/playerData';
+import { updatePlayerState } from '../../utils/gameSpecific/playerData';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
@@ -10,7 +10,7 @@ const userJoins: EventData = {
 	runType: 'always',
 	async execute(client: Client, event: PlayerEvent) {
 		try {
-			const msgMod = await handlePlayerJoin(event.InstanceId, event);
+			const msgMod = await updatePlayerState(event, 'Join');
 			if (msgMod.length) event.Message += msgMod;
 
 			// Send to Discord

@@ -1,4 +1,4 @@
-import { handlePlayerLeave } from '../../utils/gameSpecific/playerData';
+import { updatePlayerState } from '../../utils/gameSpecific/playerData';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
@@ -10,7 +10,7 @@ const userLeaves: EventData = {
 	runType: 'always',
 	async execute(client: Client, event: PlayerEvent) {
 		try {
-			const msgMod = await handlePlayerLeave(event.InstanceId, event);
+			const msgMod = await updatePlayerState(event, 'Leave');
 			if (msgMod.length) event.Message += msgMod;
 
 			// Send to Discord

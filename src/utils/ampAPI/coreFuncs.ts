@@ -1,11 +1,10 @@
 import { AppStateMap, InstanceSearchFilter, IntervalTriggerResult, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
-import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
-import { getImageSource } from './getSourceImage';
-const instanceApiCache = new Map<string, any>();
-import logger from '../logger';
-import { getModpack, getPort, wait } from '../utils';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
+import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getIntervalTrigger } from './intervalFuncs';
+import { getModpack, getPort, wait } from '../utils';
+import { getImageSource } from './getSourceImage';
+import logger from '../logger';
 let globalAPI: ADS;
 
 export async function apiLogin(): Promise<ADS> {
@@ -37,7 +36,10 @@ export async function apiLogin(): Promise<ADS> {
 	return await doLogin();
 }
 
-export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: string, instanceModule: K): Promise<ModuleTypeMap[K]> {
+const instanceApiFailures = new Map<string, number>();
+const instanceApiCache = new Map<string, any>();
+
+export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: string, instanceModule: K): Promise<ModuleTypeMap[K] | null> {
 	const cacheKey = `${instanceID}:${instanceModule}`;
 	let instanceAPI = instanceApiCache.get(cacheKey) as ModuleTypeMap[K] | undefined;
 
@@ -46,6 +48,7 @@ export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: s
 		const API = await apiLogin();
 		const newAPI = await API.InstanceLogin<ModuleTypeMap[K]>(instanceID, instanceModule);
 		instanceApiCache.set(cacheKey, newAPI);
+		instanceApiFailures.set(cacheKey, 0); // Reset failures on success
 		return newAPI as ModuleTypeMap[K];
 	};
 
@@ -53,9 +56,19 @@ export async function instanceLogin<K extends keyof ModuleTypeMap>(instanceID: s
 	if (instanceAPI) {
 		try {
 			await instanceAPI.Core.AsyncTest();
+			instanceApiFailures.set(cacheKey, 0); // Reset failures on success
 			return instanceAPI;
 		} catch (err: any) {
 			const msg = err?.message || String(err);
+			const failures = (instanceApiFailures.get(cacheKey) || 0) + 1;
+			instanceApiFailures.set(cacheKey, failures);
+
+			if (failures > 1) {
+				instanceApiCache.delete(cacheKey);
+				instanceApiFailures.delete(cacheKey);
+				return null; // Stop trying until instance is running again
+			}
+
 			if (msg.includes('Session.Exists')) {
 				instanceApiCache.delete(cacheKey);
 				return await doLogin();
@@ -214,6 +227,7 @@ export async function sendServerConsoleCommand(
 ): Promise<{ success: boolean; data: string | undefined }> {
 	try {
 		const API = await instanceLogin(instanceId, module as keyof ModuleTypeMap);
+		if (!API) return { success: false, data: undefined };
 
 		if (options?.returnResult) {
 			await Promise.all([API.Core.GetUpdates(), API.Core.SendConsoleMessage(command), wait(250)]);

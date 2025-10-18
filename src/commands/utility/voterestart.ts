@@ -206,6 +206,7 @@ export const voteRestart = {
 				});
 				// Restart logic here
 				const instanceAPI = await instanceLogin(bestMatch.InstanceID, bestMatch.Module as keyof ModuleTypeMap);
+				if (!instanceAPI) return interaction.followUp('Failed to connect to the server API.');
 				const res = await instanceAPI.Core.Restart();
 				interaction.followUp({
 					embeds: [

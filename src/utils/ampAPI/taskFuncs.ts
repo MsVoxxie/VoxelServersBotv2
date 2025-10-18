@@ -4,6 +4,7 @@ import logger from '../logger';
 
 export async function loginAndGetSchedule(instanceID: string, moduleName: string) {
 	const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
+	if (!API) throw new Error('Failed to login to instance');
 	const scheduleData = await API.Core.GetScheduleData();
 	return { API, scheduleData } as { API: any; scheduleData: any };
 }
@@ -11,6 +12,7 @@ export async function loginAndGetSchedule(instanceID: string, moduleName: string
 async function addTriggerToInstance(instanceID: string, moduleName: string, scheduleData: any, triggerData: SchedulerJobs<any>['triggerDescription']) {
 	try {
 		const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
+		if (!API) throw new Error('Failed to login to instance');
 		if (!scheduleData) {
 			logger.error('AddTrigger', `No scheduler data found for ${triggerData}`);
 			return { success: false, error: 'No scheduler data found', data: { triggerDesc: triggerData } };
@@ -35,6 +37,7 @@ async function addTriggerToInstance(instanceID: string, moduleName: string, sche
 async function removeTriggerFromInstance(instanceID: string, moduleName: string, scheduleData: any, triggerDescription: SchedulerJobs<any>['triggerDescription']) {
 	try {
 		const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
+		if (!API) throw new Error('Failed to login to instance');
 		if (!scheduleData) {
 			logger.error('RemoveTrigger', `No scheduler data found for ${triggerDescription}`);
 			return { success: false, error: 'No scheduler data found', data: { triggerDesc: triggerDescription } };
@@ -65,6 +68,7 @@ async function addTasktoTrigger(
 ) {
 	try {
 		const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
+		if (!API) throw new Error('Failed to login to instance');
 		if (!scheduleData) return logger.error('AddTask', 'No scheduler data found');
 		const fetchedTrigger = scheduleData.PopulatedTriggers.filter((t: any) => t.Description === triggerDescription);
 		if (!fetchedTrigger.length) logger.error('AddTask', `No matching trigger found for ${triggerDescription}`);
@@ -92,6 +96,7 @@ async function removeTaskFromTrigger(
 ) {
 	try {
 		const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
+		if (!API) throw new Error('Failed to login to instance');
 		if (!scheduleData) return logger.error('RemoveTask', 'No scheduler data found');
 		const fetchedTrigger = scheduleData.PopulatedTriggers.filter((t: any) => t.Description === triggerDescription);
 		if (!fetchedTrigger.length) return logger.error('RemoveTask', `No matching trigger found for ${triggerDescription}`);

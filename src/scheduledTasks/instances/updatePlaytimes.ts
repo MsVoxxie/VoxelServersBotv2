@@ -3,6 +3,8 @@ import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { playerSchema } from './../../types/apiTypes/serverEventTypes';
 import { getKeys, setJson, TTL } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
+import { updatePlayerState } from '../../utils/gameSpecific/playerData';
+import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 
 const INTERVAL_MS = 60_000; // 1 minute
 const updatePlaytimes: ScheduleTaskData = {
@@ -24,20 +26,23 @@ const updatePlaytimes: ScheduleTaskData = {
 					if (!allPlayerKeys || allPlayerKeys.length === 0) continue;
 
 					for (const player of allPlayerKeys as playerSchema[]) {
+						const event: PlayerEvent = {
+							InstanceId: instance.InstanceID,
+							Username: player.Username,
+							UserId: player.userId,
+							Message: '',
+							EventId: '',
+						};
+
 						if (onlinePlayers.some((p) => p.Username === player.Username)) {
 							// Player is online
 							if (!player.isPlaying) {
-								player.isPlaying = true;
-								player.lastJoin = now;
-								await setJson(redisClient, `playerdata:${instance.InstanceID}:${player.Username}`, player, '$', TTL(30, 'Days'));
+								await updatePlayerState(event, 'Join');
 							}
 						} else {
 							// Player is offline
 							if (player.isPlaying) {
-								player.totalPlaytimeMs += now - player.lastJoin;
-								player.lastSeen = now;
-								player.isPlaying = false;
-								await setJson(redisClient, `playerdata:${instance.InstanceID}:${player.Username}`, player, '$', TTL(30, 'Days'));
+								await updatePlayerState(event, 'Update');
 							}
 						}
 					}
