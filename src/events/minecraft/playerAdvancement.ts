@@ -17,7 +17,7 @@ const playerAdvancement: EventData = {
 
 		// Handle the "Free the End" advancement
 		if (event.Message.toLowerCase().includes('free the end')) {
-			const serverMsg = tellRawBuilder([
+			const serverMsg = tellRawBuilder(event.Username, [
 				part('[S]', 'gold', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 				part('Hey', 'white'),
 				part(`${event.Username}`, 'aqua'),

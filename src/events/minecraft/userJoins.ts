@@ -19,6 +19,9 @@ const userJoins_MCSleep: EventData = {
 
 		if (!instanceData) return;
 		if (instanceData.Module !== 'Minecraft') return;
+
+		const realUsername = event.Username;
+
 		await wait(2000); // 2 seconds
 
 		const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
@@ -29,7 +32,7 @@ const userJoins_MCSleep: EventData = {
 		// only announce if the sleep percentage has changed since last time
 		const sleepRule = instanceData.Gamerules?.playersSleepingPercentage as SleepGamerule;
 		if (sleepRule?.requiredToSleep !== requiredToSleep && sleepRule?.requiredToSleep > 0) {
-			const serverMsg = tellRawBuilder([
+			const serverMsg = tellRawBuilder('@a', [
 				part('[S]', 'gold', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 				part('Updating sleep percentage,', 'white'),
 				part(`${requiredToSleep}`, 'aqua', { bold: true }),
@@ -40,6 +43,24 @@ const userJoins_MCSleep: EventData = {
 		}
 		event.Username = 'SERVER';
 		await Promise.all([wait(500), toDiscord(event), sendServerConsoleCommand(event.InstanceId, instanceData.Module, `gamerule playersSleepingPercentage ${sleepPercentage}`)]);
+
+		// Linggango01 warning for upcoming update
+		if (event.InstanceId === 'de850f7d-532b-47ba-b171-8ba4899467f3') {
+			await wait(30_000); // 30 seconds
+			const warningMsg = tellRawBuilder(realUsername, [
+				part('[ATTENTION]', 'dark_red', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
+				part('The modpack will be updating to 4.7 on the', 'white'),
+				part('20th of October', 'aqua', { bold: true }),
+				part('some time past', 'white'),
+				part('6 PM CST', 'aqua', { bold: true }),
+				part('.', 'white'),
+				part('Due to some cosmetic mods being removed, please be sure to log off with your armor', 'white'),
+				part('unequipped', 'aqua', { bold: true }),
+				part('to avoid any potential losses before the update.', 'white'),
+			]);
+
+			await sendServerConsoleCommand(event.InstanceId, instanceData.Module, warningMsg);
+		}
 	},
 };
 

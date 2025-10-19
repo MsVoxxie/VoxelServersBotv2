@@ -58,7 +58,7 @@ export async function toServer(InstanceId: string, message: Message) {
 
 		switch (instanceModule) {
 			case 'Minecraft':
-				const serverMsg = tellRawBuilder([
+				const serverMsg = tellRawBuilder('@a', [
 					part('[D]', 'blue', { hoverEvent: { action: 'show_text', contents: message.guild ? message.guild.name : 'Unknown Server' } }),
 					part('<', 'white'),
 					part(message.member?.displayName || 'Unknown', message.member?.displayHexColor || 'white'),

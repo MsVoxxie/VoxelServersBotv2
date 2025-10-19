@@ -5,7 +5,8 @@ export function tellrawJson(parts: TellrawText | TellrawText[]): TellrawText | T
 }
 
 // Example: tellraw @a [{"text":"Hello","color":"green"},{"text":" world","color":"yellow"}]
-export function tellRawBuilder(parts: TellrawText | TellrawText[], target: string = '@a'): string {
+type TargetEntity = '@a' | '@p' | '@r' | '@e' | '@s' | string;
+export function tellRawBuilder(target: TargetEntity, parts: TellrawText | TellrawText[]): string {
 	const payload = Array.isArray(parts) ? parts : [parts];
 	const spacedParts: TellrawText[] = [];
 	for (let i = 0; i < payload.length; i++) {

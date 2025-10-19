@@ -32,7 +32,7 @@ async function processBatch(client: Client, instanceId: string) {
 
 	const sleepRule = instanceData.Gamerules?.playersSleepingPercentage as SleepGamerule;
 	if (sleepRule?.requiredToSleep !== requiredToSleep && sleepRule?.requiredToSleep > 0) {
-		const serverMsg = tellRawBuilder([
+		const serverMsg = tellRawBuilder('@a', [
 			part('[S]', 'gold', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 			part('Updating sleep percentage,', 'white'),
 			part(`${requiredToSleep}`, 'aqua', { bold: true }),
