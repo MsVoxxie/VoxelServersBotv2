@@ -31,7 +31,7 @@ async function processBatch(client: Client, instanceId: string) {
 	if (currentPlayers.length === 0) message += '\n-# The server is now empty.';
 
 	const sleepRule = instanceData.Gamerules?.playersSleepingPercentage as SleepGamerule;
-	if (sleepRule?.requiredToSleep !== requiredToSleep && sleepRule?.requiredToSleep > 0) {
+	if (sleepRule?.requiredToSleep !== requiredToSleep && requiredToSleep > 0) {
 		const serverMsg = tellRawBuilder('@a', [
 			part('[S]', 'gold', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 			part('Updating sleep percentage,', 'white'),

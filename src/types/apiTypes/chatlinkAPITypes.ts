@@ -6,6 +6,7 @@ export interface ChatlinkBase {
 	Username: string;
 	UserId?: string;
 	Message: string;
+	MessageMod?: string;
 	[key: string]: unknown;
 }
 

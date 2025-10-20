@@ -1,16 +1,16 @@
 import { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType, inlineCode } from 'discord.js';
+import { toDiscordTimestamp } from '../../utils/discord/timestampGenerator';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
-import { toDiscordTimestamp } from '../../utils/discord/timestampGenerator';
 
-const instanceInfo: CommandData = {
+const serverInfo: CommandData = {
 	data: new SlashCommandBuilder()
-		.setName('instanceinfo')
-		.setDescription('Replies with instance information.')
-		.addStringOption((opt) => opt.setName('instance').setDescription('The instance to get information about.').setRequired(true).setAutocomplete(true))
+		.setName('server_info')
+		.setDescription('Replies with server information.')
+		.addStringOption((opt) => opt.setName('server').setDescription('The server to get information about.').setRequired(true).setAutocomplete(true))
 		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall])
 		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
 		.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
@@ -20,20 +20,28 @@ const instanceInfo: CommandData = {
 	async execute(client, interaction) {
 		try {
 			await interaction.deferReply();
-			const instanceId = interaction.options.getString('instance');
-			const instanceData = await getJson(redis, `instance:${instanceId}`);
-			if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
-			const instance = instanceData as SanitizedInstance;
+			const serverId = interaction.options.getString('server');
+			const serverData = await getJson(redis, `instance:${serverId}`);
+			if (!serverData) return interaction.editReply({ content: 'Server not found or invalid data.', flags: MessageFlags.Ephemeral });
+			const instance = serverData as SanitizedInstance;
 
 			// Build embed
 			const { calculatedRawMB, calculatedMaxMB } = {
 				calculatedRawMB: (instance.Metrics['Memory Usage'].RawValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
 				calculatedMaxMB: (instance.Metrics['Memory Usage'].MaxValue / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }),
 			};
-			
+
 			// Build Restart and Backup Info
-			const nextRestart = `${instance.NextRestart ? `${toDiscordTimestamp(new Date(instance.NextRestart.nextRunDate), 't')} (${toDiscordTimestamp(new Date(instance.NextRestart.nextRunDate), 'R')})` : 'N/A'}`;
-			const nextBackup = `${instance.NextBackup ? `${toDiscordTimestamp(new Date(instance.NextBackup.nextRunDate), 't')} (${toDiscordTimestamp(new Date(instance.NextBackup.nextRunDate), 'R')})` : 'N/A'}`;
+			const nextRestart = `${
+				instance.NextRestart
+					? `${toDiscordTimestamp(new Date(instance.NextRestart.nextRunDate), 't')} (${toDiscordTimestamp(new Date(instance.NextRestart.nextRunDate), 'R')})`
+					: 'N/A'
+			}`;
+			const nextBackup = `${
+				instance.NextBackup
+					? `${toDiscordTimestamp(new Date(instance.NextBackup.nextRunDate), 't')} (${toDiscordTimestamp(new Date(instance.NextBackup.nextRunDate), 'R')})`
+					: 'N/A'
+			}`;
 
 			const description = [
 				`**State:** ${instance.AppState}`,
@@ -63,10 +71,10 @@ const instanceInfo: CommandData = {
 				.setTimestamp();
 			return interaction.editReply({ embeds: [embed] });
 		} catch (error) {
-			logger.error('InstanceInfo', `Error fetching instance info: ${error}`);
-			interaction.editReply({ content: 'An error occurred while fetching instance information.', flags: MessageFlags.Ephemeral });
+			logger.error('ServerInfo', `Error fetching server info: ${error}`);
+			interaction.editReply({ content: 'An error occurred while fetching server information.', flags: MessageFlags.Ephemeral });
 		}
 	},
 };
 
-export default instanceInfo;
+export default serverInfo;
