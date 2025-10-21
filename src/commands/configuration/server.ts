@@ -98,6 +98,7 @@ const manageServers: CommandData = {
 				}
 				case 'stop': {
 					if (!instance.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
+					instanceAPI.Core.Stop();
 					await instanceAPI.Core.Stop();
 					interaction.editReply({ content: `**${instance.FriendlyName}** has been requested to stop.`, flags: MessageFlags.Ephemeral });
 					break;
