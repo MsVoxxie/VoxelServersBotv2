@@ -68,7 +68,7 @@ const manageServers: CommandData = {
 					const command = interaction.options.getString('command', true);
 					const verbose = interaction.options.getBoolean('verbose') ?? true;
 					if (!command || command.trim().length === 0) return interaction.editReply({ content: 'Command cannot be empty.', flags: MessageFlags.Ephemeral });
-					if (!instance.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
+					if (instance.AppState !== AppState.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
 					res = await sendServerConsoleCommand(instance.InstanceID, moduleName, command, { returnResult: verbose });
 					if (!verbose) return interaction.editReply({ content: `Command sent to ${instance.FriendlyName}.`, flags: MessageFlags.Ephemeral });
 
@@ -97,14 +97,14 @@ const manageServers: CommandData = {
 					break;
 				}
 				case 'stop': {
-					if (!instance.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
+					if (instance.AppState !== AppState.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
 					instanceAPI.Core.Stop();
 					await instanceAPI.Core.Stop();
 					interaction.editReply({ content: `**${instance.FriendlyName}** has been requested to stop.`, flags: MessageFlags.Ephemeral });
 					break;
 				}
 				case 'restart': {
-					if (!instance.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
+					if (instance.AppState !== AppState.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
 					res = await instanceAPI.Core.Restart();
 					interaction.editReply({ content: `**${instance.FriendlyName}** ${res.Status ? 'restarted successfully.' : 'failed to restart.'}`, flags: MessageFlags.Ephemeral });
 					break;
