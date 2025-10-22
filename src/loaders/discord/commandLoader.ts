@@ -1,7 +1,7 @@
 import Table from 'cli-table3';
 const commandTable = new Table({
 	head: ['Category', 'Command', 'Load Status'],
-	style: { head: ['cyan'] },
+	style: { head: ['magenta'] },
 });
 
 import getAllFiles from '../../utils/fileFuncs';

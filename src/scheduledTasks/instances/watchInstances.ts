@@ -4,7 +4,7 @@ import { getJson, setJson, TTL } from '../../utils/redisHelpers';
 import { getAllInstances } from '../../utils/ampAPI/coreFuncs';
 import logger from '../../utils/logger';
 
-const INTERVAL_MS = 300_000; // 5 minutes
+const INTERVAL_MS = 60_000; // 1 minute
 const watchInstances: ScheduleTaskData = {
 	name: 'Watch Instance Updates',
 	run({ client, redisClient }) {

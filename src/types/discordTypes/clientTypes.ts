@@ -7,6 +7,7 @@ declare module 'discord.js' {
 		typingState: Collection<string, any>;
 		cooldowns: Collection<string, Collection<string, number>>;
 		commands: Collection<string, any>;
+		buttons: Collection<string, any>;
 		events: Collection<string, any>;
 		redis?: RedisClientType | null;
 		color: ColorResolvable;

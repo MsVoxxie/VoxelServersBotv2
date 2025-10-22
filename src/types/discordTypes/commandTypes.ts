@@ -9,11 +9,16 @@ export interface CommandData {
 	execute: (...args: any[]) => Promise<void> | void;
 }
 
-import { InteractionResponse } from 'discord.js';
+import { ButtonInteraction, Client, InteractionResponse } from 'discord.js';
 export interface EventData {
 	name: string;
 	runType: 'always' | 'once' | 'disabled';
 	execute: (...args: any[]) => void | Promise<void | InteractionResponse>;
+}
+
+export interface ButtonHandler {
+	customId: string;
+	execute: (client: Client, interaction: ButtonInteraction) => Promise<void>;
 }
 
 export interface ScheduleTaskData {

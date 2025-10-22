@@ -28,6 +28,7 @@ client.backupTimers = new Collection();
 client.typingState = new Collection();
 client.cooldowns = new Collection();
 client.commands = new Collection();
+client.buttons = new Collection();
 client.events = new Collection();
 
 // Load Events
@@ -37,6 +38,10 @@ eventLoader(client);
 // Load Commands
 import commandLoader from './loaders/discord/commandLoader';
 commandLoader(client);
+
+// Load Buttons
+import buttonLoader from './loaders/discord/buttonLoader';
+buttonLoader(client);
 
 // Load API
 import server from './loaders/api/server';

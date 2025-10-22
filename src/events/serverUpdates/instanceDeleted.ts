@@ -1,7 +1,9 @@
 import { SanitizedInstance } from './../../types/ampTypes/instanceTypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
-import { Client, EmbedBuilder } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from 'discord.js';
 import logger from '../../utils/logger';
+import { setJson, TTL } from '../../utils/redisHelpers';
+import redis from '../../loaders/database/redisLoader';
 
 const instanceDeleted: EventData = {
 	name: 'instanceDeleted',
@@ -9,30 +11,34 @@ const instanceDeleted: EventData = {
 	async execute(client: Client, instance: SanitizedInstance) {
 		try {
 			if (instance.WelcomeMessage === 'hidden') return;
-			const [guildID, updatesChannelId] = [process.env.GUILD_ID, process.env.UPDATES_CH];
-			if (!guildID || !updatesChannelId) return;
+			const [guildID, approvalsChannelId] = [process.env.GUILD_ID, process.env.APPROVALS_CH];
+			if (!guildID || !approvalsChannelId) return;
 			const guild = await client.guilds.fetch(guildID);
-			const channel = await guild.channels.fetch(updatesChannelId);
+			const channel = await guild.channels.fetch(approvalsChannelId);
 			if (!channel || !channel.isTextBased()) return;
 
-			const descriptionData = [`**Name**: ${instance.FriendlyName}`, `**Module**: ${instance.Module}`];
+			const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+				new ButtonBuilder().setCustomId(`instdelete_accept_${instance.InstanceID}`).setLabel('Accept & Post').setStyle(ButtonStyle.Success),
+				new ButtonBuilder().setCustomId(`instdelete_ignore_${instance.InstanceID}`).setLabel('Ignore').setStyle(ButtonStyle.Danger)
+			);
 
-			const embed = new EmbedBuilder()
+			const descriptionData = [`**Name**: ${instance.FriendlyName}`, `**Module**: ${instance.Module}`]
+				.map((line) => line.trim())
+				.filter((line) => line)
+				.join('\n');
+
+			const tmpEmbed = new EmbedBuilder()
 				.setTitle('Instance Deleted')
-				.setDescription(
-					descriptionData
-						.map((line) => line.trim())
-						.filter((line) => line)
-						.join('\n')
-				)
+				.setDescription(`Awaiting Approval to Post\n${descriptionData}`)
 				.setFooter({ text: `${instance.InstanceID}` })
 				.setThumbnail(instance.ServerIcon)
 				.setColor(client.color)
 				.setTimestamp();
 
-			channel.send({ embeds: [embed] });
+			const approvalMsg = await channel.send({ embeds: [tmpEmbed], components: [actionRow] });
+			await setJson(redis, `pendingInstanceDelete:${instance.InstanceID}`, { ...instance, approvalMsgId: approvalMsg.id }, '$', TTL(1, 'Days')); // 24h TTL
 		} catch (error) {
-			logger.error('Instance Deleted', `Error processing instance deleted event: ${error}`);
+			logger.error('Instance Deleted', `Error processing instance deletion event: ${error}`);
 		}
 	},
 };

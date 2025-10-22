@@ -2,7 +2,7 @@ import { BaseInteraction, Client, Events, MessageFlags } from 'discord.js';
 import type { EventData } from '../../types/discordTypes/commandTypes';
 import logger from '../../utils/logger';
 
-const handleInteraction: EventData = {
+const handleSlashCommand: EventData = {
 	name: Events.InteractionCreate,
 	runType: 'always',
 	async execute(client: Client, interaction: BaseInteraction) {
@@ -25,4 +25,4 @@ const handleInteraction: EventData = {
 	},
 };
 
-export default handleInteraction;
+export default handleSlashCommand;

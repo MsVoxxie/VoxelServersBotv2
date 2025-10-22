@@ -1,7 +1,7 @@
 import Table from 'cli-table3';
 const eventTable = new Table({
 	head: ['Directory', 'Event', 'Load Status', 'Run Type'],
-	style: { head: ['cyan'] },
+	style: { head: ['red'] },
 });
 
 import getAllFiles from '../../utils/fileFuncs';
