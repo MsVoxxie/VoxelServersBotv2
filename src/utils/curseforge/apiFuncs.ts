@@ -29,18 +29,18 @@ export async function fetchModpackInformation(modpackUrl: string, game: gameSele
 	const searchData = await searchRes.json();
 	if (!searchData.data || !searchData.data.length) throw new Error('Modpack not found');
 	const mod = searchData.data[0];
-
 	const modInfo = await fetchModDetails(mod.id, apiKey);
 
 	const result: CurseforgeModpackInfo = {
 		id: modInfo.id,
 		name: modInfo.name,
-		summary: modInfo.summary,
-		websiteUrl: modInfo.links?.websiteUrl,
-		logoUrl: modInfo.logo?.url,
 		slug: modInfo.slug,
+		summary: modInfo.summary,
+		downloadCount: modInfo.downloadCount,
+		links: modInfo.links,
+		logoUrl: modInfo.logo?.url,
 		authors: modInfo.authors?.map((a: any) => a.name),
-		latestFiles: modInfo.latestFiles,
+		mainFile: modInfo.latestFiles.find((file: any) => file.id === modInfo.mainFileId),
 	};
 
 	return result;

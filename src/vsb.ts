@@ -29,6 +29,7 @@ client.typingState = new Collection();
 client.cooldowns = new Collection();
 client.commands = new Collection();
 client.buttons = new Collection();
+client.modals = new Collection();
 client.events = new Collection();
 
 // Load Events
@@ -42,6 +43,10 @@ commandLoader(client);
 // Load Buttons
 import buttonLoader from './loaders/discord/buttonLoader';
 buttonLoader(client);
+
+// Load Modals
+import modalLoader from './loaders/discord/modalLoader';
+modalLoader(client);
 
 // Load API
 import server from './loaders/api/server';

@@ -1,4 +1,4 @@
-import { BaseInteraction, ButtonInteraction, Client, Events, MessageFlags } from 'discord.js';
+import { BaseInteraction, Client, Events, MessageFlags } from 'discord.js';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import logger from '../../utils/logger';
 
@@ -13,7 +13,7 @@ const handleButtonCommand: EventData = {
 		if (!handler) return interaction.reply({ content: 'Unknown button.', flags: MessageFlags.Ephemeral });
 
 		try {
-			await handler.execute(client, interaction as ButtonInteraction);
+			await handler.execute(client, interaction);
 		} catch (error) {
 			logger.error('Button Execution Error', `Error executing button ${interaction.customId}:\n${error}`);
 			await interaction.reply({ content: 'There was an error while processing this button!', flags: MessageFlags.Ephemeral });

@@ -9,7 +9,7 @@ export interface CommandData {
 	execute: (...args: any[]) => Promise<void> | void;
 }
 
-import { ButtonInteraction, Client, InteractionResponse } from 'discord.js';
+import { ButtonInteraction, Client, InteractionResponse, ModalSubmitInteraction } from 'discord.js';
 export interface EventData {
 	name: string;
 	runType: 'always' | 'once' | 'disabled';
@@ -18,7 +18,12 @@ export interface EventData {
 
 export interface ButtonHandler {
 	customId: string;
-	execute: (client: Client, interaction: ButtonInteraction) => Promise<void>;
+	execute: (client: Client, interaction: ButtonInteraction) => Promise<void | InteractionResponse>;
+}
+
+export interface ModalHandler {
+	customId: string;
+	execute: (client: Client, interaction: ModalSubmitInteraction) => Promise<void | InteractionResponse>;
 }
 
 export interface ScheduleTaskData {
