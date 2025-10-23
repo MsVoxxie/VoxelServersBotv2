@@ -1,5 +1,5 @@
 import { CurseforgeModpackInfo } from './../../types/curseforge/apiTypes';
-import { codeBlock, TextChannel, ThreadAutoArchiveDuration } from 'discord.js';
+import { codeBlock, TextChannel, PublicThreadChannel, ChannelType } from 'discord.js';
 import { ModalHandler } from '../../types/discordTypes/commandTypes';
 import { fetchModpackInformation } from '../../utils/curseforge/apiFuncs';
 
@@ -9,56 +9,69 @@ const createListingModal: ModalHandler = {
 		try {
 			await interaction.deferReply();
 
-			const serverName = interaction.fields.getTextInputValue('server_name');
+			const selectedChannels = interaction.fields.getSelectedChannels('post_channel');
+			const channel = selectedChannels?.find(
+				(ch): ch is TextChannel | PublicThreadChannel => ch instanceof TextChannel || ch.type === ChannelType.PublicThread || ch.type === ChannelType.GuildForum
+			);
+			if (!channel) {
+				await interaction.editReply({ content: 'No valid text or public thread channel selected.' });
+				return;
+			}
+			// const serverName = interaction.fields.getTextInputValue('server_name');
 			const serverIp = interaction.fields.getTextInputValue('server_ip');
-			const modpackUrl = interaction.fields.getTextInputValue('modpack_url');
+			const versionOverride = interaction.fields.getTextInputValue('version_override');
+			const modpackUrlOrName = interaction.fields.getTextInputValue('modpack_url_or_name');
 			const notes = interaction.fields.getTextInputValue('notes');
 
-			// Fetch modpack info
-			let modpackInfo: CurseforgeModpackInfo;
+			// Try to fetch modpack info, but if it fails, treat as plain string
+			let modpackInfo: CurseforgeModpackInfo | null = null;
 			try {
-				modpackInfo = await fetchModpackInformation(modpackUrl, 'Minecraft');
+				modpackInfo = await fetchModpackInformation(modpackUrlOrName, 'Minecraft');
 			} catch (err) {
-				await interaction.editReply({ content: 'Failed to fetch modpack info. Please check the URL.' });
-				return;
+				// Not a valid modpack, treat as plain string
 			}
-
-			// Create a thread in the current channel
-			const channel = interaction.channel;
-			if (!channel || !channel.isTextBased()) {
-				await interaction.editReply({ content: 'Could not create thread: Not a text channel.' });
-				return;
-			}
-
-			const thread = await (channel as TextChannel).threads.create({
-				name: `[Minecraft] ${serverName}`,
-				autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
-				reason: 'Server listing created via modal',
-			});
-
-			// Turn latest file into version
-			const latestVersion = modpackInfo.mainFile.displayName.split(' - ')[1];
 
 			// Build the message as an array for clean Discord markdown
 			const msgArr: string[] = [];
-			msgArr.push(`# [${serverName} (${latestVersion})](${modpackUrl})`);
-			if (modpackInfo.summary) {
-				msgArr.push('');
-				msgArr.push(`> ${modpackInfo.summary}`);
-			}
-			if (serverIp) {
-				msgArr.push(`## Connection Info`);
-				msgArr.push(codeBlock(serverIp));
-			}
-			if (notes) {
-				msgArr.push(`## Notes`);
-				msgArr.push(notes);
+			if (!modpackInfo) {
+				// Fallback: just use the string as the server name
+				msgArr.push(`# ${modpackUrlOrName}${versionOverride ? ` (${versionOverride})` : ''}`);
+				if (serverIp) {
+					msgArr.push('');
+					msgArr.push(`## Connection Info`);
+					msgArr.push(codeBlock(serverIp));
+				}
+				if (notes) {
+					msgArr.push(`## Details`);
+					msgArr.push(notes);
+				}
+			} else {
+				// Use CurseForge info
+				const latestVersion = versionOverride || modpackInfo.mainFile.displayName.split(' - ')[1];
+				msgArr.push(`# [${modpackInfo.name} (${latestVersion})](${modpackInfo.links?.websiteUrl || modpackUrlOrName})`);
+				if (modpackInfo.summary) {
+					msgArr.push('');
+					msgArr.push(`> ${modpackInfo.summary}`);
+				}
+				if (serverIp) {
+					msgArr.push(`## Connection Info`);
+					msgArr.push(codeBlock(serverIp));
+				}
+				if (notes) {
+					msgArr.push('');
+					msgArr.push(`## Extra Information`);
+					msgArr.push(notes);
+				}
 			}
 
-			const postedMessage = await thread.send({ content: msgArr.join('\n') });
-
-			await interaction.editReply({ content: `Thread created: <#${thread.id}>\nMessage: ${postedMessage.url}` });
-			return;
+			// Post it
+			const postedMessage = await channel.send({ content: msgArr.join('\n') });
+			if (interaction.channel === channel) {
+				await interaction.deleteReply();
+				return;
+			} else {
+				await interaction.editReply({ content: `Server listing created successfully in ${channel}. [Jump to message](${postedMessage.url})` });
+			}
 		} catch (error) {
 			console.error(error);
 			await interaction.editReply({ content: 'An error occurred while creating the server listing.' });
