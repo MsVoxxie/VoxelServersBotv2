@@ -5,7 +5,7 @@ import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
-import { trimString } from '../../utils/utils';
+import { trimString, wait } from '../../utils/utils';
 
 const manageServers: CommandData = {
 	data: new SlashCommandBuilder()
@@ -99,6 +99,7 @@ const manageServers: CommandData = {
 				case 'stop': {
 					if (instance.AppState !== AppState.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
 					instanceAPI.Core.Stop();
+					await wait(2000);
 					await instanceAPI.Core.Stop();
 					interaction.editReply({ content: `**${instance.FriendlyName}** has been requested to stop.`, flags: MessageFlags.Ephemeral });
 					break;
