@@ -18,6 +18,7 @@ async function processBatch(client: Client, instanceId: string) {
 	const queue = batchQueues.get(instanceId) || [];
 	if (queue.length === 0) return;
 	const event = queue[queue.length - 1];
+	let message = '';
 
 	const instanceData = (await getJson(redis, `instance:${event.InstanceId}`)) as SanitizedInstance | null;
 
@@ -27,8 +28,11 @@ async function processBatch(client: Client, instanceId: string) {
 	const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
 	setJson(redis, `instance:${instanceId}`, { playersSleepingPercentage: { sleepPercentage, requiredToSleep } }, '.Gamerules');
 
-	let message = `-# There ${currentPlayers.length === 1 ? 'is' : 'are'} now ${currentPlayers.length} player${currentPlayers.length === 1 ? '' : 's'} online.`;
-	if (currentPlayers.length === 0) message += '\n-# The server is now empty.';
+	if (currentPlayers.length === 0) {
+		message += '\n-# The server is now empty.';
+	} else {
+		message = `-# There ${currentPlayers.length === 1 ? 'is' : 'are'} now ${currentPlayers.length} player${currentPlayers.length === 1 ? '' : 's'} online.`;
+	}
 
 	const sleepRule = instanceData.Gamerules?.playersSleepingPercentage as SleepGamerule;
 	if (sleepRule?.requiredToSleep !== requiredToSleep && requiredToSleep > 0) {
