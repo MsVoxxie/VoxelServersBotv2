@@ -5,6 +5,7 @@ import { getIntervalTrigger } from './intervalFuncs';
 import { getModpack, getPort, wait } from '../utils';
 import { getImageSource } from './getSourceImage';
 import logger from '../logger';
+import { getInstanceConfig } from './configFuncs';
 let globalAPI: ADS;
 
 export async function apiLogin(): Promise<ADS> {
@@ -123,11 +124,18 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 
 					// Get next scheduled restart/backup if applicable
 					if (instance.Running) {
+						const scheduleOffset = await getInstanceConfig(instance.InstanceID, instance.ModuleDisplayName || instance.Module, 'Core.AMP.ScheduleOffsetSeconds');
+						const offsetSeconds = Number(scheduleOffset?.key?.CurrentValue) || 0;
+
 						const rawNextScheduled = (await getIntervalTrigger(instance.InstanceID, instance.ModuleDisplayName || instance.Module, 'Both')) || [];
-						nextScheduled = rawNextScheduled.map((item: any) => ({
-							type: item.type,
-							data: { nextrunMs: item.data.nextrunMs ?? 0, nextRunDate: item.data.nextRunDate ?? new Date(0) },
-						}));
+						nextScheduled = rawNextScheduled.map((item: any) => {
+							const nextrunMs = (item.data.nextrunMs ?? 0) + offsetSeconds * 1000;
+							const nextRunDate = new Date((item.data.nextRunDate ? new Date(item.data.nextRunDate).getTime() : 0) + offsetSeconds * 1000);
+							return {
+								type: item.type,
+								data: { nextrunMs, nextRunDate },
+							};
+						});
 					}
 
 					const mappedInstance: SanitizedInstance = {
