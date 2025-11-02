@@ -4,8 +4,9 @@ import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getIntervalTrigger } from './intervalFuncs';
 import { getModpack, getPort, wait } from '../utils';
 import { getImageSource } from './getSourceImage';
-import logger from '../logger';
 import { getInstanceConfig } from './configFuncs';
+import { mongoCache } from '../../vsb';
+import logger from '../logger';
 let globalAPI: ADS;
 
 export async function apiLogin(): Promise<ADS> {
@@ -93,6 +94,8 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 					const WelcomeMessage = (instance as any).WelcomeMessage ?? '';
 					const modpackInfo = getModpack(WelcomeMessage);
 					let nextScheduled: IntervalTriggerResult[] | null = null;
+					let isInstanceLinked: boolean = false;
+
 					// Get server icon
 					const serverIcon = await getImageSource(instance.DisplayImageSource);
 
@@ -136,6 +139,8 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 								data: { nextrunMs, nextRunDate },
 							};
 						});
+
+						isInstanceLinked = (mongoCache.get('linkedInstanceIDs') as Set<string> | undefined)?.has(instance.InstanceID) ?? false;
 					}
 
 					const mappedInstance: SanitizedInstance = {
@@ -145,16 +150,17 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 						FriendlyName: instance.FriendlyName,
 						WelcomeMessage: WelcomeMessage,
 						Description: instance.Description || '',
-						ServerModpack: modpackInfo.isModpack ? { Name: modpackInfo.modpackName, URL: modpackInfo.modpackUrl } : undefined,
 						ServerIcon: serverIcon,
+						AppState: appState,
 						Module: instance.Module || instance.ModuleDisplayName,
 						Running: instance.Running,
-						AppState: appState,
 						Suspended: instance.Suspended,
+						isChatlinked: isInstanceLinked,
+						ServerModpack: modpackInfo.isModpack ? { Name: modpackInfo.modpackName, URL: modpackInfo.modpackUrl } : undefined,
 						NextRestart: nextScheduled?.find((s) => s.type === 'Restart')?.data || null,
 						NextBackup: nextScheduled?.find((s) => s.type === 'Backup')?.data || null,
-						Metrics: metrics,
 						ConnectionInfo: { Port: port },
+						Metrics: metrics,
 					};
 					return mappedInstance;
 				})

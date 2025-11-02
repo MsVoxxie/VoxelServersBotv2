@@ -5,6 +5,7 @@ import { AppStateEmoji } from '../../types/ampTypes/ampTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getKeys } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
+import { mongoCache } from '../../vsb';
 
 const handleInteraction: EventData = {
 	name: Events.InteractionCreate,
@@ -36,7 +37,8 @@ const handleInteraction: EventData = {
 
 			function formattedName(instance: SanitizedInstance): string {
 				const emoji = AppStateEmoji[instance.AppState] || '⚪';
-				return `${emoji} ${instance.AppState} ⟩ ${instance.FriendlyName} (${instance.Module})`;
+				const isLinked = (mongoCache.get('linkedInstanceIDs') as Set<string> | undefined)?.has(instance.InstanceID) ?? false;
+				return `${emoji} ${instance.AppState} ⟩ ${instance.FriendlyName} (${instance.Module})${isLinked ? ' 🔗' : ''}`;
 			}
 
 			switch (command.autoCompleteInstanceType) {

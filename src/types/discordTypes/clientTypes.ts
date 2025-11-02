@@ -4,8 +4,9 @@ import { RedisClientType } from 'redis';
 declare module 'discord.js' {
 	interface Client {
 		backupTimers: Collection<string, NodeJS.Timeout>;
-		typingState: Collection<string, any>;
 		cooldowns: Collection<string, Collection<string, number>>;
+		mongoCache: Collection<string, any>;
+		typingState: Collection<string, any>;
 		commands: Collection<string, any>;
 		buttons: Collection<string, any>;
 		modals: Collection<string, any>;

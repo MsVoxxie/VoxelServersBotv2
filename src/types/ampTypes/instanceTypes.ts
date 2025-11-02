@@ -5,18 +5,19 @@ export interface SanitizedInstance {
 	FriendlyName: string;
 	WelcomeMessage: string;
 	Description: string;
-	ServerModpack: { Name: string; URL: string } | undefined;
 	ServerIcon: string;
+	AppState: string;
 	Module: string;
 	Running: boolean;
-	AppState: string;
 	Suspended: boolean;
-	Metrics: { [key: string]: Metric };
-	Schedule?: { [key: string]: any } | null;
+	isChatlinked: boolean;
+	ServerModpack: { Name: string; URL: string } | undefined;
 	NextRestart: { nextrunMs: number; nextRunDate: Date } | null;
 	NextBackup: { nextrunMs: number; nextRunDate: Date } | null;
-	ConnectionInfo: ConnectionInfo;
+	Schedule?: { [key: string]: any } | null;
 	Gamerules?: { [key: string]: SleepGamerule } | null;
+	ConnectionInfo: ConnectionInfo;
+	Metrics: { [key: string]: Metric };
 }
 
 export interface ConnectionInfo {
