@@ -6,13 +6,12 @@ import logger from '../../utils/logger';
 import { updatePlayerState } from '../../utils/gameSpecific/playerData';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 
-const INTERVAL_MS = 60_000; // 1 minute
+const INTERVAL_MS = 30_000; // 30 seconds
 const updatePlaytimes: ScheduleTaskData = {
 	name: 'Update Playtimes',
 	run({ client, redisClient }) {
 		const updatePlaytimes = async () => {
 			try {
-				const now = Date.now();
 				const instances = (await getKeys(redisClient, 'instance:*')) as SanitizedInstance[];
 				if (!instances || instances.length === 0) return;
 
@@ -36,9 +35,7 @@ const updatePlaytimes: ScheduleTaskData = {
 
 						if (onlinePlayers.some((p) => p.Username === player.Username)) {
 							// Player is online
-							if (!player.isPlaying) {
-								await updatePlayerState(event, 'Join');
-							}
+							await updatePlayerState(event, 'Tick');
 						} else {
 							// Player is offline
 							if (player.isPlaying) {

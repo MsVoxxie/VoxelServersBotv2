@@ -25,7 +25,7 @@ export async function markAllPlayersOffline(instanceId: string): Promise<void> {
 	}
 }
 
-export async function updatePlayerState(event: PlayerEvent, eventType: 'Join' | 'Leave' | 'Update'): Promise<string> {
+export async function updatePlayerState(event: PlayerEvent, eventType: 'Join' | 'Leave' | 'Update' | 'Tick'): Promise<string> {
 	const instanceId = event.InstanceId;
 	const username = event.Username;
 	const now = Date.now();
@@ -87,6 +87,20 @@ export async function updatePlayerState(event: PlayerEvent, eventType: 'Join' | 
 					isPlaying: false,
 					lastSeen: now,
 					totalPlaytimeMs: totalPlaytime,
+				};
+			}
+			break;
+		}
+		case 'Tick': {
+			if (oldData && oldData.isPlaying) {
+				const now = Date.now();
+				const duration = now - oldData.lastJoin;
+				const totalPlaytime = (oldData.totalPlaytimeMs || 0) + duration;
+				userData = {
+					...oldData,
+					lastSeen: now,
+					totalPlaytimeMs: totalPlaytime,
+					lastJoin: now,
 				};
 			}
 			break;
