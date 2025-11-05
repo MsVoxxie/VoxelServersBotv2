@@ -20,7 +20,7 @@ const chatlinkSetup: CommandData = {
 		.setContexts([InteractionContextType.Guild])
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 	state: 'enabled',
-	devOnly: false,
+	devOnly: true,
 	autoCompleteInstanceType: 'running',
 	async execute(client, interaction) {
 		try {

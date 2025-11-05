@@ -24,7 +24,7 @@ export default {
 		.setContexts([InteractionContextType.Guild])
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 	state: 'enabled',
-	devOnly: false,
+	devOnly: true,
 	autoCompleteInstanceType: 'running',
 	async execute(client: Client, interaction: ChatInputCommandInteraction) {
 		try {

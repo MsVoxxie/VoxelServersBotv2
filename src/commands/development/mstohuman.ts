@@ -12,7 +12,7 @@ const convertToHuman: CommandData = {
 		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 	state: 'enabled',
-	devOnly: false,
+	devOnly: true,
 	autoCompleteInstanceType: 'running',
 	async execute(client, interaction) {
 		try {
