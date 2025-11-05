@@ -36,7 +36,7 @@ const userJoins_MCSleep: EventData = {
 				part('[S]', 'gold', { hoverEvent: { action: 'show_text', contents: 'Server' } }),
 				part('Updating sleep percentage,', 'white'),
 				part(`${requiredToSleep}`, 'aqua', { bold: true }),
-				part(`player${requiredToSleep === 1 ? '' : 's'} ${requiredToSleep === 1 ? 'is' : 'are'} are required to sleep`, 'white'),
+				part(`player${requiredToSleep === 1 ? '' : 's'} ${requiredToSleep === 1 ? 'is' : 'are'} required to sleep`, 'white'),
 			]);
 			event.Message += `\n-# Updating sleep percentage, ${requiredToSleep} player${requiredToSleep === 1 ? '' : 's'} now required to sleep.`;
 			await sendServerConsoleCommand(event.InstanceId, instanceData.Module, serverMsg);
