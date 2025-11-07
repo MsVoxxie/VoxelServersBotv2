@@ -1,10 +1,10 @@
 import { PlayerList, SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
-import { playerSchema } from './../../types/apiTypes/serverEventTypes';
-import { getKeys, setJson, TTL } from '../../utils/redisHelpers';
-import logger from '../../utils/logger';
 import { updatePlayerState } from '../../utils/gameSpecific/playerData';
+import { playerSchema } from './../../types/apiTypes/serverEventTypes';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
+import { getKeys } from '../../utils/redisHelpers';
+import logger from '../../utils/logger';
 
 const INTERVAL_MS = 30_000; // 30 seconds
 const updatePlaytimes: ScheduleTaskData = {

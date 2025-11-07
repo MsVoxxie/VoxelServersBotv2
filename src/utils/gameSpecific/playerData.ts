@@ -94,13 +94,12 @@ export async function updatePlayerState(event: PlayerEvent, eventType: 'Join' | 
 		case 'Tick': {
 			if (oldData && oldData.isPlaying) {
 				const now = Date.now();
-				const duration = now - oldData.lastJoin;
+				const duration = now - oldData.lastSeen;
 				const totalPlaytime = (oldData.totalPlaytimeMs || 0) + duration;
 				userData = {
 					...oldData,
 					lastSeen: now,
 					totalPlaytimeMs: totalPlaytime,
-					lastJoin: now,
 				};
 			}
 			break;
