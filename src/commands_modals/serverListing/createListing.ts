@@ -28,7 +28,7 @@ const createListingModal: ModalHandler = {
 			try {
 				modpackInfo = await fetchModpackInformation(modpackUrlOrName, 'Minecraft');
 			} catch (err) {
-				// Not a valid modpack, treat as plain string
+				null; // Not a valid modpack, treat as plain string
 			}
 
 			// Build the message as an array for clean Discord markdown
@@ -47,7 +47,8 @@ const createListingModal: ModalHandler = {
 				}
 			} else {
 				// Use CurseForge info
-				const latestVersion = versionOverride || modpackInfo.mainFile.displayName.split(' - ')[1];
+				const versionMatch = modpackInfo.mainFile.fileName.match(/-(\d+\.\d+\.\d+)/);
+				const latestVersion = versionOverride || (versionMatch ? versionMatch[1] : 'Unknown');
 				msgArr.push(`# [${modpackInfo.name} (${latestVersion})](${modpackInfo.links?.websiteUrl || modpackUrlOrName})`);
 				if (modpackInfo.summary) {
 					msgArr.push('');
