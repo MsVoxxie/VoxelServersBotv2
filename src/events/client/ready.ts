@@ -1,10 +1,9 @@
-import { Events, Client } from 'discord.js';
-import logger from '../../utils/logger';
+import runScheduledTasks from '../../loaders/scheduler/loadSchedules';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { connectRedis } from '../../loaders/database/redisLoader';
-import runScheduledTasks from '../../loaders/scheduler/loadSchedules';
 import mongoLoader from '../../loaders/database/mongoLoader';
-import { wait } from '../../utils/utils';
+import { Events, Client } from 'discord.js';
+import logger from '../../utils/logger';
 
 const ready: EventData = {
 	name: Events.ClientReady,

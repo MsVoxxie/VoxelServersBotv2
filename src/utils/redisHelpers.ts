@@ -33,6 +33,13 @@ export async function getKeys<T>(client: RedisClientType, pattern: string, path 
 	return results;
 }
 
+export async function delKeys(client: RedisClientType, pattern: string) {
+	const keys = await client.keys(pattern);
+	if (!keys.length) return 0;
+	await client.sendCommand(['DEL', ...keys]);
+	return keys.length;
+}
+
 export async function delJson(client: RedisClientType, key: string, path = '.') {
 	await client.sendCommand(['JSON.DEL', key, path]);
 }

@@ -1,6 +1,6 @@
-import { readdirSync } from 'fs';
 import { REST, Routes, RESTPostAPIApplicationCommandsJSONBody } from 'discord.js';
 import Logger from '../../utils/logger';
+import { readdirSync } from 'fs';
 import dotenv from 'dotenv';
 import { join } from 'path';
 
