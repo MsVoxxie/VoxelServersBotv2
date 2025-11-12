@@ -72,16 +72,20 @@ async function downloadSteamAvatar(steamId: string, filePath: string) {
 }
 
 // Main function: Get head from cache or fetch it
-export async function getMCHead(username: string) {
-	let uuid;
-	try {
-		uuid = await getUUID(username);
-	} catch (err) {
-		return placeholderPath;
+export async function getMCHead(usernameOrUUID: string) {
+	let uuid: string;
+	// If input looks like a UUID, use it directly
+	if (/^[a-fA-F0-9]{32}$/.test(usernameOrUUID.replace(/-/g, ''))) {
+		uuid = usernameOrUUID.replace(/-/g, '');
+	} else {
+		try {
+			uuid = await getUUID(usernameOrUUID);
+		} catch (err) {
+			return placeholderPath;
+		}
 	}
-	const filePath = path.join(minecraftCacheDir, `minecraft:${username}.png`);
+	const filePath = path.join(minecraftCacheDir, `minecraft:${usernameOrUUID}.png`);
 
-	// Get the head
 	try {
 		if (!isCacheFresh(filePath)) {
 			await downloadHead(uuid, filePath);

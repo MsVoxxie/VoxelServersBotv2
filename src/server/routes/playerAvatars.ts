@@ -15,7 +15,7 @@ router.get('/data/avatar/:id', async (req, res) => {
 	const { id } = req.params;
 
 	let filePath;
-	if (/^[a-zA-Z0-9_]{3,16}$/.test(id)) {
+	if (/^[a-zA-Z0-9_]{3,16}$/.test(id) || /^[a-fA-F0-9]{32}$/.test(id.replace(/-/g, ''))) {
 		// If format is minecraft or id looks like a Minecraft username
 		filePath = await getMCHead(id);
 		if (!filePath) return res.status(404).json({ error: 'Player head not found' });
