@@ -25,11 +25,11 @@ export async function toDiscord(data: ChatlinkBase) {
 
 		switch (instanceModule) {
 			case 'Minecraft':
-				playerImage = `${process.env.API_URI}/data/mchead/${data.Username}`;
+				playerImage = `${process.env.API_URI}/data/avatar/${data.Username}`;
 				break;
 
 			case 'GenericModule':
-				playerImage = `${process.env.API_URI}/data/steamavatar/${data.UserId}`;
+				playerImage = `${process.env.API_URI}/data/avatar/${data.UserId}`;
 				break;
 		}
 

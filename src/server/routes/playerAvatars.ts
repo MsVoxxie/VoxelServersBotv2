@@ -4,35 +4,30 @@ const router = express.Router();
 
 export const routeDescriptions = [
 	{
-		path: '/data/mcheads/:username',
+		patch: '/data/avatar/:id',
 		method: 'GET',
-		description: 'Returns the player head image for a specific username.',
-	},
-	{
-		path: '/data/steamavatar/:steam64',
-		method: 'GET',
-		description: 'Returns the Steam avatar image for a specific Steam64 ID.',
+		description: 'Returns the player avatar image for a specific Minecraft username or Steam64 ID.',
 	},
 ];
 
-// Get minecraft player head
-router.get('/data/mchead/:username', async (req, res) => {
-	const username = req.params.username;
-	const head = await getMCHead(username);
-	if (!head) {
-		return res.status(404).json({ error: 'Player head not found' });
-	}
-	return res.sendFile(head);
-});
+// Unified endpoint for player avatar
+router.get('/data/avatar/:id', async (req, res) => {
+	const { id } = req.params;
 
-// Get steam avatar
-router.get('/data/steamavatar/:steam64', async (req, res) => {
-	const steam64 = req.params.steam64;
-	const avatar = await getSteamAvatar(steam64);
-	if (!avatar) {
-		return res.status(404).json({ error: 'Steam avatar not found' });
+	let filePath;
+	if (/^[a-zA-Z0-9_]{3,16}$/.test(id)) {
+		// If format is minecraft or id looks like a Minecraft username
+		filePath = await getMCHead(id);
+		if (!filePath) return res.status(404).json({ error: 'Player head not found' });
+		return res.sendFile(filePath);
+	} else if (/^[0-9]{17}$/.test(id) || id.startsWith('STEAM_')) {
+		// If format is steam or id looks like a Steam64 or legacy SteamID
+		filePath = await getSteamAvatar(id);
+		if (!filePath) return res.status(404).json({ error: 'Steam avatar not found' });
+		return res.sendFile(filePath);
+	} else {
+		return res.status(400).json({ error: 'Invalid format or ID' });
 	}
-	return res.sendFile(avatar);
 });
 
 export default router;
