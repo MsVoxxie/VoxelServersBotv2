@@ -18,6 +18,7 @@ export interface SanitizedInstance {
 	Gamerules?: { [key: string]: SleepGamerule } | null;
 	ConnectionInfo: ConnectionInfo;
 	Metrics: { [key: string]: Metric };
+	MetricsHistory: MetricSimple;
 }
 
 export interface ConnectionInfo {
@@ -39,6 +40,12 @@ export interface Metric {
 	Color3: string | null;
 	ShortName: string | null;
 	PlayerList?: PlayerList[];
+}
+
+export interface MetricSimple {
+	CPU: number[];
+	Memory: number[];
+	TPS: number[];
 }
 
 export type PlayerList = {

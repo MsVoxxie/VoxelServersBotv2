@@ -1,5 +1,5 @@
 import { AppStateMap, InstanceSearchFilter, IntervalTriggerResult, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
-import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
+import { MetricSimple, SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { ADS, IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { getIntervalTrigger } from './intervalFuncs';
 import { getModpack, getPort, wait } from '../utils';
@@ -8,6 +8,20 @@ import { getInstanceConfig } from './configFuncs';
 import { mongoCache } from '../../vsb';
 import logger from '../logger';
 let globalAPI: ADS;
+
+const METRICS_HISTORY_LENGTH = 20;
+const trackedMetricAliases: Record<keyof MetricSimple, string[]> = {
+	CPU: ['CPU Usage'],
+	Memory: ['Memory Usage', 'RAM Usage'],
+	TPS: ['TPS', 'Tick Rate', 'Tickrate', 'Average TPS', 'Avg TPS'],
+};
+const createEmptyHistory = (): MetricSimple => ({ CPU: [], Memory: [], TPS: [] });
+const cloneHistory = (history: MetricSimple): MetricSimple => ({
+	CPU: [...history.CPU],
+	Memory: [...history.Memory],
+	TPS: [...history.TPS],
+});
+const metricsHistoryStore = new Map<string, MetricSimple>();
 
 export async function apiLogin(): Promise<ADS> {
 	const { AMP_URI, AMP_USER, AMP_PASS } = process.env;
@@ -143,6 +157,26 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 						isInstanceLinked = (mongoCache.get('linkedInstanceIDs') as Set<string> | undefined)?.has(instance.InstanceID) ?? false;
 					}
 
+					const existingHistory = metricsHistoryStore.get(instance.InstanceID) ?? createEmptyHistory();
+					const updatedHistory = cloneHistory(existingHistory);
+					for (const [historyKey, aliases] of Object.entries(trackedMetricAliases) as [keyof MetricSimple, string[]][]) {
+						const sourceKey = aliases.find((alias) => metrics[alias]);
+						if (!sourceKey) continue;
+						const metricEntry = metrics[sourceKey];
+						const rawValue =
+							typeof metricEntry?.RawValue === 'number' && !Number.isNaN(metricEntry.RawValue)
+								? metricEntry.RawValue
+								: typeof metricEntry?.Percent === 'number' && !Number.isNaN(metricEntry.Percent)
+								? metricEntry.Percent
+								: null;
+						if (rawValue === null) continue;
+						const history = updatedHistory[historyKey];
+						history.push(rawValue);
+						if (history.length > METRICS_HISTORY_LENGTH) history.splice(0, history.length - METRICS_HISTORY_LENGTH);
+					}
+					metricsHistoryStore.set(instance.InstanceID, updatedHistory);
+					const metricsHistory = cloneHistory(updatedHistory);
+
 					const mappedInstance: SanitizedInstance = {
 						InstanceID: instance.InstanceID,
 						TargetID: instance.TargetID,
@@ -161,6 +195,7 @@ export async function getAllInstances({ fetch }: { fetch?: InstanceSearchFilter 
 						NextBackup: nextScheduled?.find((s) => s.type === 'Backup')?.data || null,
 						ConnectionInfo: { Port: port },
 						Metrics: metrics,
+						MetricsHistory: metricsHistory,
 					};
 					return mappedInstance;
 				})
