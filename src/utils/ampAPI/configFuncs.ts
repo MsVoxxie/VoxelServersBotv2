@@ -1,6 +1,8 @@
 import { SchedulerJobs, ModuleTypeMap, TaskToAdd, configType } from '../../types/ampTypes/ampTypes';
 import { instanceLogin } from './coreFuncs';
 import logger from '../logger';
+import redis from '../../loaders/database/redisLoader';
+import { getJson, mergeJson } from '../redisHelpers';
 
 export async function setInstanceConfigs(instanceID: string, moduleName: string, configs: configType) {
 	try {
@@ -46,6 +48,18 @@ export async function getInstanceConfigs(instanceID: string, moduleName: string,
 }
 
 export async function getInstanceConfig(instanceID: string, moduleName: string, configKey: string) {
+	// Short-circuit cache for schedule offset specifically
+	try {
+		if (configKey === 'Core.AMP.ScheduleOffsetSeconds') {
+			const redisKey = `instanceCache:${instanceID}`;
+			const cached = await getJson<any>(redis, redisKey).catch(() => null);
+			if (cached && cached.scheduleOffset) {
+				return { success: true, error: null, key: cached.scheduleOffset };
+			}
+		}
+	} catch (err) {
+		// ignore cache errors
+	}
 	try {
 		const API = await instanceLogin(instanceID, moduleName as keyof ModuleTypeMap);
 		if (!API) {
@@ -53,6 +67,15 @@ export async function getInstanceConfig(instanceID: string, moduleName: string, 
 			return { success: false, error: 'Unable to connect to instance.', data: null };
 		}
 		const config = await API.Core.GetConfig(configKey);
+		// cache schedule offset if requested
+		try {
+			if (configKey === 'Core.AMP.ScheduleOffsetSeconds') {
+				const redisKey = `instanceCache:${instanceID}`;
+				await mergeJson<any>(redis, redisKey, { scheduleOffset: config }, '.', 30).catch(() => null);
+			}
+		} catch (err) {
+			// ignore cache write errors
+		}
 		return { success: true, error: null, key: config };
 	} catch (error) {
 		logger.error('GetConfigs', 'Error retrieving instance configs');

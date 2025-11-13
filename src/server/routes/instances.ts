@@ -35,6 +35,8 @@ router.get('/data/instances/:instanceId', async (req, res) => {
 	if (!instance) {
 		return res.status(404).json({ error: 'Instance not found' });
 	}
+	console.log(instance);
+
 	return res.json(instance);
 });
 

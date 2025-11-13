@@ -3,9 +3,23 @@ import { RawTimeIntervalData } from './../../types/ampTypes/ampTypes';
 import { CronExpressionParser } from 'cron-parser';
 import { loginAndGetSchedule } from './taskFuncs';
 import logger from '../logger';
+import redis from '../../loaders/database/redisLoader';
+import { getJson, mergeJson } from '../redisHelpers';
 
 export async function getIntervalTrigger(instanceId: string, moduleName: string, lookupType: IntervalLookupType) {
 	try {
+		// check redis cache first (shared short-term cache)
+		try {
+			const redisKey = `instanceCache:${instanceId}`;
+			const cached = await getJson<any>(redis, redisKey).catch(() => null);
+			if (cached && Array.isArray(cached.triggers) && cached.triggers.length) {
+				// If lookupType is specific, filter cached triggers accordingly
+				if (lookupType === 'Both') return cached.triggers;
+				return cached.triggers.filter((t: any) => t.type === lookupType);
+			}
+		} catch (err) {
+			// ignore cache errors
+		}
 		const { API, scheduleData } = await loginAndGetSchedule(instanceId, moduleName as keyof ModuleTypeMap);
 		if (!API) return logger.error('getIntervalTrigger', `Failed to login to instance ID ${instanceId} for interval lookup.`);
 
@@ -42,6 +56,14 @@ export async function getIntervalTrigger(instanceId: string, moduleName: string,
 				return { type, data: { ...parsed } };
 			})
 		);
+
+		// cache triggers for 30s
+		try {
+			const redisKey = `instanceCache:${instanceId}`;
+			await mergeJson<any>(redis, redisKey, { triggers: results }, '.', 30).catch(() => null);
+		} catch (err) {
+			// ignore cache write errors
+		}
 
 		return results;
 	} catch (error) {
