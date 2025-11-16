@@ -3,6 +3,7 @@ import { InstanceSearchFilter } from '../../types/ampTypes/ampTypes';
 import express from 'express';
 import { getJson, getKeys } from '../../utils/redisHelpers';
 import redis from '../../loaders/database/redisLoader';
+import logger from '../../utils/logger';
 const router = express.Router();
 
 export const routeDescriptions = [
@@ -20,22 +21,32 @@ export const routeDescriptions = [
 
 // Get all instances
 router.get('/data/instances', async (req, res) => {
-	if (!redis.isOpen) return res.status(503).json({ error: 'An error occurred while fetching data.' });
-	const instances = (await getKeys(redis, 'instance:*')) as SanitizedInstance[];
-	const stateFilter = req.query.filter as InstanceSearchFilter;
-	let filteredInstances = instances.flat() || [];
-	filteredInstances = sortInstances(filteredInstances, stateFilter);
-	return res.json(Array.isArray(filteredInstances) && filteredInstances.length === 1 ? filteredInstances[0] : filteredInstances);
+	try {
+		if (!redis.isOpen) return res.status(503).json({ error: 'An error occurred while fetching data.' });
+		const instances = (await getKeys(redis, 'instance:*')) as SanitizedInstance[];
+		const stateFilter = req.query.filter as InstanceSearchFilter;
+		let filteredInstances = instances.flat() || [];
+		filteredInstances = sortInstances(filteredInstances, stateFilter);
+		return res.json(Array.isArray(filteredInstances) && filteredInstances.length === 1 ? filteredInstances[0] : filteredInstances);
+	} catch (err) {
+		logger.error('instances route', err);
+		return res.status(500).json({ error: 'An error occurred while fetching instances.' });
+	}
 });
 
 // Get a specific instance by ID
 router.get('/data/instances/:instanceId', async (req, res) => {
-	if (!redis.isOpen) return res.status(503).json({ error: 'An error occurred while fetching data.' });
-	const instance = await getJson(redis, `instance:${req.params.instanceId}`);
-	if (!instance) {
-		return res.status(404).json({ error: 'Instance not found' });
+	try {
+		if (!redis.isOpen) return res.status(503).json({ error: 'An error occurred while fetching data.' });
+		const instance = await getJson(redis, `instance:${req.params.instanceId}`);
+		if (!instance) {
+			return res.status(404).json({ error: 'Instance not found' });
+		}
+		return res.json(instance);
+	} catch (err) {
+		logger.error('instances route', err);
+		return res.status(500).json({ error: 'An error occurred while fetching the instance.' });
 	}
-	return res.json(instance);
 });
 
 function sortInstances(instances: any[], filter: InstanceSearchFilter) {

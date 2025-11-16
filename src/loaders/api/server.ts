@@ -18,6 +18,18 @@ export default async (client: any) => {
 	const router = createRouter;
 	srv.use('/v2', router);
 
+	// Return JSON for any unmatched route (avoid HTML 404 pages)
+	srv.use((req, res) => {
+		res.status(404).json({ error: 'Not Found' });
+	});
+
+	// Global error handler - return JSON instead of HTML error pages
+	srv.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+		Logger.error('API', err);
+		if (res.headersSent) return next(err);
+		res.status(500).json({ error: 'Internal Server Error' });
+	});
+
 	try {
 		srv.listen(Port, () => {
 			Logger.success('API', `API running on port ${Port}`);

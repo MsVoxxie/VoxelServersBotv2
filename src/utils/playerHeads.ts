@@ -4,6 +4,7 @@ const STEAM_API_URL = (steam64: string) => `https://api.steampowered.com/ISteamU
 
 import fs from 'fs';
 import path from 'path';
+import logger from './logger';
 
 // Set cache location and TTL (in milliseconds)
 const placeholderPath = path.join(process.cwd(), 'src', 'server', 'public', 'playerAvatars', 'placeholder.png');
@@ -20,9 +21,22 @@ async function getUUID(username: string) {
 	const res = await fetch(USERNAME_LOOKUP_URL(username), {
 		headers: { 'Content-Type': 'application/json' },
 	});
-	if (!res.ok) throw new Error('Failed to fetch UUID');
-	const data = await res.json();
-	return data.id;
+	if (!res.ok) {
+		logger.warn('playerHeads', `UUID lookup failed for ${username}: ${res.status} ${res.statusText}`);
+		throw new Error('Failed to fetch UUID');
+	}
+	const contentType = res.headers.get('content-type') || '';
+	if (!contentType.toLowerCase().includes('application/json')) {
+		logger.warn('playerHeads', `Unexpected content-type for UUID lookup (${username}): ${contentType}`);
+		throw new Error('Invalid response content-type');
+	}
+	try {
+		const data = await res.json();
+		return data.id;
+	} catch (err) {
+		logger.warn('playerHeads', `Failed to parse UUID JSON for ${username}: ${err instanceof Error ? err.message : String(err)}`);
+		throw new Error('Failed to parse UUID response');
+	}
 }
 
 // Check if a file is fresh (not older than TTL)
@@ -59,8 +73,22 @@ function toSteam64(steamId: string): string {
 async function downloadSteamAvatar(steamId: string, filePath: string) {
 	const steam64 = toSteam64(steamId);
 	const res = await fetch(STEAM_API_URL(steam64));
-	if (!res.ok) throw new Error('Failed to fetch Steam profile');
-	const data = await res.json();
+	if (!res.ok) {
+		logger.warn('playerHeads', `Failed Steam profile fetch for ${steamId}: ${res.status} ${res.statusText}`);
+		throw new Error('Failed to fetch Steam profile');
+	}
+	const contentType = res.headers.get('content-type') || '';
+	if (!contentType.toLowerCase().includes('application/json')) {
+		logger.warn('playerHeads', `Unexpected content-type for Steam profile (${steamId}): ${contentType}`);
+		throw new Error('Invalid Steam profile response');
+	}
+	let data: any;
+	try {
+		data = await res.json();
+	} catch (err) {
+		logger.warn('playerHeads', `Failed to parse Steam profile JSON for ${steamId}: ${err instanceof Error ? err.message : String(err)}`);
+		throw new Error('Failed to parse Steam profile');
+	}
 	const player = data.response.players[0];
 	if (!player || !player.avatarfull) throw new Error('No avatar found for this SteamID');
 	const avatarRes = await fetch(player.avatarfull);

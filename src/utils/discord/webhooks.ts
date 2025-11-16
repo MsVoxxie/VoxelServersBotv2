@@ -5,8 +5,11 @@ import { sendServerConsoleCommand } from '../ampAPI/coreFuncs';
 import redis from '../../loaders/database/redisLoader';
 import { chatlinkModel } from '../../models/chatlink';
 import { Message, WebhookClient } from 'discord.js';
-import { getJson } from '../redisHelpers';
+import UserData from '../../models/userData';
+import { getJson, getKeys } from '../redisHelpers';
+import { mongoCache } from '../../vsb';
 import logger from '../logger';
+import { formatMCUUID } from '../utils';
 
 export async function toDiscord(data: ChatlinkBase) {
 	try {
