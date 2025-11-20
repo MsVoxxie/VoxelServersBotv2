@@ -1,20 +1,41 @@
-const CRAFATAR_URL = (uuid: string) => `https://crafatar.com/renders/head/${uuid}?scale=10&overlay`;
-const USERNAME_LOOKUP_URL = (username: string) => `https://api.minecraftservices.com/minecraft/profile/lookup/name/${encodeURIComponent(username)}`;
-const STEAM_API_URL = (steam64: string) => `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${steamAPIKey}&steamids=${steam64}`;
-
 import fs from 'fs';
 import path from 'path';
 import logger from './logger';
+import { getJson, setJson, TTL } from './redisHelpers';
+import redis from '../loaders/database/redisLoader';
+
+const steamAPIKey = process.env.STEAM_API_KEY;
+
+// Validate Steam API key early
+if (!steamAPIKey) {
+	logger.warn('playerHeads', 'STEAM_API_KEY is not set; Steam avatars will always fall back.');
+}
+
+const CRAFATAR_URL = (uuid: string) => `https://crafatar.com/renders/head/${uuid}?scale=10&overlay`;
+const USERNAME_LOOKUP_URL = (username: string) => `https://api.minecraftservices.com/minecraft/profile/lookup/name/${encodeURIComponent(username)}`;
+const STEAM_API_URL = (steam64: string) => `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${steamAPIKey}&steamids=${steam64}`;
 
 // Set cache location and TTL (in milliseconds)
 const placeholderPath = path.join(process.cwd(), 'src', 'server', 'public', 'playerAvatars', 'placeholder.png');
 const minecraftCacheDir = path.join(process.cwd(), 'src', 'server', 'public', 'playerAvatars', 'Minecraft');
 const steamCacheDir = path.join(process.cwd(), 'src', 'server', 'public', 'playerAvatars', 'Steam');
-const steamAPIKey = process.env.STEAM_API_KEY;
 const CACHE_TTL = 1000 * 60 * 60 * 48; // 48 hours
+
+// Redis TTL: same as CACHE_TTL but in seconds
+const REDIS_CACHE_TTL_SECONDS = TTL(48, 'Hours');
 
 if (!fs.existsSync(minecraftCacheDir)) fs.mkdirSync(minecraftCacheDir);
 if (!fs.existsSync(steamCacheDir)) fs.mkdirSync(steamCacheDir);
+
+// Redis cache types
+interface AvatarCacheEntry {
+	// Absolute path to PNG on disk
+	filePath: string;
+	// ISO timestamp of last refresh
+	lastUpdated: string;
+	// Optional metadata (e.g., uuid, steam64)
+	meta?: Record<string, string>;
+}
 
 // Get UUID from username
 async function getUUID(username: string) {
@@ -39,14 +60,6 @@ async function getUUID(username: string) {
 	}
 }
 
-// Check if a file is fresh (not older than TTL)
-function isCacheFresh(filePath: string, ttl = CACHE_TTL) {
-	if (!fs.existsSync(filePath)) return false;
-	const stats = fs.statSync(filePath);
-	const age = Date.now() - stats.mtimeMs;
-	return age < ttl;
-}
-
 // Download head PNG and save to cache
 async function downloadHead(uuid: string, filePath: string) {
 	const res = await fetch(CRAFATAR_URL(uuid));
@@ -57,7 +70,6 @@ async function downloadHead(uuid: string, filePath: string) {
 	return buffer;
 }
 
-// Download Steam avatar and save to cache
 // Convert legacy Steam ID (e.g., STEAM_0:1:61611229) to Steam64
 function toSteam64(steamId: string): string {
 	if (/^STEAM_\d:\d:\d+$/.test(steamId)) {
@@ -70,6 +82,7 @@ function toSteam64(steamId: string): string {
 	return steamId;
 }
 
+// Download Steam avatar and save to cache
 async function downloadSteamAvatar(steamId: string, filePath: string) {
 	const steam64 = toSteam64(steamId);
 	const res = await fetch(STEAM_API_URL(steam64));
@@ -99,40 +112,117 @@ async function downloadSteamAvatar(steamId: string, filePath: string) {
 	return buffer;
 }
 
-// Main function: Get head from cache or fetch it
+// Helper: ensure placeholder exists; if not, just return it anyway (Express will 404)
+function getSafePlaceholderPath() {
+	try {
+		if (fs.existsSync(placeholderPath)) return placeholderPath;
+	} catch {
+		// ignore
+	}
+	return placeholderPath;
+}
+
+async function upsertRedisAvatarCache(key: string, filePath: string, meta?: Record<string, string>) {
+	const entry: AvatarCacheEntry = {
+		filePath,
+		lastUpdated: new Date().toISOString(),
+		meta,
+	};
+	try {
+		await setJson(redis, key, entry, '.', REDIS_CACHE_TTL_SECONDS);
+	} catch (err) {
+		logger.warn('playerHeads', `Failed to upsert Redis avatar cache for ${key}: ${err instanceof Error ? err.message : String(err)}`);
+	}
+}
+
+async function getRedisAvatarCache(key: string): Promise<AvatarCacheEntry | null> {
+	try {
+		return await getJson<AvatarCacheEntry>(redis, key, '.');
+	} catch (err) {
+		logger.warn('playerHeads', `Failed to read Redis avatar cache for ${key}: ${err instanceof Error ? err.message : String(err)}`);
+		return null;
+	}
+}
+
+function isEntryFresh(entry: AvatarCacheEntry, ttlMs = CACHE_TTL): boolean {
+	const last = Date.parse(entry.lastUpdated);
+	if (Number.isNaN(last)) return false;
+	return Date.now() - last < ttlMs;
+}
+
+// Fire-and-forget refresh that doesn’t block the response
+function triggerBackgroundRefresh(fn: () => Promise<void>) {
+	fn().catch((err) => {
+		logger.warn('playerHeads', `Background avatar refresh failed: ${err instanceof Error ? err.message : String(err)}`);
+	});
+}
+
+// Main function: Get head from cache or fetch it (Minecraft)
 export async function getMCHead(usernameOrUUID: string) {
+	const redisKey = `avatar:minecraft:${usernameOrUUID.toLowerCase()}`;
+
 	let uuid: string;
-	// If input looks like a UUID, use it directly
 	if (/^[a-fA-F0-9]{32}$/.test(usernameOrUUID.replace(/-/g, ''))) {
 		uuid = usernameOrUUID.replace(/-/g, '');
 	} else {
 		try {
 			uuid = await getUUID(usernameOrUUID);
 		} catch (err) {
-			return placeholderPath;
+			logger.warn('playerHeads', `Falling back to placeholder for MC head (UUID lookup failed) ${usernameOrUUID}: ${err instanceof Error ? err.message : String(err)}`);
+			return getSafePlaceholderPath();
 		}
 	}
-	const filePath = path.join(minecraftCacheDir, `minecraft:${usernameOrUUID}.png`);
 
-	try {
-		if (!isCacheFresh(filePath)) {
-			await downloadHead(uuid, filePath);
+	const filePathOnDisk = path.join(minecraftCacheDir, `minecraft:${uuid}.png`);
+
+	// 1) Try Redis
+	const cached = await getRedisAvatarCache(redisKey);
+	if (cached && fs.existsSync(cached.filePath)) {
+		if (!isEntryFresh(cached)) {
+			triggerBackgroundRefresh(async () => {
+				await downloadHead(uuid, filePathOnDisk);
+				await upsertRedisAvatarCache(redisKey, filePathOnDisk, { uuid });
+			});
 		}
-		return filePath;
+		return cached.filePath;
+	}
+
+	// 2) Redis miss or no disk file: download now
+	try {
+		await downloadHead(uuid, filePathOnDisk);
+		await upsertRedisAvatarCache(redisKey, filePathOnDisk, { uuid });
+		return filePathOnDisk;
 	} catch (err) {
-		return placeholderPath;
+		logger.warn('playerHeads', `Falling back to placeholder for MC head (download failed) ${usernameOrUUID}: ${err instanceof Error ? err.message : String(err)}`);
+		return getSafePlaceholderPath();
 	}
 }
 
 // Main function: Get Steam avatar from cache or fetch it
-export async function getSteamAvatar(steam64: string) {
-	const filePath = path.join(steamCacheDir, `${steam64}.png`);
-	if (!isCacheFresh(filePath)) {
-		try {
-			await downloadSteamAvatar(steam64, filePath);
-		} catch (err) {
-			return placeholderPath;
+export async function getSteamAvatar(steamIdOr64: string) {
+	const steam64 = toSteam64(steamIdOr64);
+	const redisKey = `avatar:steam:${steam64}`;
+	const filePathOnDisk = path.join(steamCacheDir, `${steam64}.png`);
+
+	// 1) Try Redis
+	const cached = await getRedisAvatarCache(redisKey);
+	if (cached && fs.existsSync(cached.filePath)) {
+		if (!isEntryFresh(cached)) {
+			triggerBackgroundRefresh(async () => {
+				await downloadSteamAvatar(steam64, filePathOnDisk);
+				await upsertRedisAvatarCache(redisKey, filePathOnDisk, { steam64 });
+			});
 		}
+		return cached.filePath;
 	}
-	return filePath;
+
+	// 2) Redis miss or no disk file: download now
+	try {
+		await downloadSteamAvatar(steam64, filePathOnDisk);
+		await upsertRedisAvatarCache(redisKey, filePathOnDisk, { steam64 });
+		return filePathOnDisk;
+	} catch (err) {
+		logger.warn('playerHeads', `Falling back to placeholder for Steam avatar (download failed) ${steamIdOr64}: ${err instanceof Error ? err.message : String(err)}`);
+		return getSafePlaceholderPath();
+	}
 }
