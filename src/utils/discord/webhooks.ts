@@ -5,11 +5,8 @@ import { sendServerConsoleCommand } from '../ampAPI/coreFuncs';
 import redis from '../../loaders/database/redisLoader';
 import { chatlinkModel } from '../../models/chatlink';
 import { Message, WebhookClient } from 'discord.js';
-import UserData from '../../models/userData';
-import { getJson, getKeys } from '../redisHelpers';
-import { mongoCache } from '../../vsb';
+import { getJson } from '../redisHelpers';
 import logger from '../logger';
-import { formatMCUUID } from '../utils';
 
 export async function toDiscord(data: ChatlinkBase) {
 	try {
@@ -21,20 +18,20 @@ export async function toDiscord(data: ChatlinkBase) {
 		if (!instanceData) throw new Error(`Failed to fetch instance data for ID ${data.InstanceId}`);
 		if (!chatlinkData) throw new Error(`Failed to fetch chatlink data for ID ${data.InstanceId}`);
 
-		const instanceModule = instanceData.Module;
+		// const instanceModule = instanceData.Module;
 		const [webhookId, webhookToken] = [chatlinkData.webhookId, chatlinkData.webhookToken];
 		const wsClient = new WebhookClient({ id: webhookId, token: webhookToken });
-		let playerImage;
+		const playerImage = (await fetch(`${process.env.API_URI}/data/avatar/${data.UserId}`)).url;
 
-		switch (instanceModule) {
-			case 'Minecraft':
-				playerImage = `${process.env.API_URI}/data/avatar/${data.Username}`;
-				break;
+		// switch (instanceModule) {
+		// 	case 'Minecraft':
+		// 		playerImage = `${process.env.API_URI}/data/avatar/${data.UserId}`;
+		// 		break;
 
-			case 'GenericModule':
-				playerImage = `${process.env.API_URI}/data/avatar/${data.UserId}`;
-				break;
-		}
+		// 	case 'GenericModule':
+		// 		playerImage = `${process.env.API_URI}/data/avatar/${data.UserId}`;
+		// 		break;
+		// }
 
 		// guard against failed sends
 		await wsClient
