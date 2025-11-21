@@ -11,7 +11,8 @@ if (!steamAPIKey) {
 	logger.warn('playerHeads', 'STEAM_API_KEY is not set; Steam avatars will always fall back.');
 }
 
-const CRAFATAR_URL = (uuid: string) => `https://crafatar.com/renders/head/${uuid}?scale=10&overlay`;
+// const MINECRAFT_HEAD_URL = (uuid: string) => `https://crafatar.com/renders/head/${uuid}?scale=10&overlay`;
+const MINECRAFT_HEAD_URL = (uuid: string) => `https://mc-heads.net/head/${uuid}/256`;
 const USERNAME_LOOKUP_URL = (username: string) => `https://api.minecraftservices.com/minecraft/profile/lookup/name/${encodeURIComponent(username)}`;
 const STEAM_API_URL = (steam64: string) => `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${steamAPIKey}&steamids=${steam64}`;
 
@@ -19,10 +20,10 @@ const STEAM_API_URL = (steam64: string) => `https://api.steampowered.com/ISteamU
 const placeholderPath = path.join(process.cwd(), 'src', 'server', 'public', 'playerAvatars', 'placeholder.png');
 const minecraftCacheDir = path.join(process.cwd(), 'src', 'server', 'public', 'playerAvatars', 'Minecraft');
 const steamCacheDir = path.join(process.cwd(), 'src', 'server', 'public', 'playerAvatars', 'Steam');
-const CACHE_TTL = 1000 * 60 * 60 * 48; // 48 hours
+const CACHE_TTL = 1000 * 60 * 60 * 2; // 2 hours
 
 // Redis TTL: same as CACHE_TTL but in seconds
-const REDIS_CACHE_TTL_SECONDS = TTL(48, 'Hours');
+const REDIS_CACHE_TTL_SECONDS = TTL(2, 'Hours');
 
 if (!fs.existsSync(minecraftCacheDir)) fs.mkdirSync(minecraftCacheDir);
 if (!fs.existsSync(steamCacheDir)) fs.mkdirSync(steamCacheDir);
@@ -62,7 +63,7 @@ async function getUUID(username: string) {
 
 // Download head PNG and save to cache
 async function downloadHead(uuid: string, filePath: string) {
-	const res = await fetch(CRAFATAR_URL(uuid));
+	const res = await fetch(MINECRAFT_HEAD_URL(uuid));
 	if (!res.ok) throw new Error('Failed to fetch head image');
 	const arrayBuffer = await res.arrayBuffer();
 	const buffer = Buffer.from(arrayBuffer);
