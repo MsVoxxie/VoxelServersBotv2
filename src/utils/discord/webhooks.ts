@@ -1,7 +1,7 @@
 import { part, tellRawBuilder } from '../gameSpecific/minecraftTellraw';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { ChatlinkBase } from '../../types/apiTypes/chatlinkAPITypes';
-import { sendServerConsoleCommand } from '../ampAPI/coreFuncs';
+import { sendServerConsoleCommand } from '../ampAPI/instanceFuncs';
 import redis from '../../loaders/database/redisLoader';
 import { chatlinkModel } from '../../models/chatlink';
 import { Message, WebhookClient } from 'discord.js';

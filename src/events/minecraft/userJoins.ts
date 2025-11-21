@@ -1,4 +1,4 @@
-import { getServerPlayerInfo, sendServerConsoleCommand } from '../../utils/ampAPI/coreFuncs';
+import { getServerPlayerInfo, sendServerConsoleCommand } from '../../utils/ampAPI/instanceFuncs';
 import { SanitizedInstance, SleepGamerule } from '../../types/ampTypes/instanceTypes';
 import { calculateSleepingPercentage } from '../../utils/gameSpecific/minecraft';
 import { part, tellRawBuilder } from '../../utils/gameSpecific/minecraftTellraw';

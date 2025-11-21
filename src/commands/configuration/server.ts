@@ -1,8 +1,9 @@
 import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, ApplicationIntegrationType, InteractionContextType, codeBlock } from 'discord.js';
-import { instanceLogin, sendServerConsoleCommand } from '../../utils/ampAPI/coreFuncs';
+import { sendServerConsoleCommand } from '../../utils/ampAPI/instanceFuncs';
 import { AppState, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
+import { instanceLogin } from '../../utils/ampAPI/apiFuncs';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import { trimString, wait } from '../../utils/utils';

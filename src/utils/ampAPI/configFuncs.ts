@@ -1,5 +1,5 @@
 import { SchedulerJobs, ModuleTypeMap, TaskToAdd, configType } from '../../types/ampTypes/ampTypes';
-import { instanceLogin } from './coreFuncs';
+import { instanceLogin } from './apiFuncs';
 import logger from '../logger';
 import redis from '../../loaders/database/redisLoader';
 import { getJson, mergeJson } from '../redisHelpers';

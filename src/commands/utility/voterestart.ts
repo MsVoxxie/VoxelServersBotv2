@@ -17,7 +17,7 @@ import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import redis from '../../loaders/database/redisLoader';
 import { getKeys } from '../../utils/redisHelpers';
 import Fuse from 'fuse.js';
-import { instanceLogin } from '../../utils/ampAPI/coreFuncs';
+import { instanceLogin } from '../../utils/ampAPI/apiFuncs';
 import { ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 
 export const voteRestart = {

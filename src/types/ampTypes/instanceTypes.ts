@@ -53,3 +53,5 @@ export type PlayerList = {
 	Username: string;
 	AvatarURL?: string;
 };
+
+export type ScheduleCache = { scheduleOffset: any | null; rawNextScheduled: any[] };

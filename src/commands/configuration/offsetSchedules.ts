@@ -2,7 +2,7 @@ import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, ApplicationInte
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { setInstanceConfig } from '../../utils/ampAPI/configFuncs';
-import { getAllInstances } from '../../utils/ampAPI/coreFuncs';
+import { getAllInstances } from '../../utils/ampAPI/instanceFuncs';
 import { TTL } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
 

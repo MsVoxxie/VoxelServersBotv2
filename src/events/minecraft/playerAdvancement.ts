@@ -1,6 +1,6 @@
 import { part, tellRawBuilder } from '../../utils/gameSpecific/minecraftTellraw';
+import { sendServerConsoleCommand } from '../../utils/ampAPI/instanceFuncs';
 import { AdvancementEvent } from '../../types/apiTypes/chatlinkAPITypes';
-import { sendServerConsoleCommand } from '../../utils/ampAPI/coreFuncs';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import redis from '../../loaders/database/redisLoader';

@@ -4,7 +4,7 @@ import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { chatlinkJobs } from '../../utils/schedulerJobs/chatlinkJobs';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { ModuleTypeMap } from '../../types/ampTypes/ampTypes';
-import { instanceLogin } from '../../utils/ampAPI/coreFuncs';
+import { instanceLogin } from '../../utils/ampAPI/apiFuncs';
 import redis from '../../loaders/database/redisLoader';
 import { chatlinkModel } from '../../models/chatlink';
 import { getJson } from '../../utils/redisHelpers';
