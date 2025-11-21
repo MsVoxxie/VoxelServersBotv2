@@ -21,7 +21,7 @@ export async function toDiscord(data: ChatlinkBase) {
 		// const instanceModule = instanceData.Module;
 		const [webhookId, webhookToken] = [chatlinkData.webhookId, chatlinkData.webhookToken];
 		const wsClient = new WebhookClient({ id: webhookId, token: webhookToken });
-		const playerImage = (await fetch(`${process.env.API_URI}/data/avatar/${data.UserId}`)).url;
+		const playerImage = `${process.env.API_URI}/data/avatar/${encodeURIComponent(String(data.UserId))}`;
 
 		// switch (instanceModule) {
 		// 	case 'Minecraft':

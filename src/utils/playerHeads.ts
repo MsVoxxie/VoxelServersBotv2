@@ -73,6 +73,11 @@ async function downloadSteamAvatar(steamId: string, filePath: string) {
 	return buffer;
 }
 
+// Sanitize file name by replacing invalid characters with underscores
+function sanitizeFileName(name: string) {
+	return name.replace(/[:\/\\\s]/g, '_');
+}
+
 // Main function: Get head from cache or fetch it
 export async function getMCHead(usernameOrUUID: string) {
 	let uuid: string;
@@ -86,7 +91,7 @@ export async function getMCHead(usernameOrUUID: string) {
 			return placeholderPath;
 		}
 	}
-	const filePath = path.join(minecraftCacheDir, `minecraft:${usernameOrUUID}.png`);
+	const filePath = path.join(minecraftCacheDir, `minecraft-${sanitizeFileName(usernameOrUUID)}.png`);
 
 	try {
 		if (!isCacheFresh(filePath)) {
@@ -103,7 +108,7 @@ export async function getMCHead(usernameOrUUID: string) {
 
 // Main function: Get Steam avatar from cache or fetch it
 export async function getSteamAvatar(steam64: string) {
-	const filePath = path.join(steamCacheDir, `${steam64}.png`);
+	const filePath = path.join(steamCacheDir, `${sanitizeFileName(steam64)}.png`);
 	if (!isCacheFresh(filePath)) {
 		try {
 			await downloadSteamAvatar(steam64, filePath);
