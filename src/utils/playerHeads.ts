@@ -1,11 +1,12 @@
-// const MINECRAFT_HEAD_URL = (uuid: string) => `https://mc-heads.net/head/${uuid}/256`;
-const MINECRAFT_HEAD_URL = (uuid: string) => `https://avatars.cloudhaven.gg/renders/head/${uuid}?scale=10&overlay`; // Seems offline..
+// const MINECRAFT_HEAD_URL = (uuid: string) => `https://mc-heads.net/head/${uuid}/128`;
+const MINECRAFT_HEAD_URL = (uuid: string) => `https://api.mcheads.org/avatar/${uuid}/128`;
 const USERNAME_LOOKUP_URL = (username: string) => `https://api.minecraftservices.com/minecraft/profile/lookup/name/${encodeURIComponent(username)}`;
 const STEAM_API_URL = (steam64: string) => `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${steamAPIKey}&steamids=${steam64}`;
 
 import fs from 'fs';
 import path from 'path';
 import logger from './logger';
+import { formatMCUUID } from './utils';
 
 // Set cache location and TTL (in milliseconds)
 const placeholderPath = path.join(process.cwd(), 'src', 'server', 'public', 'playerAvatars', 'placeholder.png');
@@ -37,6 +38,7 @@ function isCacheFresh(filePath: string, ttl = CACHE_TTL) {
 
 // Download head PNG and save to cache
 async function downloadHead(uuid: string, filePath: string) {
+	if (uuid === undefined) return logger.error('downloadHead', 'UUID is undefined, cannot download head image');
 	const res = await fetch(MINECRAFT_HEAD_URL(uuid));
 	if (!res.ok) throw new Error('Failed to fetch head image');
 	const arrayBuffer = await res.arrayBuffer();
@@ -79,29 +81,38 @@ function sanitizeFileName(name: string) {
 }
 
 // Main function: Get head from cache or fetch it
-export async function getMCHead(usernameOrUUID: string) {
-	let uuid: string;
-	// If input looks like a UUID, use it directly
-	if (/^[a-fA-F0-9]{32}$/.test(usernameOrUUID.replace(/-/g, ''))) {
-		uuid = usernameOrUUID.replace(/-/g, '');
+export async function getMCHead(id: string) {
+	const raw = id.trim();
+	let uuid: string | null = null;
+
+	const candidate = formatMCUUID(raw);
+	if (/^[0-9a-f]{32}$/i.test(candidate)) {
+		uuid = candidate;
 	} else {
 		try {
-			uuid = await getUUID(usernameOrUUID);
-		} catch (err) {
-			return placeholderPath;
+			const fetched = await getUUID(raw);
+			if (fetched) uuid = formatMCUUID(fetched);
+		} catch {
+			// ignore, fallback handled below
 		}
 	}
-	const filePath = path.join(minecraftCacheDir, `minecraft-${sanitizeFileName(usernameOrUUID)}.png`);
 
+	if (!uuid) {
+		logger.warn('getMCHead', `No UUID for ${raw}`);
+		return placeholderPath;
+	}
+
+	const filePath = path.join(minecraftCacheDir, `minecraft-${uuid}.png`);
 	try {
 		if (!isCacheFresh(filePath)) {
 			await downloadHead(uuid, filePath);
-			logger.info('getMCHead', `Downloaded new avatar for ${usernameOrUUID}`);
+			logger.info('getMCHead', `Downloaded avatar ${uuid}`);
+		} else {
+			logger.info('getMCHead', `Serving cached avatar ${uuid}`);
 		}
-		logger.info('getMCHead', `Serving cached avatar for ${usernameOrUUID}`);
 		return filePath;
 	} catch (err) {
-		logger.error('getMCHead', `Failed to get avatar for ${usernameOrUUID}\nUsing placeholder image.`);
+		logger.error('getMCHead', `Failed avatar ${uuid}: ${(err as Error).message}`);
 		return placeholderPath;
 	}
 }
