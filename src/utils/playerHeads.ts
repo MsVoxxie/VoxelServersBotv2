@@ -1,5 +1,6 @@
 // const MINECRAFT_HEAD_URL = (uuid: string) => `https://mc-heads.net/head/${uuid}/128`;
-const MINECRAFT_HEAD_URL = (uuid: string) => `https://api.mcheads.org/avatar/${uuid}/128`;
+const MINECRAFT_HEAD_URL = (uuidDashed: string) => `https://api.mcheads.org/avatar/${uuidDashed}/128`;
+const CRAFATAR_HEAD_URL = (uuidUndashed: string) => `https://crafatar.com/avatars/${uuidUndashed}?size=128&overlay`;
 const USERNAME_LOOKUP_URL = (username: string) => `https://api.minecraftservices.com/minecraft/profile/lookup/name/${encodeURIComponent(username)}`;
 const STEAM_API_URL = (steam64: string) => `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${steamAPIKey}&steamids=${steam64}`;
 
@@ -80,39 +81,80 @@ function sanitizeFileName(name: string) {
 	return name.replace(/[:\/\\\s]/g, '_');
 }
 
+function isUUID(v: string) {
+	const hex = v.replace(/[^0-9a-fA-F]/g, '').toLowerCase();
+	return /^[0-9a-f]{32}$/.test(hex);
+}
+function undash(v: string) {
+	return v.replace(/-/g, '').toLowerCase();
+}
+function dashUUID(hex: string) {
+	return hex.replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5');
+}
+
+async function fetchUUIDForName(name: string): Promise<string | null> {
+	try {
+		const res = await fetch(USERNAME_LOOKUP_URL(name), { headers: { 'Content-Type': 'application/json' } });
+		if (!res.ok) {
+			logger.warn('getMCHead', `UUID lookup HTTP ${res.status} for ${name}`);
+			return null;
+		}
+		const data = await res.json();
+		if (data?.id && isUUID(data.id)) return undash(data.id);
+		return null;
+	} catch (e) {
+		logger.warn('getMCHead', `UUID lookup error for ${name}: ${(e as Error).message}`);
+		return null;
+	}
+}
+
+async function downloadHeadMulti(uuidUndashed: string, filePath: string) {
+	const candidates = [
+		{ url: MINECRAFT_HEAD_URL(dashUUID(uuidUndashed)), label: 'mcheads' },
+		// { url: CRAFATAR_HEAD_URL(uuidUndashed), label: 'crafatar' },
+	];
+	for (const c of candidates) {
+		try {
+			const res = await fetch(c.url);
+			if (!res.ok) {
+				logger.warn('getMCHead', `Provider ${c.label} status ${res.status} for ${uuidUndashed}`);
+				continue;
+			}
+			const buf = Buffer.from(await res.arrayBuffer());
+			fs.writeFileSync(filePath, buf);
+			logger.info('getMCHead', `Downloaded from ${c.label} for ${dashUUID(uuidUndashed)}`);
+			return;
+		} catch (e) {
+			logger.warn('getMCHead', `Provider ${c.label} error for ${uuidUndashed}: ${(e as Error).message}`);
+		}
+	}
+	throw new Error('All providers failed');
+}
+
 // Main function: Get head from cache or fetch it
 export async function getMCHead(id: string) {
 	const raw = id.trim();
-	let uuid: string | null = null;
+	let uuidUndashed: string | null = null;
 
-	const candidate = formatMCUUID(raw);
-	if (/^[0-9a-f]{32}$/i.test(candidate)) {
-		uuid = candidate;
+	if (isUUID(raw)) {
+		uuidUndashed = undash(raw);
 	} else {
-		try {
-			const fetched = await getUUID(raw);
-			if (fetched) uuid = formatMCUUID(fetched);
-		} catch {
-			// ignore, fallback handled below
-		}
+		uuidUndashed = await fetchUUIDForName(raw);
 	}
 
-	if (!uuid) {
+	if (!uuidUndashed) {
 		logger.warn('getMCHead', `No UUID for ${raw}`);
 		return placeholderPath;
 	}
 
-	const filePath = path.join(minecraftCacheDir, `minecraft-${uuid}.png`);
+	const cachePath = path.join(minecraftCacheDir, `minecraft-${uuidUndashed}.png`);
 	try {
-		if (!isCacheFresh(filePath)) {
-			await downloadHead(uuid, filePath);
-			logger.info('getMCHead', `Downloaded avatar ${uuid}`);
-		} else {
-			logger.info('getMCHead', `Serving cached avatar ${uuid}`);
+		if (!isCacheFresh(cachePath)) {
+			await downloadHeadMulti(uuidUndashed, cachePath);
 		}
-		return filePath;
-	} catch (err) {
-		logger.error('getMCHead', `Failed avatar ${uuid}: ${(err as Error).message}`);
+		return cachePath;
+	} catch (e) {
+		logger.error('getMCHead', `Failed all providers for ${dashUUID(uuidUndashed)}: ${(e as Error).message}`);
 		return placeholderPath;
 	}
 }

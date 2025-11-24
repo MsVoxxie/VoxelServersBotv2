@@ -21,17 +21,19 @@ export async function toDiscord(data: ChatlinkBase) {
 		// const instanceModule = instanceData.Module;
 		const [webhookId, webhookToken] = [chatlinkData.webhookId, chatlinkData.webhookToken];
 		const wsClient = new WebhookClient({ id: webhookId, token: webhookToken });
-		const playerImage = `${process.env.API_URI}/data/avatar/${encodeURIComponent(String(data.UserId || data.Username))}`;
+		const instanceModule = instanceData.Module;
+		let playerImage = '';
+		// const playerImage = `${process.env.API_URI}/data/avatar/${encodeURIComponent(String(data.UserId || data.Username))}?v=2`;
 
-		// switch (instanceModule) {
-		// 	case 'Minecraft':
-		// 		playerImage = `${process.env.API_URI}/data/avatar/${data.UserId}`;
-		// 		break;
+		switch (instanceModule) {
+			case 'Minecraft':
+				playerImage = `https://api.mcheads.org/avatar/${data.UserId}/128`;
+				break;
 
-		// 	case 'GenericModule':
-		// 		playerImage = `${process.env.API_URI}/data/avatar/${data.UserId}`;
-		// 		break;
-		// }
+			case 'GenericModule':
+				playerImage = `${process.env.API_URI}/data/avatar/${data.UserId}`;
+				break;
+		}
 
 		// guard against failed sends
 		await wsClient
