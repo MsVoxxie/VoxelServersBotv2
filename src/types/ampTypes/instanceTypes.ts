@@ -8,6 +8,7 @@ export interface SanitizedInstance {
 	ServerIcon: string;
 	AppState: string;
 	Module: string;
+	FriendlyModule: string;
 	Running: boolean;
 	Suspended: boolean;
 	isChatlinked: boolean;
@@ -57,8 +58,15 @@ export type PlayerList = {
 
 export type discordAllowances = {
 	allowDiscordIntegration: boolean;
-	allowedDiscordRoles?: number[];
-	allowedDiscordUsers?: number[];
+	allowedDiscordRoles?: { roleId: string; allowedPermissions: allowancePermissions }[];
+	allowedDiscordUsers?: { userId: string; allowedPermissions: allowancePermissions }[];
+};
+
+export type allowancePermissions = {
+	restart: boolean;
+	stop: boolean;
+	start: boolean;
+	rcon: boolean;
 };
 
 export type ScheduleCache = { scheduleOffset: any | null; rawNextScheduled: any[] };

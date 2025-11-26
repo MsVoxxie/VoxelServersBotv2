@@ -4,13 +4,13 @@ import { AppStateMap, IntervalTriggerResult, ModuleTypeMap } from '../../types/a
 import { IADSInstance, Instance } from '@neuralnexus/ampapi';
 import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
+import { apiLogin, instanceLogin } from './apiFuncs';
 import { getIntervalTrigger } from './intervalFuncs';
+import { getJson, setJson } from '../redisHelpers';
 import { getImageSource } from './getSourceImage';
 import { getInstanceConfig } from './configFuncs';
-import { getJson, setJson } from '../redisHelpers';
 import { getModpack, getPort } from '../utils';
 import { mongoCache } from '../../vsb';
-import { apiLogin, instanceLogin } from './apiFuncs';
 import logger from '../logger';
 
 // Caches
@@ -161,6 +161,7 @@ export function mapInstanceToSanitized(
 		ServerIcon: serverIcon,
 		AppState: appState,
 		Module: instance.Module || instance.ModuleDisplayName,
+		FriendlyModule: instance.ModuleDisplayName || instance.Module,
 		Running: instance.Running,
 		Suspended: instance.Suspended,
 		isChatlinked: isInstanceLinked,

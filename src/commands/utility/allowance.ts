@@ -10,9 +10,9 @@ import { trimString, wait } from '../../utils/utils';
 import { getJson } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
 
-const manageServers: CommandData = {
+const allowanceCommands: CommandData = {
 	data: new SlashCommandBuilder()
-		.setName('server')
+		.setName('allowance')
 		.setDescription('Various server management commands.')
 		.addSubcommand((sc) =>
 			sc
@@ -40,17 +40,11 @@ const manageServers: CommandData = {
 				.setDescription('Restarts a server')
 				.addStringOption((opt) => opt.setName('server').setDescription('The server to restart.').setRequired(true).setAutocomplete(true))
 		)
-		.addSubcommand((sc) =>
-			sc
-				.setName('update')
-				.setDescription('Updates a server')
-				.addStringOption((opt) => opt.setName('server').setDescription('The server to update.').setRequired(true).setAutocomplete(true))
-		)
-		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall])
-		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
+		.setContexts([InteractionContextType.Guild])
+		.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
 	state: 'enabled',
-	devOnly: true,
+	devOnly: false,
 	autoCompleteInstanceType: 'running',
 	async execute(client, interaction) {
 		try {
@@ -63,11 +57,47 @@ const manageServers: CommandData = {
 			const moduleName = (instance.Module || 'GenericModule') as keyof ModuleTypeMap;
 			const instanceAPI = await instanceLogin(instance.InstanceID, moduleName);
 			if (!instanceAPI) return interaction.editReply({ content: 'Failed to login to instance API.', flags: MessageFlags.Ephemeral });
-			let res;
+			const userRoles = interaction.member.roles.cache.map((r: any) => r.id);
+			const userId = interaction.member.id;
+			let allowedCommands: string[] = [];
+			let res: any;
+
+			// Check allowances for the user
+			if (userId === process.env.DEV_ID) {
+				allowedCommands = ['restart', 'stop', 'start', 'rcon'];
+			}
+
+			if (instance.DiscordAllowances && instance.DiscordAllowances.allowDiscordIntegration) {
+				// Check role allowances
+				if (instance.DiscordAllowances.allowedDiscordRoles) {
+					for (const allowedRole of instance.DiscordAllowances.allowedDiscordRoles) {
+						if (userRoles.includes(allowedRole.roleId)) {
+							const perms = allowedRole.allowedPermissions;
+							for (const [key, enabled] of Object.entries(perms)) {
+								if (enabled && !allowedCommands.includes(key)) allowedCommands.push(key);
+							}
+						}
+					}
+				}
+				// Check user allowances
+				if (instance.DiscordAllowances.allowedDiscordUsers) {
+					const allowedUser = instance.DiscordAllowances.allowedDiscordUsers.find((u) => u.userId === userId);
+					if (allowedUser) {
+						const perms = allowedUser.allowedPermissions;
+						for (const [key, enabled] of Object.entries(perms)) {
+							if (enabled && !allowedCommands.includes(key)) allowedCommands.push(key);
+						}
+					}
+				}
+			}
+
+			console.log(allowedCommands);
 
 			// Switch case for subcommands
 			switch (subcommand) {
 				case 'rcon': {
+					if (!allowedCommands.includes('rcon'))
+						return interaction.editReply({ content: 'You do not have permission to use RCON on this instance.', flags: MessageFlags.Ephemeral });
 					const command = interaction.options.getString('command', true);
 					const verbose = interaction.options.getBoolean('verbose') ?? true;
 					if (!command || command.trim().length === 0) return interaction.editReply({ content: 'Command cannot be empty.', flags: MessageFlags.Ephemeral });
@@ -94,12 +124,15 @@ const manageServers: CommandData = {
 					break;
 				}
 				case 'start': {
+					if (!allowedCommands.includes('start'))
+						return interaction.editReply({ content: 'You do not have permission to start this instance.', flags: MessageFlags.Ephemeral });
 					if (instance.AppState !== AppState.Stopped) return interaction.editReply({ content: `${instance.FriendlyName} is not stopped.`, flags: MessageFlags.Ephemeral });
 					res = await instanceAPI.Core.Start();
 					interaction.editReply({ content: `**${instance.FriendlyName}** ${res.Status ? 'started successfully.' : 'failed to start.'}`, flags: MessageFlags.Ephemeral });
 					break;
 				}
 				case 'stop': {
+					if (!allowedCommands.includes('stop')) return interaction.editReply({ content: 'You do not have permission to stop this instance.', flags: MessageFlags.Ephemeral });
 					if (instance.AppState !== AppState.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
 					instanceAPI.Core.Stop();
 					await wait(2000);
@@ -108,14 +141,11 @@ const manageServers: CommandData = {
 					break;
 				}
 				case 'restart': {
+					if (!allowedCommands.includes('restart'))
+						return interaction.editReply({ content: 'You do not have permission to restart this instance.', flags: MessageFlags.Ephemeral });
 					if (instance.AppState !== AppState.Running) return interaction.editReply({ content: `${instance.FriendlyName} is not running.`, flags: MessageFlags.Ephemeral });
 					res = await instanceAPI.Core.Restart();
 					interaction.editReply({ content: `**${instance.FriendlyName}** ${res.Status ? 'restarted successfully.' : 'failed to restart.'}`, flags: MessageFlags.Ephemeral });
-					break;
-				}
-				case 'update': {
-					res = await instanceAPI.Core.UpdateApplication();
-					interaction.editReply({ content: `**${instance.FriendlyName}** ${res.Status ? 'updated successfully.' : 'failed to update.'}`, flags: MessageFlags.Ephemeral });
 					break;
 				}
 				default:
@@ -128,4 +158,4 @@ const manageServers: CommandData = {
 	},
 };
 
-export default manageServers;
+export default allowanceCommands;

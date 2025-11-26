@@ -6,7 +6,7 @@ import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import logger from '../../utils/logger';
 
-const toggleUserManagement: CommandData = {
+const manageInstanceAllowances: CommandData = {
 	data: new SlashCommandBuilder()
 		.setName('instance_allowances')
 		.setDescription('Configure instance allowances settings.')
@@ -24,6 +24,9 @@ const toggleUserManagement: CommandData = {
 				.addStringOption((opt) => opt.setName('instance').setDescription('The instance to configure user management for.').setRequired(true).setAutocomplete(true))
 				.addRoleOption((opt) => opt.setName('allowed_role').setDescription('The role allowed to manage this instance').setRequired(false))
 				.addUserOption((opt) => opt.setName('allowed_user').setDescription('The user allowed to manage this instance').setRequired(false))
+				.addStringOption((opt) =>
+					opt.setName('permissions').setDescription('Comma-separated list of permissions to grant (all, start, stop,restart, rcon)').setRequired(false)
+				)
 		)
 		.addSubcommand((subcmd) =>
 			subcmd
@@ -52,6 +55,29 @@ const toggleUserManagement: CommandData = {
 			let changesMade: [string, string][] = [];
 			const instance = await getJson<SanitizedInstance>(redis, RedisKeys.instance(instanceId));
 			if (!instance) return interaction.editReply({ content: 'Instance not found.', flags: MessageFlags.Ephemeral });
+
+			// parse permissions string into the allowancePermissions shape
+			const parsePermissions = (permStr: string | null | undefined) => {
+				const perms = { start: false, stop: false, restart: false, rcon: false };
+				if (!permStr) return perms;
+				permStr
+					.split(',')
+					.map((s) => s.trim().toLowerCase())
+					.forEach((p) => {
+						if (p === 'all') {
+							perms.start = true;
+							perms.stop = true;
+							perms.restart = true;
+							perms.rcon = true;
+						}
+						if (p === 'start') perms.start = true;
+						if (p === 'stop') perms.stop = true;
+						if (p === 'restart') perms.restart = true;
+						if (p === 'rcon') perms.rcon = true;
+					});
+				return perms;
+			};
+			const permissions = parsePermissions(interaction.options.getString('permissions'));
 
 			// Do logic!
 			switch (subcommand) {
@@ -87,31 +113,52 @@ const toggleUserManagement: CommandData = {
 					// Ensure DiscordAllowances exists
 					if (!instance.DiscordAllowances) {
 						instance.DiscordAllowances = {
-							allowDiscordIntegration: false,
+							allowDiscordIntegration: true,
 							allowedDiscordRoles: [],
 							allowedDiscordUsers: [],
 						};
 					}
 
-					// Ensure the arrays exist to satisfy the type checker
+					// Ensure the arrays exist
 					instance.DiscordAllowances.allowedDiscordRoles = instance.DiscordAllowances.allowedDiscordRoles ?? [];
 					instance.DiscordAllowances.allowedDiscordUsers = instance.DiscordAllowances.allowedDiscordUsers ?? [];
 
-					if (allowedRole && !instance.DiscordAllowances.allowedDiscordRoles.includes(Number(allowedRole.id))) {
-						instance.DiscordAllowances.allowedDiscordRoles.push(Number(allowedRole.id));
-					}
-					if (allowedUser && !instance.DiscordAllowances.allowedDiscordUsers.includes(Number(allowedUser.id))) {
-						instance.DiscordAllowances.allowedDiscordUsers.push(Number(allowedUser.id));
-					}
-
-					// Track changes made
 					if (allowedRole) {
-						changesMade.push(['Role Added', `<@&${allowedRole.id}>`]);
+						const existing = instance.DiscordAllowances.allowedDiscordRoles.find((r) => r.roleId === allowedRole!.id);
+						if (!existing) {
+							instance.DiscordAllowances.allowedDiscordRoles.push({ roleId: allowedRole!.id, allowedPermissions: permissions });
+						} else {
+							existing.allowedPermissions = { ...existing.allowedPermissions, ...permissions };
+						}
 					}
 					if (allowedUser) {
-						changesMade.push(['User Added', `<@${allowedUser.id}>`]);
+						const existing = instance.DiscordAllowances.allowedDiscordUsers.find((u) => u.userId === allowedUser!.id);
+						if (!existing) {
+							instance.DiscordAllowances.allowedDiscordUsers.push({ userId: allowedUser!.id, allowedPermissions: permissions });
+						} else {
+							existing.allowedPermissions = { ...existing.allowedPermissions, ...permissions };
+						}
+					} // Track changes made
+					if (allowedRole) {
+						changesMade.push(['Role Added', `<@&${allowedRole!.id}>`]);
+						changesMade.push([
+							'Permissions',
+							Object.entries(permissions)
+								.filter(([_, v]) => v)
+								.map(([k, _]) => k)
+								.join(', ') || 'None',
+						]);
 					}
-
+					if (allowedUser) {
+						changesMade.push(['User Added', `<@${allowedUser!.id}>`]);
+						changesMade.push([
+							'Permissions',
+							Object.entries(permissions)
+								.filter(([_, v]) => v)
+								.map(([k, _]) => k)
+								.join(', ') || 'None',
+						]);
+					}
 					await mergeJson<SanitizedInstance>(redis, RedisKeys.instance(instanceId), instance);
 					break;
 
@@ -134,22 +181,17 @@ const toggleUserManagement: CommandData = {
 					instance.DiscordAllowances.allowedDiscordUsers = instance.DiscordAllowances.allowedDiscordUsers ?? [];
 
 					if (allowedRole) {
-						const roleIdToRemove = Number(allowedRole.id);
-						instance.DiscordAllowances.allowedDiscordRoles = instance.DiscordAllowances.allowedDiscordRoles.filter((roleId) => roleId !== roleIdToRemove);
+						instance.DiscordAllowances.allowedDiscordRoles = instance.DiscordAllowances.allowedDiscordRoles.filter((r) => r.roleId !== allowedRole!.id);
 					}
-					if (allowedUser) {
-						const userIdToRemove = Number(allowedUser.id);
-						instance.DiscordAllowances.allowedDiscordUsers = instance.DiscordAllowances.allowedDiscordUsers.filter((userId) => userId !== userIdToRemove);
-					}
-
-					// Track changes made
+					if (allowedUser?.id) {
+						instance.DiscordAllowances.allowedDiscordUsers = instance.DiscordAllowances.allowedDiscordUsers.filter((u) => u.userId !== allowedUser!.id);
+					} // Track changes made
 					if (allowedRole) {
-						changesMade.push(['Role Removed', `<@&${allowedRole.id}>`]);
+						changesMade.push(['Role Removed', `<@&${allowedRole!.id}>`]);
 					}
 					if (allowedUser) {
-						changesMade.push(['User Removed', `<@${allowedUser.id}>`]);
+						changesMade.push(['User Removed', `<@${allowedUser!.id}>`]);
 					}
-
 					await mergeJson<SanitizedInstance>(redis, RedisKeys.instance(instanceId), instance);
 					break;
 			}
@@ -169,4 +211,4 @@ const toggleUserManagement: CommandData = {
 	},
 };
 
-export default toggleUserManagement;
+export default manageInstanceAllowances;

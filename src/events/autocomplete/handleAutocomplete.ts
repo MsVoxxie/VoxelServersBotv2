@@ -22,8 +22,27 @@ const handleInteraction: EventData = {
 			const instances = (await getKeys(redis, RedisKeys.instance('*'))) as SanitizedInstance[] | [];
 			if (!instances || instances.length === 0) return interaction.respond([{ name: 'No instances found', value: '' }]).catch(() => {});
 
+			let filteredInstances = instances;
+
+			if (interaction.commandName === 'allowance') {
+				const userRoles = Array.isArray(interaction.member?.roles) ? interaction.member.roles : interaction.member?.roles?.cache.map((r: any) => r.id) || [];
+				const userId = interaction.member?.user?.id || '';
+
+				filteredInstances = instances.filter((instance) => {
+					if (!instance.DiscordAllowances?.allowDiscordIntegration) return false;
+					const hasRoleAccess = instance.DiscordAllowances.allowedDiscordRoles?.some((role) => userRoles.includes(String(role.roleId))) || false;
+					const hasUserAccess = instance.DiscordAllowances.allowedDiscordUsers?.some((user) => user.userId === userId) || false;
+					console.log(hasRoleAccess, hasUserAccess);
+					return hasRoleAccess || hasUserAccess;
+				});
+
+				if (filteredInstances.length === 0) {
+					return interaction.respond([{ name: 'No instances available (no permissions)', value: '' }]).catch(() => {});
+				}
+			}
+
 			// Sort for user friendliness
-			instances.sort((a, b) => {
+			filteredInstances.sort((a, b) => {
 				// Running Minecraft first
 				if (a.Running && a.Module === 'Minecraft' && (!b.Running || b.Module !== 'Minecraft')) return -1;
 				if (b.Running && b.Module === 'Minecraft' && (!a.Running || a.Module !== 'Minecraft')) return 1;
@@ -34,7 +53,7 @@ const handleInteraction: EventData = {
 
 				return a.FriendlyName.localeCompare(b.FriendlyName);
 			});
-			const filteredInstances = instances.filter((i: SanitizedInstance) => i.InstanceName.toLowerCase().includes(getFocusedOption.toLowerCase()));
+			filteredInstances = filteredInstances.filter((i: SanitizedInstance) => i.InstanceName.toLowerCase().includes(getFocusedOption.toLowerCase()));
 
 			function formattedName(instance: SanitizedInstance): string {
 				const emoji = AppStateEmoji[instance.AppState] || '⚪';
