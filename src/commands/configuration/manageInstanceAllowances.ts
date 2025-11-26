@@ -120,6 +120,7 @@ const manageInstanceAllowances: CommandData = {
 					}
 
 					// Ensure the arrays exist
+					instance.DiscordAllowances.allowDiscordIntegration = true;
 					instance.DiscordAllowances.allowedDiscordRoles = instance.DiscordAllowances.allowedDiscordRoles ?? [];
 					instance.DiscordAllowances.allowedDiscordUsers = instance.DiscordAllowances.allowedDiscordUsers ?? [];
 
