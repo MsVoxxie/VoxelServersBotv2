@@ -1,5 +1,6 @@
 import { RedisClientType } from 'redis';
 
+// Sets a JSON object at the specified key and path in Redis, with an optional TTL in seconds.
 export async function setJson<T>(client: RedisClientType, key: string, value: T, path = '.', ttlSeconds?: number) {
 	await client.sendCommand(['JSON.SET', key, path, JSON.stringify(value)]);
 	if (typeof ttlSeconds === 'number' && isFinite(ttlSeconds) && ttlSeconds > 0) {
@@ -8,12 +9,14 @@ export async function setJson<T>(client: RedisClientType, key: string, value: T,
 	}
 }
 
+// Merges the existing JSON object at the given key and path with the provided partial object.
 export async function mergeJson<T extends object>(client: RedisClientType, key: string, partial: Partial<T>, path = '.', ttlSeconds?: number) {
 	const existing = await getJson<T>(client, key, path);
 	const merged = existing ? { ...existing, ...partial } : { ...partial };
 	await setJson(client, key, merged, path, ttlSeconds);
 }
 
+// Retrieves and parses a JSON object from Redis at the specified key and path.
 export async function getJson<T>(client: RedisClientType, key: string, path = '.'): Promise<T | null> {
 	const result = await client.sendCommand(['JSON.GET', key, path]);
 	if (!result) return null;
@@ -23,6 +26,7 @@ export async function getJson<T>(client: RedisClientType, key: string, path = '.
 	return parsed as T;
 }
 
+// Retrieves all JSON objects matching the given key pattern and path.
 export async function getKeys<T>(client: RedisClientType, pattern: string, path = '.'): Promise<T[]> {
 	const keys = await client.keys(pattern);
 	const results: T[] = [];
@@ -33,6 +37,7 @@ export async function getKeys<T>(client: RedisClientType, pattern: string, path 
 	return results;
 }
 
+// Deletes all keys matching the given pattern.
 export async function delKeys(client: RedisClientType, pattern: string) {
 	const keys = await client.keys(pattern);
 	if (!keys.length) return 0;
@@ -40,12 +45,12 @@ export async function delKeys(client: RedisClientType, pattern: string) {
 	return keys.length;
 }
 
+// Deletes a JSON value at the specified key and path.
 export async function delJson(client: RedisClientType, key: string, path = '.') {
 	await client.sendCommand(['JSON.DEL', key, path]);
 }
 
 type TTLUnit = 'Days' | 'Hours' | 'Minutes' | 'Seconds';
-
 const TTL_SECONDS: Record<TTLUnit, number> = {
 	Days: 86400,
 	Hours: 3600,

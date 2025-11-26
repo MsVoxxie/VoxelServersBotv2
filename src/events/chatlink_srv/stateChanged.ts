@@ -2,6 +2,7 @@ import { StateChangeEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { delJson, getJson, setJson } from '../../utils/redisHelpers';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { msToHuman, wait } from '../../utils/utils';
 import logger from '../../utils/logger';
@@ -15,17 +16,17 @@ const stateChanged: EventData = {
 			switch (event.Message) {
 				case 'Starting':
 					const startTime = Date.now();
-					setJson(redis, `serverStart:${event.InstanceId}`, { time: startTime }, '$', 60 * 60 * 2); // 2 hours TTL
+					setJson(redis, RedisKeys.serverStart(event.InstanceId), { time: startTime }, '$', 60 * 60 * 2); // 2 hours TTL
 					await wait(1000); // dirty hack to ensure backup completion event triggers before state change
 					break;
 
 				case 'Ready':
-					const startDuration = (await getJson(redis, `serverStart:${event.InstanceId}`)) as { time: number };
+					const startDuration = (await getJson(redis, RedisKeys.serverStart(event.InstanceId))) as { time: number };
 					const duration = msToHuman(Date.now() - startDuration?.time);
 					if (duration.length) {
 						event.Message += `\n-# Took ${duration.join(' ')}`;
 					}
-					delJson(redis, `serverStart:${event.InstanceId}`);
+					delJson(redis, RedisKeys.serverStart(event.InstanceId));
 					break;
 			}
 

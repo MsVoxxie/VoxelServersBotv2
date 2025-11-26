@@ -3,6 +3,7 @@ import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { updatePlayerState } from '../../utils/gameSpecific/playerData';
 import { playerSchema } from './../../types/apiTypes/serverEventTypes';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import { getKeys } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
 
@@ -12,7 +13,7 @@ const updatePlaytimes: ScheduleTaskData = {
 	run({ client, redisClient }) {
 		const updatePlaytimes = async () => {
 			try {
-				const instances = (await getKeys(redisClient, 'instance:*')) as SanitizedInstance[];
+				const instances = (await getKeys(redisClient, RedisKeys.instance('*'))) as SanitizedInstance[];
 				if (!instances || instances.length === 0) return;
 
 				for await (const instance of instances) {

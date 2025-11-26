@@ -1,7 +1,8 @@
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { ButtonHandler } from '../../types/discordTypes/commandTypes';
-import redis from '../../loaders/database/redisLoader';
 import { delJson, getJson } from '../../utils/redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
+import redis from '../../loaders/database/redisLoader';
 import logger from '../../utils/logger';
 
 const ignoreInstanceDeleted: ButtonHandler = {
@@ -10,7 +11,7 @@ const ignoreInstanceDeleted: ButtonHandler = {
 		const customId = interaction.customId.split('_');
 		const instanceId = customId.slice(2).join('_');
 
-		const instanceData = await getJson(redis, `pendingInstanceDelete:${instanceId}`);
+		const instanceData = await getJson(redis, RedisKeys.pendingInstanceDelete(instanceId));
 		const instance = instanceData as SanitizedInstance;
 		const approvalMsgId = (instanceData as SanitizedInstance & { approvalMsgId?: string }).approvalMsgId;
 
@@ -37,7 +38,7 @@ const ignoreInstanceDeleted: ButtonHandler = {
 					components: [],
 				});
 			}
-			await delJson(redis, `pendingInstanceDelete:${instanceId}`);
+			await delJson(redis, RedisKeys.pendingInstanceDelete(instanceId));
 			await interaction.deferUpdate();
 		} catch (error) {
 			logger.error('Instance Created', `Error processing instance created event: ${error}`);

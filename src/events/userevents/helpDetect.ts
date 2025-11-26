@@ -1,6 +1,7 @@
 import { Events, Client, Message, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { getKeys } from '../../utils/redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import Fuse from 'fuse.js';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
@@ -98,7 +99,7 @@ const messageCreate: EventData = {
 				// Try to detect server name from all recent issue messages
 				let serverMatchText = '';
 				try {
-					const servers = await getKeys(redis, 'instance:*');
+					const servers = await getKeys(redis, RedisKeys.instance('*'));
 					// Normalize server names for better matching
 					const serverList = (servers as SanitizedInstance[])
 						.filter((srv: SanitizedInstance) => srv.WelcomeMessage !== 'hidden')

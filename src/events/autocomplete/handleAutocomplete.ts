@@ -2,6 +2,7 @@ import { BaseInteraction, Client, Events } from 'discord.js';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import type { EventData } from '../../types/discordTypes/commandTypes';
 import { AppStateEmoji } from '../../types/ampTypes/ampTypes';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { getKeys } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
@@ -18,7 +19,7 @@ const handleInteraction: EventData = {
 			const getFocusedOption = interaction.options.getFocused();
 
 			// Grab the instances from redis
-			const instances = (await getKeys(redis, 'instance:*')) as SanitizedInstance[] | [];
+			const instances = (await getKeys(redis, RedisKeys.instance('*'))) as SanitizedInstance[] | [];
 			if (!instances || instances.length === 0) return interaction.respond([{ name: 'No instances found', value: '' }]).catch(() => {});
 
 			// Sort for user friendliness

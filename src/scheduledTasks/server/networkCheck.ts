@@ -1,6 +1,7 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { NetworkTestResult } from '../../types/apiTypes/networkTypes';
 import { getJson, setJson, TTL } from '../../utils/redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import logger from '../../utils/logger';
 import ping from 'ping';
@@ -20,7 +21,7 @@ const networkCheck: ScheduleTaskData = {
 		const checkNetwork = async () => {
 			try {
 				// Fetch previous result (if any)
-				const oldResult = await getJson<NetworkTestResult>(redis, 'server:networkCheck');
+				const oldResult = await getJson<NetworkTestResult>(redis, RedisKeys.networkCheck());
 
 				// Ping host and measure latency
 				const { alive: isAlive, time: latencyMs } = await ping.promise.probe(hostToPing, { timeout: 2, extra: ['-c', '1'] });

@@ -19,6 +19,7 @@ export interface SanitizedInstance {
 	ConnectionInfo: ConnectionInfo;
 	Metrics: { [key: string]: Metric };
 	MetricsHistory: MetricSimple;
+	DiscordAllowances?: discordAllowances;
 }
 
 export interface ConnectionInfo {
@@ -52,6 +53,12 @@ export type PlayerList = {
 	UserID: string;
 	Username: string;
 	AvatarURL?: string;
+};
+
+export type discordAllowances = {
+	allowDiscordIntegration: boolean;
+	allowedDiscordRoles?: number[];
+	allowedDiscordUsers?: number[];
 };
 
 export type ScheduleCache = { scheduleOffset: any | null; rawNextScheduled: any[] };

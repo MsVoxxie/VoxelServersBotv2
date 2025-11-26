@@ -1,9 +1,10 @@
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { InstanceSearchFilter } from '../../types/ampTypes/ampTypes';
-import express from 'express';
 import { getJson, getKeys } from '../../utils/redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import logger from '../../utils/logger';
+import express from 'express';
 const router = express.Router();
 
 export const routeDescriptions = [
@@ -23,7 +24,7 @@ export const routeDescriptions = [
 router.get('/data/instances', async (req, res) => {
 	try {
 		if (!redis.isOpen) return res.status(503).json({ error: 'An error occurred while fetching data.' });
-		const instances = (await getKeys(redis, 'instance:*')) as SanitizedInstance[];
+		const instances = (await getKeys(redis, RedisKeys.instance('*'))) as SanitizedInstance[];
 		const stateFilter = req.query.filter as InstanceSearchFilter;
 		let filteredInstances = instances.flat() || [];
 		filteredInstances = sortInstances(filteredInstances, stateFilter);

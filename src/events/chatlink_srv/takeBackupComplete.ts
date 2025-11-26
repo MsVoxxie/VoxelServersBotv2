@@ -2,6 +2,7 @@ import { BackupEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { delJson, getJson } from '../../utils/redisHelpers';
 import { toDiscord } from '../../utils/discord/webhooks';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { msToHuman } from '../../utils/utils';
 import logger from '../../utils/logger';
@@ -12,7 +13,7 @@ const takeBackupComplete: EventData = {
 	runType: 'always',
 	async execute(client: Client, event: BackupEvent) {
 		try {
-			const backupTimer = (await getJson(redis, `backupTimer:${event.InstanceId}`)) as { time: number };
+			const backupTimer = (await getJson(redis, RedisKeys.backupTimer(event.InstanceId))) as { time: number };
 
 			if (backupTimer) {
 				const duration = Date.now() - backupTimer.time;
@@ -20,7 +21,7 @@ const takeBackupComplete: EventData = {
 				if (timeTook.length) {
 					event.Message += `\n-# Took: ${timeTook.join(' ')}`;
 				}
-				delJson(redis, `backupTimer:${event.InstanceId}`);
+				delJson(redis, RedisKeys.backupTimer(event.InstanceId));
 			}
 
 			await toDiscord(event);

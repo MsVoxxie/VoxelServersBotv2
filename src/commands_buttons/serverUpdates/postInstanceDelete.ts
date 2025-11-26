@@ -1,8 +1,9 @@
-import { EmbedBuilder } from 'discord.js';
-import redis from '../../loaders/database/redisLoader';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { ButtonHandler } from '../../types/discordTypes/commandTypes';
 import { delJson, getJson } from '../../utils/redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
+import redis from '../../loaders/database/redisLoader';
+import { EmbedBuilder } from 'discord.js';
 import logger from '../../utils/logger';
 
 const postInstanceDeleted: ButtonHandler = {
@@ -11,7 +12,7 @@ const postInstanceDeleted: ButtonHandler = {
 		const customId = interaction.customId.split('_');
 		const instanceId = customId.slice(2).join('_');
 
-		const instanceData = await getJson(redis, `pendingInstanceDelete:${instanceId}`);
+		const instanceData = await getJson(redis, RedisKeys.pendingInstanceDelete(instanceId));
 		const instance = instanceData as SanitizedInstance;
 		const approvalMsgId = (instanceData as SanitizedInstance & { approvalMsgId?: string }).approvalMsgId;
 		if (!instanceData) {
@@ -53,7 +54,7 @@ const postInstanceDeleted: ButtonHandler = {
 				});
 			}
 			await interaction.deferUpdate();
-			await delJson(redis, `pendingInstanceDelete:${instanceId}`);
+			await delJson(redis, RedisKeys.pendingInstanceDelete(instanceId));
 		} catch (error) {
 			logger.error('Instance Deleted', `Error processing instance deletion event: ${error}`);
 		}

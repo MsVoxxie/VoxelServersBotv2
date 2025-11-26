@@ -14,11 +14,12 @@ import {
 	MessageFlags,
 } from 'discord.js';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
+import { ModuleTypeMap } from '../../types/ampTypes/ampTypes';
+import { instanceLogin } from '../../utils/ampAPI/apiFuncs';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { getKeys } from '../../utils/redisHelpers';
 import Fuse from 'fuse.js';
-import { instanceLogin } from '../../utils/ampAPI/apiFuncs';
-import { ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 
 export const voteRestart = {
 	data: new SlashCommandBuilder()
@@ -35,7 +36,8 @@ export const voteRestart = {
 		const input = (interaction.options.get('server')?.value as string)?.toLowerCase().trim();
 
 		// 1. Fetch all servers from Redis
-		const servers = await getKeys(redis, 'instance:*');
+		const servers = await getKeys(redis, RedisKeys.instance('*'));
+
 		const serverList = (servers as SanitizedInstance[])
 			.filter((srv: SanitizedInstance) => srv.WelcomeMessage !== 'hidden')
 			.map((srv: SanitizedInstance) => ({

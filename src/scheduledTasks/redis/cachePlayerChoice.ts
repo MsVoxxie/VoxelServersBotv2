@@ -1,10 +1,11 @@
 import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { setJson, TTL } from '../../utils/redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
+import { formatMCUUID } from '../../utils/utils';
 import UserData from '../../models/userData';
 import logger from '../../utils/logger';
-import { formatMCUUID } from '../../utils/utils';
-
 const INTERVAL_MS = 120_000; // 120 seconds
+
 const playerChoiceCache: ScheduleTaskData = {
 	name: 'Cache Player Choices',
 	run({ client, redisClient }) {
@@ -18,7 +19,7 @@ const playerChoiceCache: ScheduleTaskData = {
 					}
 					allPlayers.push(user);
 				}
-				await setJson(redisClient, 'playerchoices', allPlayers, '$', TTL(125, 'Seconds'));
+				await setJson(redisClient, RedisKeys.playerChoices(), allPlayers, '$', TTL(125, 'Seconds'));
 			} catch (error) {
 				logger.error('playerCache', error instanceof Error ? error.message : String(error));
 			}

@@ -2,6 +2,7 @@ import { playerSchema } from '../../types/apiTypes/serverEventTypes';
 import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { toDiscordTimestamp } from '../discord/timestampGenerator';
 import { getKeys, setJson, getJson, TTL } from '../redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { msToHuman } from '../utils';
 
@@ -109,7 +110,7 @@ export async function updatePlayerState(event: PlayerEvent, eventType: 'Join' | 
 	}
 
 	if (userData) {
-		await setJson(redis, `playerdata:${instanceId}:${username}`, userData, '$', TTL(30, 'Days'));
+		await setJson(redis, RedisKeys.playerData(instanceId, username), userData, '$', TTL(30, 'Days'));
 	}
 	return messageModifier;
 }

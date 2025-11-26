@@ -7,11 +7,12 @@ import { chatlinkModel } from '../../models/chatlink';
 import { Message, WebhookClient } from 'discord.js';
 import { getJson } from '../redisHelpers';
 import logger from '../logger';
+import { RedisKeys } from '../../types/redisKeys/keys';
 
 export async function toDiscord(data: ChatlinkBase) {
 	try {
 		const [instanceData, chatlinkData] = await Promise.all([
-			getJson<SanitizedInstance>(redis, `instance:${data.InstanceId}`),
+			getJson<SanitizedInstance>(redis, RedisKeys.instance(data.InstanceId)),
 			chatlinkModel.findOne({ instanceId: data.InstanceId }),
 		]);
 
@@ -54,7 +55,10 @@ export async function toDiscord(data: ChatlinkBase) {
 
 export async function toServer(InstanceId: string, message: Message) {
 	try {
-		const [instanceData, chatlinkData] = await Promise.all([getJson<SanitizedInstance>(redis, `instance:${InstanceId}`), chatlinkModel.findOne({ instanceId: InstanceId })]);
+		const [instanceData, chatlinkData] = await Promise.all([
+			getJson<SanitizedInstance>(redis, RedisKeys.instance(InstanceId)),
+			chatlinkModel.findOne({ instanceId: InstanceId }),
+		]);
 		if (!instanceData || !chatlinkData) return logger.warn('Discord Webhook', `Failed to retrieve necessary data for instance ID ${InstanceId}`);
 		const instanceModule = instanceData.Module;
 

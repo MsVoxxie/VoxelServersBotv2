@@ -1,9 +1,10 @@
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from 'discord.js';
 import { SanitizedInstance } from './../../types/ampTypes/instanceTypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from 'discord.js';
-import logger from '../../utils/logger';
 import { setJson, TTL } from '../../utils/redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
+import logger from '../../utils/logger';
 
 const instanceDeleted: EventData = {
 	name: 'instanceDeleted',
@@ -36,7 +37,7 @@ const instanceDeleted: EventData = {
 				.setTimestamp();
 
 			const approvalMsg = await channel.send({ embeds: [tmpEmbed], components: [actionRow] });
-			await setJson(redis, `pendingInstanceDelete:${instance.InstanceID}`, { ...instance, approvalMsgId: approvalMsg.id }, '$', TTL(1, 'Days')); // 24h TTL
+			await setJson(redis, RedisKeys.pendingInstanceDelete(instance.InstanceID), { ...instance, approvalMsgId: approvalMsg.id }, '$', TTL(1, 'Days')); // 24h TTL
 		} catch (error) {
 			logger.error('Instance Deleted', `Error processing instance deletion event: ${error}`);
 		}

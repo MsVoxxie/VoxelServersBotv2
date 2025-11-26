@@ -2,6 +2,7 @@ import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { getAllInstances } from '../../utils/ampAPI/instanceFuncs';
 import { getJson, setJson, TTL } from '../../utils/redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import logger from '../../utils/logger';
 
 const INTERVAL_MS = 60_000; // 1 minute
@@ -10,7 +11,7 @@ const watchInstances: ScheduleTaskData = {
 	run({ client, redisClient }) {
 		const checkUpdates = async () => {
 			try {
-				const rawPrev = (await getJson<SanitizedInstance | SanitizedInstance[] | null>(redisClient, 'instanceSnapshot')) ?? null;
+				const rawPrev = (await getJson<SanitizedInstance | SanitizedInstance[] | null>(redisClient, RedisKeys.instanceSnapshot())) ?? null;
 				const prev: SanitizedInstance[] = rawPrev ? (Array.isArray(rawPrev) ? rawPrev : [rawPrev]) : [];
 				// fetch current set
 				const current = (await getAllInstances({ fetch: 'all' })) as SanitizedInstance[];
@@ -34,7 +35,7 @@ const watchInstances: ScheduleTaskData = {
 					}
 				}
 				// update the instance cache so next run compares against this snapshot
-				await setJson(redisClient, 'instanceSnapshot', current, '$', TTL(7, 'Days'));
+				await setJson(redisClient, RedisKeys.instanceSnapshot(), current, '$', TTL(7, 'Days'));
 			} catch (error) {
 				logger.error('watchInstances', error instanceof Error ? error.message : String(error));
 			}

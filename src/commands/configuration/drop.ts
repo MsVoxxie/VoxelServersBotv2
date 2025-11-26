@@ -1,6 +1,7 @@
 import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { delKeys, getKeys } from '../../utils/redisHelpers';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import logger from '../../utils/logger';
 
@@ -8,7 +9,7 @@ const dropCache: CommandData = {
 	data: new SlashCommandBuilder()
 		.setName('drop')
 		.setDescription('Drop a specific cache for a given instance.')
-		.addStringOption((opt) => opt.setName('instance').setDescription('The instance to get information about.').setRequired(true).setAutocomplete(true))
+		.addStringOption((opt) => opt.setName('instance').setDescription('The instance to drop cache for.').setRequired(true).setAutocomplete(true))
 		.addStringOption((opt) => opt.setName('cache').setDescription('The cache to drop.').addChoices({ name: 'Player Data', value: 'playerData' }).setRequired(true))
 		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
 		.setContexts([InteractionContextType.Guild])
@@ -26,8 +27,7 @@ const dropCache: CommandData = {
 
 			switch (cacheType) {
 				case 'playerData':
-					const cacheData = await getKeys(redis, `playerdata:${instanceId}:*`);
-					console.log(cacheData);
+					const cacheData = await getKeys(redis, RedisKeys.playerData(instanceId, '*'));
 
 					if (!cacheData) {
 						await interaction.editReply({ content: `No player data cache found for instance ID \`${instanceId}\`.`, flags: MessageFlags.Ephemeral });

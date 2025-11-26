@@ -1,6 +1,7 @@
 import { BackupEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { toDiscord } from '../../utils/discord/webhooks';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { setJson } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
@@ -13,7 +14,7 @@ const backupStarting: EventData = {
 		try {
 			await toDiscord(event);
 			const startTime = Date.now();
-			setJson(redis, `backupTimer:${event.InstanceId}`, { time: startTime }, '$', 60 * 60 * 2); // 2 hours TTL
+			setJson(redis, RedisKeys.backupTimer(event.InstanceId), { time: startTime }, '$', 60 * 60 * 2); // 2 hours TTL
 		} catch (error) {
 			logger.error('BackupStarting', `Error processing backup starting event: ${error}`);
 		}

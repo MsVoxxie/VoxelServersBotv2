@@ -2,6 +2,7 @@
 import { MetricSimple, PlayerList, SanitizedInstance, ScheduleCache } from '../../types/ampTypes/instanceTypes';
 import { AppStateMap, IntervalTriggerResult, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { IADSInstance, Instance } from '@neuralnexus/ampapi';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { getIntervalTrigger } from './intervalFuncs';
 import { getImageSource } from './getSourceImage';
@@ -81,7 +82,7 @@ export function isInstanceOnHold(instanceId: string): boolean {
 // Resolve schedule with short redis caching
 export async function resolveInstanceSchedule(instance: Instance): Promise<ScheduleCache> {
 	if (!instance.Running) return { scheduleOffset: null, rawNextScheduled: [] };
-	const redisKey = `instanceCache:${instance.InstanceID}`;
+	const redisKey = RedisKeys.instanceCache(instance.InstanceID);
 	try {
 		const cached = await getJson<any>(redis, redisKey).catch(() => null);
 		if (cached && (cached.rawNextScheduled || cached.scheduleOffset)) {

@@ -2,6 +2,7 @@ import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, A
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { apiLogin } from '../../utils/ampAPI/apiFuncs';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 
@@ -46,7 +47,8 @@ const manageInstances: CommandData = {
 			if (!API) return interaction.editReply({ content: 'Failed to connect to server API.', flags: MessageFlags.Ephemeral });
 			const instanceId = interaction.options.getString('instance');
 			const subcommand = interaction.options.getSubcommand();
-			const instanceData = await getJson(redis, `instance:${instanceId}`);
+			const instanceData = await getJson(redis, RedisKeys.instance(instanceId));
+
 			if (!instanceData) return interaction.editReply({ content: 'Instance data not found.', flags: MessageFlags.Ephemeral });
 			const instance = instanceData as SanitizedInstance;
 			if (!instance) return interaction.editReply({ content: 'Instance data not found.', flags: MessageFlags.Ephemeral });

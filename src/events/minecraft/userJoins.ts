@@ -6,6 +6,7 @@ import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { getJson, setJson } from '../../utils/redisHelpers';
 import { toDiscord } from '../../utils/discord/webhooks';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { wait } from '../../utils/utils';
 import { Client } from 'discord.js';
@@ -15,18 +16,16 @@ const userJoins_MCSleep: EventData = {
 	runType: 'always',
 	async execute(client: Client, event: PlayerEvent) {
 		// Sleep Percentage Calculation
-		const instanceData = (await getJson(redis, `instance:${event.InstanceId}`)) as SanitizedInstance | null;
+		const instanceData = (await getJson(redis, RedisKeys.instance(event.InstanceId))) as SanitizedInstance | null;
 
 		if (!instanceData) return;
 		if (instanceData.Module !== 'Minecraft') return;
-
-		const realUsername = event.Username;
 
 		await wait(2000); // 2 seconds
 
 		const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
 		const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
-		setJson(redis, `instance:${event.InstanceId}`, { playersSleepingPercentage: { sleepPercentage, requiredToSleep } }, '.Gamerules');
+		setJson(redis, RedisKeys.instance(event.InstanceId), { playersSleepingPercentage: { sleepPercentage, requiredToSleep } }, '.Gamerules');
 		event.Message = `-# There ${currentPlayers.length === 1 ? 'is' : 'are'} now ${currentPlayers.length} player${currentPlayers.length === 1 ? '' : 's'} online.`;
 
 		// only announce if the sleep percentage has changed since last time

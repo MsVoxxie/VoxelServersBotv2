@@ -2,6 +2,7 @@ import { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, A
 import { toDiscordTimestamp } from '../../utils/discord/timestampGenerator';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import logger from '../../utils/logger';
@@ -21,7 +22,7 @@ const serverInfo: CommandData = {
 		try {
 			await interaction.deferReply();
 			const serverId = interaction.options.getString('server');
-			const serverData = await getJson(redis, `instance:${serverId}`);
+			const serverData = await getJson(redis, RedisKeys.instance(serverId));
 			if (!serverData) return interaction.editReply({ content: 'Server not found or invalid data.', flags: MessageFlags.Ephemeral });
 			const instance = serverData as SanitizedInstance;
 

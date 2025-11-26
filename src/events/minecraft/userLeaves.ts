@@ -6,6 +6,7 @@ import { PlayerEvent } from '../../types/apiTypes/chatlinkAPITypes';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import { getJson, setJson } from '../../utils/redisHelpers';
 import { toDiscord } from '../../utils/discord/webhooks';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { wait } from '../../utils/utils';
 import { Client } from 'discord.js';
@@ -20,13 +21,13 @@ async function processBatch(client: Client, instanceId: string) {
 	const event = queue[queue.length - 1];
 	let message = '';
 
-	const instanceData = (await getJson(redis, `instance:${event.InstanceId}`)) as SanitizedInstance | null;
+	const instanceData = (await getJson(redis, RedisKeys.instance(event.InstanceId))) as SanitizedInstance | null;
 
 	if (!instanceData || instanceData.Module !== 'Minecraft') return;
 
 	const { currentPlayers, maxPlayers } = await getServerPlayerInfo(instanceData);
 	const { sleepPercentage, requiredToSleep } = calculateSleepingPercentage(currentPlayers.length, maxPlayers);
-	setJson(redis, `instance:${instanceId}`, { playersSleepingPercentage: { sleepPercentage, requiredToSleep } }, '.Gamerules');
+	setJson(redis, RedisKeys.instance(instanceId), { playersSleepingPercentage: { sleepPercentage, requiredToSleep } }, '.Gamerules');
 
 	if (currentPlayers.length === 0) {
 		message += '\n-# The server is now empty.';

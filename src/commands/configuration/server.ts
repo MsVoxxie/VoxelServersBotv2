@@ -4,6 +4,7 @@ import { AppState, ModuleTypeMap } from '../../types/ampTypes/ampTypes';
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { instanceLogin } from '../../utils/ampAPI/apiFuncs';
+import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import { getJson } from '../../utils/redisHelpers';
 import { trimString, wait } from '../../utils/utils';
@@ -55,7 +56,7 @@ const manageServers: CommandData = {
 			await interaction.deferReply();
 			const subcommand = interaction.options.getSubcommand();
 			const instanceId = interaction.options.getString('server');
-			const instanceData = await getJson(redis, `instance:${instanceId}`);
+			const instanceData = await getJson(redis, RedisKeys.instance(instanceId));
 			if (!instanceData) return interaction.editReply({ content: 'Instance not found or invalid data.', flags: MessageFlags.Ephemeral });
 			const instance = instanceData as SanitizedInstance;
 			const moduleName = (instance.Module || 'GenericModule') as keyof ModuleTypeMap;
