@@ -6,7 +6,15 @@ import { ServerRoles } from '../../models/serverRoles';
 import { userdataCache } from '../../vsb';
 import logger from '../../utils/logger';
 import { Client } from 'discord.js';
-import { toSteam64 } from '../../utils/utils';
+import { toSteam64, wait } from '../../utils/utils';
+import { sendServerConsoleCommand } from '../../utils/ampAPI/instanceFuncs';
+import { getJson } from '../../utils/redisHelpers';
+import redis from '../../loaders/database/redisLoader';
+import { RedisKeys } from '../../types/redisKeys/keys';
+import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
+import { ModuleTypeMap } from '../../types/ampTypes/ampTypes';
+import { Minecraft } from '@neuralnexus/ampapi';
+import { part, tellRawBuilder } from '../../utils/gameSpecific/minecraftTellraw';
 
 const userJoins: EventData = {
 	name: 'userJoins',
@@ -33,7 +41,35 @@ const userJoins: EventData = {
 					return (mcNorm && mcNorm === normalizedUuid) || (steamStored && steamStored === steamUserIdCandidate);
 				});
 
-				if (!user) return;
+				// If the user isn't linked...
+				if (!user) {
+					// Fetch the instance to tell the user to link
+					const instance: SanitizedInstance | null = await getJson(redis, RedisKeys.instance(event.InstanceId));
+					if (!instance) return;
+					const module = instance.Module as keyof ModuleTypeMap;
+					await wait(5_000); // Wait 5 seconds to ensure user is fully loaded in.
+
+					switch (module) {
+						case 'Minecraft':
+							const tellRaw = tellRawBuilder('@p', [
+								part("Looks like you haven't linked your accounts yet!", 'yellow'),
+								part('Please register over in the', 'white'),
+								part('VoxelServers', 'gold'),
+								part('Discord servers bot-commands channel with the', 'white'),
+								part('/register', 'aqua'),
+								part('command!', 'white'),
+							]);
+							await sendServerConsoleCommand(event.InstanceId, module, tellRaw);
+							break;
+
+						case 'GenericModule':
+							const message = `Hello! It looks like you haven't linked your accounts yet. Please register over in the VoxelServers Discord server's bot-commands channel with the /register command!`;
+							// await sendServerConsoleCommand(event.InstanceId, module, `say ${message}`); // We'll do this one later.
+							break;
+					}
+					return;
+				}
+
 				const discordId: string = user.userId || '';
 				if (!discordId) return;
 
