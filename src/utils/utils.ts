@@ -38,6 +38,22 @@ export function formatMCUUID(uuid: string) {
 	return uuid.replace(/^([a-fA-F0-9]{8})([a-fA-F0-9]{4})([a-fA-F0-9]{4})([a-fA-F0-9]{4})([a-fA-F0-9]{12})$/, '$1-$2-$3-$4-$5');
 }
 
+export function toSteam64(steamId: string): string {
+	const legacyMatch = /^STEAM_\d:(\d):(\d+)$/.exec(steamId);
+	if (legacyMatch) {
+		const y = BigInt(legacyMatch[1]);
+		const z = BigInt(legacyMatch[2]);
+		return (BigInt('76561197960265728') + z * 2n + y).toString();
+	}
+	const steam3Match = /^\[?U:1:(\d+)\]?$|^U:1:(\d+)$/.exec(steamId);
+	if (steam3Match) {
+		const accountId = BigInt(steam3Match[1] || steam3Match[2]);
+		return (BigInt('76561197960265728') + accountId).toString();
+	}
+	if (/^\d+$/.test(steamId)) return steamId; // already Steam64
+	return steamId;
+};
+
 export function getModpack(str: string): { modpackName: string; modpackUrl: string; isModpack: boolean } {
 	let [modpackName = '', modpackUrl = ''] = str.split('||');
 	modpackName = modpackName.trim();
