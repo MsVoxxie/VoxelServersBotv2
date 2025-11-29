@@ -1,4 +1,4 @@
-import { ApplicationIntegrationType, Client, EmbedBuilder, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, codeBlock } from 'discord.js';
+import { ApplicationIntegrationType, Client, EmbedBuilder, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, inlineCode } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { formatMCUUID } from '../../utils/utils';
 import { UserData } from '../../models/userData';
@@ -36,11 +36,24 @@ const playerInfo: CommandData = {
 					const embed = new EmbedBuilder()
 						.setTitle(`Player Info: ${member?.displayName}`)
 						.setThumbnail(user.displayAvatarURL())
+						.setColor(client.color)
 						.addFields(
-							{ name: 'Discord ID', value: codeBlock(user.id), inline: false },
+							{ name: 'Discord ID', value: inlineCode(user.id), inline: false },
 							{
-								name: 'Minecraft UUID',
-								value: codeBlock(userData.minecraft?.uuid ? formatMCUUID(userData.minecraft.uuid) : 'N/A'),
+								name: 'Minecraft',
+								value: userData.minecraft?.username
+									? `Username: ${userData.minecraft.username}\nUUID: ${inlineCode(userData.minecraft.uuid ? formatMCUUID(userData.minecraft.uuid) : 'N/A')}`
+									: 'N/A',
+								inline: false,
+							},
+							{
+								name: 'Steam',
+								value: userData.steam?.steamId ? `Steam64: ${inlineCode(userData.steam.steamId)}` : 'N/A',
+								inline: false,
+							},
+							{
+								name: 'Chatlink Status',
+								value: inlineCode(userData.chatlinkOptOut ? 'Opted Out' : 'Opted In'),
 								inline: false,
 							}
 						);

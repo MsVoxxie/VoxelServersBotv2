@@ -58,7 +58,7 @@ const handleInteraction: EventData = {
 			function formattedName(instance: SanitizedInstance): string {
 				const emoji = AppStateEmoji[instance.AppState] || '⚪';
 				const isLinked = (chatlinkCache.get('linkedInstanceIDs') as Set<string> | undefined)?.has(instance.InstanceID) ?? false;
-				return `${emoji} ${instance.AppState} ⟩ ${instance.FriendlyName} (${instance.Module})${isLinked ? ' 🔗' : ''}`;
+				return `${emoji} ${instance.AppState} ⟩ ${instance.FriendlyName} (${instance.FriendlyModule})${isLinked ? ' 🔗' : ''}`;
 			}
 
 			switch (command.autoCompleteInstanceType) {
