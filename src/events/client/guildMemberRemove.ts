@@ -1,5 +1,5 @@
 import { Events, Client, GuildMember } from 'discord.js';
-import UserData from '../../models/userData';
+import { UserData } from '../../models/userData';
 import { EventData } from '../../types/discordTypes/commandTypes';
 import logger from '../../utils/logger';
 

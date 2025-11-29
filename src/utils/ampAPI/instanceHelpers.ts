@@ -10,7 +10,7 @@ import { getJson, setJson } from '../redisHelpers';
 import { getImageSource } from './getSourceImage';
 import { getInstanceConfig } from './configFuncs';
 import { getModpack, getPort } from '../utils';
-import { mongoCache } from '../../vsb';
+import { chatlinkCache } from '../../vsb';
 import logger from '../logger';
 
 // Caches
@@ -148,7 +148,7 @@ export function mapInstanceToSanitized(
 		});
 	}
 
-	const isInstanceLinked = (mongoCache.get('linkedInstanceIDs') as Set<string> | undefined)?.has(instance.InstanceID) ?? false;
+	const isInstanceLinked = (chatlinkCache.get('linkedInstanceIDs') as Set<string> | undefined)?.has(instance.InstanceID) ?? false;
 	const modpackInfo = getModpack((instance as any).WelcomeMessage ?? '');
 
 	return {

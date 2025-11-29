@@ -5,6 +5,7 @@ import { setJson, TTL } from '../../utils/redisHelpers';
 import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
 import logger from '../../utils/logger';
+import { deleteServerRole } from '../../utils/discord/instanceRoles';
 
 const instanceDeleted: EventData = {
 	name: 'instanceDeleted',

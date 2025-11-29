@@ -5,7 +5,8 @@ declare module 'discord.js' {
 	interface Client {
 		backupTimers: Collection<string, NodeJS.Timeout>;
 		cooldowns: Collection<string, Collection<string, number>>;
-		mongoCache: Collection<string, any>;
+		chatlinkCache: Collection<string, any>;
+		userdataCache: Collection<string, any>;
 		typingState: Collection<string, any>;
 		commands: Collection<string, any>;
 		buttons: Collection<string, any>;

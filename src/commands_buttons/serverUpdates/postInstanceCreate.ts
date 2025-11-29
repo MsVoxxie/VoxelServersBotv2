@@ -1,5 +1,6 @@
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { ButtonHandler } from '../../types/discordTypes/commandTypes';
+import { createServerRole } from '../../utils/discord/instanceRoles';
 import { delJson, getJson } from '../../utils/redisHelpers';
 import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
@@ -12,12 +13,22 @@ const postInstanceCreated: ButtonHandler = {
 		const customId = interaction.customId.split('_');
 		const instanceId = customId.slice(2).join('_');
 
-		const [instanceData, pendingInstanceData] = await Promise.all([getJson(redis, RedisKeys.instance(instanceId)), getJson(redis, RedisKeys.pendingInstanceCreate(instanceId))]);
+		const [instanceData, pendingInstanceData] = await Promise.all([
+			getJson(redis, RedisKeys.instance(instanceId)),
+			getJson(redis, RedisKeys.pendingInstanceCreate(instanceId)),
+		]);
 		const instance = instanceData as SanitizedInstance;
 		const approvalMsgId = (pendingInstanceData as SanitizedInstance & { approvalMsgId?: string }).approvalMsgId;
 		if (!instanceData || !pendingInstanceData) {
 			await interaction.editReply({ content: 'Server not found or invalid data.' });
 			return;
+		}
+
+		// Create instance role, if applicable
+		try {
+			await createServerRole(interaction, instance);
+		} catch (error) {
+			logger.error('Instance Created', `Error creating server role for instance ${instance.InstanceID}: ${error}`);
 		}
 
 		try {

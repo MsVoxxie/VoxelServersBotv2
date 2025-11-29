@@ -1,5 +1,6 @@
 import { SanitizedInstance } from '../../types/ampTypes/instanceTypes';
 import { ButtonHandler } from '../../types/discordTypes/commandTypes';
+import { deleteServerRole } from '../../utils/discord/instanceRoles';
 import { delJson, getJson } from '../../utils/redisHelpers';
 import { RedisKeys } from '../../types/redisKeys/keys';
 import redis from '../../loaders/database/redisLoader';
@@ -20,6 +21,14 @@ const ignoreInstanceDeleted: ButtonHandler = {
 			return;
 		}
 
+		// Delete server role
+		try {
+			await deleteServerRole(interaction, instance.InstanceID);
+		} catch (error) {
+			logger.error('Instance Deleted', `Error deleting server role for instance ${instance.InstanceID}: ${error}`);
+		}
+
+		// Handle ignoring the deletion message
 		try {
 			if (instance.WelcomeMessage === 'hidden') return;
 			const [guildID, updatesChannelId, approvalsChannelId] = [process.env.GUILD_ID, process.env.UPDATES_CH, process.env.APPROVALS_CH];

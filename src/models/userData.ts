@@ -1,6 +1,10 @@
 import { Schema, model } from 'mongoose';
 
 const userDataSchema = new Schema({
+	guildId: {
+		type: String,
+		required: true,
+	},
 	discordId: {
 		type: String,
 		required: true,
@@ -23,6 +27,4 @@ const userDataSchema = new Schema({
 	},
 });
 
-const UserData = model('UserData', userDataSchema);
-
-export default UserData;
+export const UserData = model('UserData', userDataSchema);

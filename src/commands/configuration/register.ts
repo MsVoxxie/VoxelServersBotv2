@@ -13,7 +13,7 @@ import {
 } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { formatMCUUID } from '../../utils/utils';
-import UserData from '../../models/userData';
+import { UserData } from '../../models/userData';
 import logger from '../../utils/logger';
 
 const registerUser: CommandData = {
@@ -59,7 +59,7 @@ const registerUser: CommandData = {
 					try {
 						await UserData.findOneAndUpdate(
 							{ discordId: interaction.user.id },
-							{ discordId: interaction.user.id, minecraftUsername: name, minecraftUuid: id, chatlinkOptOut: chatlinkOptOut },
+							{ guildId: interaction.guildId, discordId: interaction.user.id, minecraftUsername: name, minecraftUuid: id, chatlinkOptOut: chatlinkOptOut },
 							{ upsert: true, new: true }
 						);
 

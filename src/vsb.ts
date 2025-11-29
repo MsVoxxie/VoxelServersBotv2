@@ -31,7 +31,8 @@ client.commands = new Collection();
 client.buttons = new Collection();
 client.modals = new Collection();
 client.events = new Collection();
-export const mongoCache = new Collection();
+export const chatlinkCache = new Collection();
+export const userdataCache = new Collection();
 
 // Load Events
 import eventLoader from './loaders/discord/eventLoader';

@@ -1,7 +1,7 @@
 import { ApplicationIntegrationType, Client, EmbedBuilder, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, codeBlock } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { formatMCUUID } from '../../utils/utils';
-import UserData from '../../models/userData';
+import { UserData } from '../../models/userData';
 import logger from '../../utils/logger';
 
 const playerInfo: CommandData = {

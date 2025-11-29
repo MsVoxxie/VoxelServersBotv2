@@ -2,7 +2,7 @@ import type { ScheduleTaskData } from '../../types/discordTypes/commandTypes';
 import { setJson, TTL } from '../../utils/redisHelpers';
 import { RedisKeys } from '../../types/redisKeys/keys';
 import { formatMCUUID } from '../../utils/utils';
-import UserData from '../../models/userData';
+import { UserData } from '../../models/userData';
 import logger from '../../utils/logger';
 const INTERVAL_MS = 120_000; // 120 seconds
 
