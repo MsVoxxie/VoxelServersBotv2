@@ -101,6 +101,10 @@ const registerUser: CommandData = {
 				},
 			]);
 
+		// If neither account provided
+		if (!mcUsername && !steamId)
+			return interaction.editReply({ content: 'You must provide at least a Minecraft username or a Steam profile URL to register.', flags: MessageFlags.Ephemeral });
+
 		// Determine which accounts were registered
 		const registeredAccounts = [];
 		if (mcUsername) registeredAccounts.push('Minecraft');
