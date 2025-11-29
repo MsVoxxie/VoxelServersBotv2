@@ -5,24 +5,34 @@ const userDataSchema = new Schema({
 		type: String,
 		required: true,
 	},
-	discordId: {
+	userId: {
 		type: String,
 		required: true,
 		unique: true,
 	},
-	minecraftUsername: {
-		type: String,
-		required: false,
-		unique: true,
+	minecraft: {
+		username: {
+			type: String,
+			required: false,
+		},
+		uuid: {
+			type: String,
+			required: false,
+		},
 	},
-	minecraftUuid: {
-		type: String,
-		required: false,
-		unique: true,
+	steam: {
+		steamId: {
+			type: String,
+			required: false,
+		},
+		profileUrl: {
+			type: String,
+			required: false,
+		},
 	},
 	chatlinkOptOut: {
 		type: Boolean,
-		required: false,
+		required: true,
 		default: false,
 	},
 });

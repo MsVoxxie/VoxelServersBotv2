@@ -25,8 +25,10 @@ const userJoins: EventData = {
 				const user = [...userSet].find((u) => u.minecraftUuid === uuid);
 				const discordMember = await client.users.fetch(user?.discordId || '').catch(() => null);
 				const guild = user.guildId ? await client.guilds.fetch(user.guildId).catch(() => null) : await client.guilds.fetch(process.env.GUILD_ID || '').catch(() => null);
+				if (!guild) return;
 				if (discordMember) {
 					const serverRoles = await ServerRoles.find({ instanceId: event.InstanceId, guildId: guild?.id || '' });
+					if (!serverRoles || serverRoles.length === 0) return;
 					for (const serverRole of serverRoles) {
 						const role = await guild?.roles.fetch(serverRole.roleId).catch(() => null);
 						const member = await guild?.members.fetch(discordMember.id).catch(() => null);

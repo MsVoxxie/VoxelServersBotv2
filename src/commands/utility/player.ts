@@ -30,7 +30,7 @@ const playerInfo: CommandData = {
 					const member = user ? await interaction.guild?.members.fetch(user.id) : null;
 
 					if (!member) return interaction.editReply({ content: 'User not found.', flags: MessageFlags.Ephemeral });
-					const userData = await UserData.findOne({ discordId: user?.id });
+					const userData = await UserData.findOne({ userId: user?.id });
 					if (!userData) return interaction.editReply({ content: 'No data found for this user.', flags: MessageFlags.Ephemeral });
 
 					const embed = new EmbedBuilder()
@@ -40,7 +40,7 @@ const playerInfo: CommandData = {
 							{ name: 'Discord ID', value: codeBlock(user.id), inline: false },
 							{
 								name: 'Minecraft UUID',
-								value: codeBlock(userData.minecraftUuid ? formatMCUUID(userData.minecraftUuid) : 'N/A'),
+								value: codeBlock(userData.minecraft?.uuid ? formatMCUUID(userData.minecraft.uuid) : 'N/A'),
 								inline: false,
 							}
 						);

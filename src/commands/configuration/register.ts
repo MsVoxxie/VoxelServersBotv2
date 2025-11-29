@@ -1,16 +1,4 @@
-import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	Client,
-	EmbedBuilder,
-	MessageFlags,
-	SlashCommandBuilder,
-	Collection,
-	ButtonInteraction,
-	PermissionFlagsBits,
-	ApplicationIntegrationType,
-} from 'discord.js';
+import { Client, EmbedBuilder, MessageFlags, SlashCommandBuilder, PermissionFlagsBits, ApplicationIntegrationType } from 'discord.js';
 import { CommandData } from '../../types/discordTypes/commandTypes';
 import { formatMCUUID } from '../../utils/utils';
 import { UserData } from '../../models/userData';
@@ -19,102 +7,101 @@ import logger from '../../utils/logger';
 const registerUser: CommandData = {
 	data: new SlashCommandBuilder()
 		.setName('register')
-		.setDescription('Link your Minecraft account to your Discord account.')
-		.addStringOption((option) => option.setName('username').setDescription('Your Minecraft username (Case Sensitive)').setRequired(true))
+		.setDescription('Link your Minecraft and Steam accounts to our servers.')
+		.addStringOption((option) => option.setName('minecraft_username').setDescription('Your Minecraft username (Case Sensitive)').setRequired(false))
+		.addStringOption((option) => option.setName('steam_url').setDescription('Your Steam profile URL (if applicable)').setRequired(false))
 		.addBooleanOption((option) => option.setName('chatlink').setDescription('Would you like to opt OUT of chat link? (TRUE/FALSE)').setRequired(false))
 		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
 		.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
 	state: 'enabled',
 	devOnly: false,
 	async execute(client: Client, interaction) {
-		try {
-			await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-			const username = interaction.options.getString('username');
-			const chatlinkOptOut = interaction.options.getBoolean('chatlink') ?? false;
-			const uuidReq = new Request(`https://api.minecraftservices.com/minecraft/profile/lookup/name/${username}`, { headers: { 'Content-Type': 'application/json' } });
-			const usernameUUID = await fetch(uuidReq);
-			const { id, name } = await usernameUUID.json();
-			if (!id) return interaction.editReply({ content: 'Invalid Minecraft username provided.', flags: MessageFlags.Ephemeral });
-			const playerHead = `${process.env.API_URI}/data/mchead/${name}`;
+		await interaction.deferReply();
+		const userId = interaction.user.id;
+		const guildId = interaction.guild?.id;
 
-			// Create an embed to ask if the head returned is correct
-			const buttonRow = new ActionRowBuilder().addComponents(
-				new ButtonBuilder().setCustomId('register_confirm').setLabel("Yes, That's me!").setStyle(ButtonStyle.Success),
-				new ButtonBuilder().setCustomId('register_cancel').setLabel('No, not quite...').setStyle(ButtonStyle.Danger)
-			);
+		const mcUsername = interaction.options.getString('minecraft_username');
+		const steamUrl = interaction.options.getString('steam_url');
+		const chatlinkOptOut = interaction.options.getBoolean('chatlink') ?? false;
 
-			const embed = new EmbedBuilder()
-				.setDescription(`## Does this look like you? →\n**Username:** ${name}\n-# **UUID:** ${formatMCUUID(id)}\n-# **Chat Link Opt-Out:** ${chatlinkOptOut ? 'Yes' : 'No'}`)
-				.setImage(`${process.env.API_URI}/static/imgs/dash-line.png`)
-				.setThumbnail(playerHead)
-				.setColor(client.color)
-				.setFooter({ text: 'Please confirm to complete registration.' });
-			const confirmEmbed = await interaction.editReply({ embeds: [embed], components: [buttonRow], flags: MessageFlags.Ephemeral });
+		let steamId: string | undefined;
+		let mcUUID: string | undefined;
 
-			// Set up a collector to handle button interactions
-			const filter = (i: any) => i.user.id === interaction.user.id;
-			const collector = confirmEmbed.createMessageComponentCollector({ filter, time: 60000 });
-			collector.on('collect', async (i: ButtonInteraction) => {
-				if (i.customId === 'register_confirm') {
-					try {
-						await UserData.findOneAndUpdate(
-							{ discordId: interaction.user.id },
-							{ guildId: interaction.guildId, discordId: interaction.user.id, minecraftUsername: name, minecraftUuid: id, chatlinkOptOut: chatlinkOptOut },
-							{ upsert: true, new: true }
-						);
-
-						logger.info('User Registered', ` ${interaction.member.displayName} (${interaction.user.id}) with Minecraft UUID: ${id}`);
-
-						try {
-							await i.update({
-								content: `Registration successful!\nUUID **${formatMCUUID(id)}** has been linked!\nOpted out of chat link?: **${chatlinkOptOut ? 'Yes' : 'No'}**`,
-								embeds: [],
-								components: [],
-							});
-						} catch (err: any) {
-							if (err?.code !== 10008) logger.error('register:update', err instanceof Error ? err.message : String(err));
-						}
-
-						try {
-							await interaction.channel?.send({
-								content: `<@${interaction.user.id}> has registered their Minecraft username **${name}**!\nThey have also **${
-									chatlinkOptOut ? 'opted out of' : 'not opted out of'
-								}** chat link.`,
-							});
-						} catch (err: any) {
-							if (err?.code !== 10008) logger.error('register:announce', err instanceof Error ? err.message : String(err));
-						}
-					} catch (error: any) {
-						logger.error('User Registration Failed', error instanceof Error ? error.message : String(error));
-						try {
-							await i.update({ content: 'There was an error during registration. Please try again later.', embeds: [], components: [] });
-						} catch (err: any) {
-							if (err?.code !== 10008) logger.error('register:update-on-error', err instanceof Error ? err.message : String(err));
+		// Lookup Steam64 ID from profile URL
+		if (steamUrl) {
+			try {
+				const steamIdMatch = steamUrl.match(/steamcommunity\.com\/profiles\/(\d+)/);
+				if (steamIdMatch) {
+					steamId = steamIdMatch[1];
+				} else {
+					// If vanity URL, resolve to Steam64 via API
+					const vanityMatch = steamUrl.match(/steamcommunity\.com\/id\/([^\/]+)/);
+					if (vanityMatch) {
+						const vanity = vanityMatch[1];
+						const res = await fetch(`https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${process.env.STEAM_API_KEY}&vanityurl=${vanity}`);
+						const data = await res.json();
+						if (data.response.success === 1) {
+							steamId = data.response.steamid;
 						}
 					}
-				} else if (i.customId === 'register_cancel') {
-					try {
-						await i.update({ content: 'Registration cancelled. Please run the command again with the correct username.', embeds: [], components: [] });
-					} catch (err: any) {
-						if (err?.code !== 10008) logger.error('register:cancel', err instanceof Error ? err.message : String(err));
-					}
 				}
-			});
-
-			collector.on('end', async (collected: Collection<string, ButtonInteraction>) => {
-				if (collected.size === 0) {
-					if (!confirmEmbed) return;
-					try {
-						const fetched = await interaction.channel?.messages.fetch(confirmEmbed.id).catch(() => null);
-						if (!fetched) return;
-						await fetched.edit({ content: 'Registration timed out. Please run the command again.', embeds: [], components: [] });
-					} catch (err: any) {}
-				}
-			});
-		} catch (error) {
-			logger.error('RegisterUser', `Error occurred during registration: ${error}`);
-			interaction.editReply({ content: 'An error occurred while processing your registration. Please try again later.', flags: MessageFlags.Ephemeral });
+			} catch (err) {
+				logger.error('Steam lookup failed:', err);
+			}
 		}
+
+		// Lookup Minecraft UUID from username
+		if (mcUsername) {
+			try {
+				const res = await fetch(`https://api.mojang.com/users/profiles/minecraft/${mcUsername}`);
+				if (res.ok) {
+					const data = await res.json();
+					mcUUID = formatMCUUID(data.id);
+				}
+			} catch (err) {
+				logger.error('Minecraft lookup failed:', err);
+			}
+		}
+
+		// Upsert user data
+		try {
+			await UserData.findOneAndUpdate(
+				{ userId },
+				{
+					guildId,
+					userId,
+					minecraft: mcUsername ? { username: mcUsername, uuid: mcUUID } : undefined,
+					steam: steamId ? { steamId, profileUrl: steamUrl } : undefined,
+					chatlinkOptOut,
+				},
+				{ upsert: true, new: true }
+			);
+		} catch (err) {
+			logger.error('UserData upsert failed:', err);
+			return interaction.editReply({ content: 'Failed to save your data. Please try again later.', flags: MessageFlags.Ephemeral });
+		}
+
+		// Confirmation embed
+		const embed = new EmbedBuilder()
+			.setTitle('Registration Complete')
+			.setDescription('Your account information has been saved.')
+			.setColor(client.color)
+			.addFields([
+				{
+					name: 'Minecraft',
+					value: mcUsername ? `Username: ${mcUsername}\nUUID: ${mcUUID ?? 'Not found'}` : 'Not provided',
+				},
+				{
+					name: 'Steam',
+					value: steamId ? `Steam64: ${steamId}\nProfile: ${steamUrl}` : 'Not provided',
+				},
+				{
+					name: 'Chatlink Opt-Out',
+					value: chatlinkOptOut ? 'Opted Out' : 'Opted In',
+				},
+			]);
+
+		return interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 	},
 };
 

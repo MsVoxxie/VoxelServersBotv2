@@ -14,8 +14,8 @@ const playerChoiceCache: ScheduleTaskData = {
 				const chatlinks = await UserData.find().select('-_id -__v').lean();
 				const allPlayers = [];
 				for (const user of chatlinks) {
-					if (user.minecraftUuid) {
-						user.minecraftUuid = formatMCUUID(user.minecraftUuid);
+					if (user.minecraft?.uuid) {
+						user.minecraft.uuid = formatMCUUID(user.minecraft.uuid);
 					}
 					allPlayers.push(user);
 				}
