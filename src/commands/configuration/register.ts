@@ -16,7 +16,7 @@ const registerUser: CommandData = {
 	state: 'enabled',
 	devOnly: false,
 	async execute(client: Client, interaction) {
-		await interaction.deferReply();
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		const userId = interaction.user.id;
 		const guildId = interaction.guild?.id;
 
@@ -84,7 +84,7 @@ const registerUser: CommandData = {
 		// Confirmation embed
 		const embed = new EmbedBuilder()
 			.setTitle('Registration Complete')
-			.setDescription('Your account information has been saved.')
+			.setDescription('Your accounts have been linked!')
 			.setColor(client.color)
 			.addFields([
 				{
@@ -101,6 +101,12 @@ const registerUser: CommandData = {
 				},
 			]);
 
+		// Determine which accounts were registered
+		const registeredAccounts = [];
+		if (mcUsername) registeredAccounts.push('Minecraft');
+		if (steamId) registeredAccounts.push('Steam');
+		const accountsText = registeredAccounts.length > 0 ? registeredAccounts.join(' and ') : 'their account';
+		await interaction.channel.send({ content: `<@${userId}> has registered ${accountsText}!` });
 		return interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 	},
 };
